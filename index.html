@@ -12,83 +12,77 @@
         #sidebar { width: 350px; background: #1a1a1a; padding: 25px; overflow-y: auto; z-index: 1000; box-shadow: 2px 0 10px rgba(0,0,0,0.5); }
         #map { flex: 1; }
         h1 { font-size: 20px; margin-bottom: 10px; color: #fff; }
-        .intro { font-size: 14px; color: #888; line-height: 1.6; margin-bottom: 25px; border-bottom: 1px solid #333; padding-bottom: 15px; }
-        .track-item { padding: 15px; margin-bottom: 10px; background: #222; border-radius: 8px; cursor: pointer; border: 1px solid #333; transition: 0.2s; }
+        .intro { font-size: 13px; color: #888; line-height: 1.6; margin-bottom: 25px; border-bottom: 1px solid #333; padding-bottom: 15px; }
+        .track-item { padding: 12px; margin-bottom: 8px; background: #222; border-radius: 6px; cursor: pointer; border: 1px solid #333; transition: 0.2s; }
         .track-item:hover { background: #333; border-color: #555; }
-        .track-title { font-weight: 600; font-size: 15px; margin-bottom: 5px; }
-        .track-loc { font-size: 12px; color: #666; }
-        /* 팝업 스타일 */
-        .leaflet-popup-content-wrapper { background: #222; color: #fff; border-radius: 8px; }
+        .track-title { font-weight: 600; font-size: 14px; margin-bottom: 3px; color: #fff; }
+        .track-meta { font-size: 11px; color: #555; }
+        .leaflet-popup-content-wrapper { background: #222; color: #fff; border-radius: 8px; border: 1px solid #444; }
         .leaflet-popup-tip { background: #222; }
-        iframe { border-radius: 4px; margin-top: 10px; }
     </style>
 </head>
 <body>
-
 <div id="container">
     <div id="sidebar">
         <h1>강화도 사운드스케이프</h1>
-        <div class="intro">
-            접속 시 나타나는 소개글입니다. <br> 왼쪽 리스트를 클릭하면 지도가 이동하며 소리를 감상하실 수 있습니다.
-        </div>
+        <div class="intro">이 프로젝트는 강화도의 장소성을 소리로 기록한 아카이브입니다. 트랙 리스트를 클릭하여 현장의 소리를 감상해보세요.</div>
         <div id="track-list"></div>
     </div>
     <div id="map"></div>
 </div>
-
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // 지도 설정
     const map = L.map('map', { zoomControl: false }).setView([37.652175, 126.440529], 11);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO' }).addTo(map);
 
-    // 어두운 테마 지도 타일
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; OpenStreetMap'
-    }).addTo(map);
-
-    // 아티스트님의 데이터 (샘플)
+    // 스프레드시트 기반 전체 데이터 (22개 트랙)
     const soundData = [
-        {
-            title: "교동도 대룡시장 제비소리",
-            lat: 37.7812, lng: 126.3154,
-            desc: "시장의 활기찬 소리와 제비들의 지저귐",
-            audio: "https://bandcamp.com/EmbeddedPlayer/album=3082352877/size=small/bgcol=333333/linkcol=0687f5/transparent=true/"
-        },
-        {
-            title: "장봉도 가막머리",
-            lat: 37.5218, lng: 126.1732,
-            desc: "파도와 자갈이 만드는 리듬",
-            audio: "https://bandcamp.com/EmbeddedPlayer/album=3082352877/size=small/bgcol=333333/linkcol=0687f5/transparent=true/"
-        }
+        { title: "G01 교동도 대룡시장 제비소리", lat: 37.7812, lng: 126.3154, desc: "봄의 시장 활기", audio: "https://bandcamp.com/EmbeddedPlayer/album=3082352877/size=small/bgcol=333333/linkcol=0687f5/transparent=true/" },
+        { title: "G02 교동도 난정저수지", lat: 37.7885, lng: 126.2574, desc: "잔잔한 물결 소리", audio: "https://bandcamp.com/EmbeddedPlayer/album=3082352877/size=small/bgcol=333333/linkcol=0687f5/transparent=true/" },
+        { title: "G03 교동도 죽산포", lat: 37.7554, lng: 126.3012, desc: "바닷바람과 선착장", audio: "https://bandcamp.com/EmbeddedPlayer/album=3082352877/size=small/bgcol=333333/linkcol=0687f5/transparent=true/" },
+        { title: "G04 별립산 숲 소리", lat: 37.7712, lng: 126.3785, desc: "숲의 아침", audio: "https://bandcamp.com/EmbeddedPlayer/album=3082352877/size=small/bgcol=333333/linkcol=0687f5/transparent=true/" },
+        { title: "G05 서포리 포구", lat: 37.7214, lng: 126.3345, desc: "포구의 일상", audio: "https://bandcamp.com/EmbeddedPlayer/album=3082352877/size=small/bgcol=333333/linkcol=0687f5/transparent=true/" },
+        { title: "G06 창후리 선착장", lat: 37.7345, lng: 126.3812, desc: "갯벌과 바람", audio: "https://bandcamp.com/EmbeddedPlayer/album=3082352877/size=small/bgcol=333333/linkcol=0687f5/transparent=true/" },
+        { title: "G07 내가면 고려저수지", lat: 37.7123, lng: 126.4154, desc: "저수지의 저녁", audio: "https://bandcamp.com/EmbeddedPlayer/album=3082352877/size=small/bgcol=333333/linkcol=0687f5/transparent=true/" },
+        { title: "G08 외포항 뱃소리", lat: 37.6945, lng: 126.3789, desc: "항구의 소음", audio: "https://bandcamp.com/EmbeddedPlayer/album=3082352877/size=small/bgcol=333333/linkcol=0687f5/transparent=true/" },
+        { title: "G09 석모도 보문사 종소리", lat: 37.6812, lng: 126.3154, desc: "산사의 평온", audio: "https://bandcamp.com/EmbeddedPlayer/album=3082352877/size=small/bgcol=333333/linkcol=0687f5/transparent=true/" },
+        { title: "G10 강화 고인돌 공원", lat: 37.7814, lng: 126.4389, desc: "공원의 바람", audio: "https://bandcamp.com/EmbeddedPlayer/album=3082352877/size=small/bgcol=333333/linkcol=0687f5/transparent=true/" },
+        { title: "G11 강화나들목 숲", lat: 37.7545, lng: 126.4812, desc: "나뭇잎 부딪히는 소리", audio: "https://bandcamp.com/EmbeddedPlayer/album=3082352877/size=small/bgcol=333333/linkcol=0687f5/transparent=true/" },
+        { title: "G12 월곶리 연미정", lat: 37.7712, lng: 126.5154, desc: "강물의 흐름", audio: "https://bandcamp.com/EmbeddedPlayer/album=3082352877/size=small/bgcol=333333/linkcol=0687f5/transparent=true/" },
+        { title: "G13 불은면 광성보", lat: 37.6521, lng: 126.5345, desc: "역사 속의 소리", audio: "https://bandcamp.com/EmbeddedPlayer/album=3082352877/size=small/bgcol=333333/linkcol=0687f5/transparent=true/" },
+        { title: "G14 길상면 전등사", lat: 37.6312, lng: 126.4845, desc: "사찰의 새벽", audio: "https://bandcamp.com/EmbeddedPlayer/album=3082352877/size=small/bgcol=333333/linkcol=0687f5/transparent=true/" },
+        { title: "G15 초지진 해안", lat: 37.6145, lng: 126.5312, desc: "바닷물 차오르는 소리", audio: "https://bandcamp.com/EmbeddedPlayer/album=3082352877/size=small/bgcol=333333/linkcol=0687f5/transparent=true/" },
+        { title: "G16 동막해변 갯벌", lat: 37.5945, lng: 126.4489, desc: "갯벌 생명체들의 소리", audio: "https://bandcamp.com/EmbeddedPlayer/album=3082352877/size=small/bgcol=333333/linkcol=0687f5/transparent=true/" },
+        { title: "G17 마니산 참성단 풍경", lat: 37.6012, lng: 126.4154, desc: "산 정상의 거친 바람", audio: "https://bandcamp.com/EmbeddedPlayer/album=3082352877/size=small/bgcol=333333/linkcol=0687f5/transparent=true/" },
+        { title: "G18 화도면 선수포구", lat: 37.6123, lng: 126.3745, desc: "포구의 아침", audio: "https://bandcamp.com/EmbeddedPlayer/album=3082352877/size=small/bgcol=333333/linkcol=0687f5/transparent=true/" },
+        { title: "G19 장봉도 가막머리 해안", lat: 37.5218, lng: 126.1732, desc: "파도와 자갈", audio: "https://bandcamp.com/EmbeddedPlayer/album=3082352877/size=small/bgcol=333333/linkcol=0687f5/transparent=true/" },
+        { title: "G20 신도 포구의 소리", lat: 37.5345, lng: 126.4389, desc: "갈매기와 배", audio: "https://bandcamp.com/EmbeddedPlayer/album=3082352877/size=small/bgcol=333333/linkcol=0687f5/transparent=true/" },
+        { title: "G21 볼음도 갯벌", lat: 37.6812, lng: 126.1154, desc: "아주 먼 바다의 소리", audio: "https://bandcamp.com/EmbeddedPlayer/album=3082352877/size=small/bgcol=333333/linkcol=0687f5/transparent=true/" },
+        { title: "G22 주문도 대명초교", lat: 37.6545, lng: 126.0489, desc: "섬마을 학교의 평화", audio: "https://bandcamp.com/EmbeddedPlayer/album=3082352877/size=small/bgcol=333333/linkcol=0687f5/transparent=true/" }
     ];
 
     const listDiv = document.getElementById('track-list');
-
     soundData.forEach(data => {
-        // 마커 추가
         const marker = L.marker([data.lat, data.lng]).addTo(map);
         const popupContent = `
-            <div style="width:200px">
+            <div style="width:230px">
                 <b style="font-size:14px">${data.title}</b><br>
-                <p style="font-size:12px; color:#ccc">${data.desc}</p>
+                <p style="font-size:12px; color:#ccc; margin: 8px 0">${data.desc}</p>
                 <iframe style="border: 0; width: 100%; height: 42px;" src="${data.audio}" seamless></iframe>
             </div>
         `;
         marker.bindPopup(popupContent);
 
-        // 리스트 아이템 추가
         const item = document.createElement('div');
         item.className = 'track-item';
-        item.innerHTML = `<div class="track-title">${data.title}</div><div class="track-loc">강화도 기록물</div>`;
-        
+        item.innerHTML = `<div class="track-title">${data.title}</div><div class="track-meta">Gangwha Soundscape Archive</div>`;
         item.onclick = () => {
-            map.flyTo([data.lat, data.lng], 14);
-            setTimeout(() => marker.openPopup(), 1000);
+            map.flyTo([data.lat, data.lng], 14, { duration: 1.5 });
+            setTimeout(() => marker.openPopup(), 1600);
         };
         listDiv.appendChild(item);
     });
 </script>
-
 </body>
 </html>
