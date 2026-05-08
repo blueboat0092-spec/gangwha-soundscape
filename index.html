@@ -3,106 +3,216 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>강화도 사운드스케이프 | Cartography of Memories</title>
+    <title>강화도 사운드스케이프 아카이브</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Pretendard', sans-serif; background: #e0acac; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Pretendard', sans-serif; background: #e0acac; overflow: hidden; }
         #container { display: flex; height: 100vh; position: relative; }
         
-        /* 왼쪽 사이드 텍스트 로고 스타일 */
-        #vertical-logo {
-            position: absolute; left: 0; bottom: 0; width: 50px; height: 100%;
-            background: #fff; display: flex; align-items: flex-end; justify-content: center;
-            padding-bottom: 30px; z-index: 2000; box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+        /* 왼쪽 세로 로고 */
+        #vertical-sidebar {
+            width: 50px; height: 100%; background: #fff; display: flex; 
+            align-items: flex-end; justify-content: center; padding-bottom: 30px; 
+            z-index: 2000; box-shadow: 2px 0 10px rgba(0,0,0,0.05);
         }
-        #vertical-logo h1 {
+        #vertical-sidebar h1 {
             writing-mode: vertical-rl; transform: rotate(180deg);
-            font-size: 24px; color: #8e1d32; margin: 0; font-weight: 700;
+            font-size: 22px; color: #8e1d32; margin: 0; font-weight: 700; letter-spacing: 1px;
         }
 
-        /* 메인 지도 화면 */
-        #map { flex: 1; margin-left: 50px; background: #e0acac; }
+        /* 지도 영역 */
+        #map { flex: 1; background: #e0acac; }
 
-        /* 팝업 창 디자인 커스텀 */
+        /* 오른쪽 재생목록 사이드바 */
+        #playlist {
+            width: 350px; background: rgba(255, 255, 255, 0.95); 
+            height: 100%; overflow-y: auto; z-index: 1000;
+            border-left: 1px solid #ddd; padding: 20px; box-sizing: border-box;
+        }
+        #playlist h2 { font-size: 18px; color: #8e1d32; margin-top: 0; border-bottom: 2px solid #8e1d32; padding-bottom: 10px; }
+        .track-item { 
+            padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; 
+            transition: 0.2s; font-size: 14px; color: #444; line-height: 1.4;
+        }
+        .track-item:hover { background: #f9f2f2; color: #8e1d32; }
+        .track-item b { display: block; margin-bottom: 4px; color: #222; }
+
+        /* 팝업 디자인 (시안 반영) */
         .leaflet-popup-content-wrapper {
             background: #8e1d32 !important; color: #fff !important;
-            border-radius: 0px !important; padding: 15px; width: 280px;
+            border-radius: 0px !important; width: 300px;
         }
-        .leaflet-popup-content { margin: 10px !important; line-height: 1.5; }
-        .leaflet-popup-content b { font-size: 16px; letter-spacing: 1px; display: block; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 5px; }
-        .leaflet-popup-content p { font-size: 13px; font-weight: 300; opacity: 0.9; }
+        .leaflet-popup-content { margin: 15px !important; }
+        .leaflet-popup-content b { font-size: 16px; display: block; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 5px; }
+        .leaflet-popup-content p { font-size: 12px; font-weight: 300; line-height: 1.6; white-space: pre-wrap; margin-bottom: 10px; }
         .leaflet-popup-tip { background: #8e1d32 !important; }
-        .leaflet-popup-close-button { color: #fff !important; font-size: 20px !important; padding: 10px !important; }
+        
+        /* 반드캠프 플레이어 스타일 수정 */
+        iframe { filter: invert(1) hue-rotate(180deg) brightness(1.2); }
 
-        /* 반드캠프 플레이어 스타일 */
-        iframe { border-radius: 0px; filter: invert(1) hue-rotate(180deg) brightness(1.5); margin-top: 10px; }
-
-        /* 커스텀 마커(귀 모양) 애니메이션 */
+        /* 귀 모양 커스텀 마커 */
         .ear-icon {
             background: #8e1d32; border: 2px solid #fff; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            color: white; font-size: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.2);
         }
     </style>
 </head>
 <body>
 
 <div id="container">
-    <div id="vertical-logo">
-        <h1>Gangwha Soundscape Archive</h1>
+    <div id="vertical-sidebar">
+        <h1>Cartography of Memories</h1>
     </div>
+    
     <div id="map"></div>
+
+    <div id="playlist">
+        <h2>Soundscape Album</h2>
+        <div id="track-list"></div>
+    </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // 이미지와 유사한 톤다운된 지도를 위해 디자인된 타일 사용
     const map = L.map('map', { zoomControl: false }).setView([37.68, 126.43], 11);
-    
-    // 부드러운 핑크/브라운 톤의 지도 스타일 (CartoDB Positron 기반 색상 반전 처리와 유사)
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
-        opacity: 0.8
-    }).addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', { opacity: 0.9 }).addTo(map);
 
-    // 귀 모양 아이콘 생성 (이미지의 느낌을 살려 원형 안의 귀 기호 형상화)
     const earIcon = L.divIcon({
         className: 'ear-icon',
-        html: `<svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M12 2C8.69 2 6 4.69 6 8v3.29c-1.13.43-2 1.54-2 2.86 0 1.66 1.34 3 3 3h.5c.83 0 1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5H7c0-2.76 2.24-5 5-5s5 2.24 5 5h-.5c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5h.5c1.66 0 3-1.34 3-3 0-1.32-.87-2.43-2-2.86V8c0-3.31-2.69-6-6-6z"/></svg>`,
-        iconSize: [30, 30],
-        iconAnchor: [15, 15]
+        html: `<svg viewBox="0 0 24 24" width="16" height="16" fill="white"><path d="M12 2C8.69 2 6 4.69 6 8v3.29c-1.13.43-2 1.54-2 2.86 0 1.66 1.34 3 3 3h.5c.83 0 1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5H7c0-2.76 2.24-5 5-5s5 2.24 5 5h-.5c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5h.5c1.66 0 3-1.34 3-3 0-1.32-.87-2.43-2-2.86V8c0-3.31-2.69-6-6-6z"/></svg>`,
+        iconSize: [28, 28]
     });
 
+    // 아티스트님이 제공하신 텍스트 원문 그대로 반영
     const soundData = [
-        { title: "01. 국자와주걱 책방 앞", lat: 37.652175, lng: 126.440529, desc: "책방 앞 풍경 소리와 고양이의 인사", audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=2989378636/transparent=true/" },
-        { title: "02. 석모도 민머루해변", lat: 37.6512988, lng: 126.3331996, desc: "모래사장 위를 걷는 발자국 소리", audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=753759855/transparent=true/" },
-        { title: "03. 정족산 14처길", lat: 37.6365248, lng: 126.4875273, desc: "생명력 넘치는 여름 매미 소리", audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=1719650266/transparent=true/" },
-        { title: "04. 정족산 입구 밤", lat: 37.631870, lng: 126.477204, desc: "고요한 산속의 밤", audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=843445286/transparent=true/" },
-        { title: "05. 전등사 대고", lat: 37.631830, lng: 126.484682, desc: "저녁 예불의 웅장한 북소리", audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=372803100/transparent=true/" },
-        { title: "06. 전등사 범종", lat: 37.631493, lng: 126.483674, desc: "마음을 울리는 종소리", audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=1394143868/transparent=true/" },
-        { title: "07. 동검도 동그랑섬", lat: 37.589020, lng: 126.525597, desc: "갯벌 위 섬의 바람", audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=925560464/transparent=true/" },
-        { title: "08. 강화 대산저수지", lat: 37.785945, lng: 126.479647, desc: "잔잔한 저수지의 아침", audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=1588339098/transparent=true/" },
-        { title: "09. 광성보 우수관 빗방울", lat: 37.665276, lng: 126.530615, desc: "공간의 울림이 담긴 물소리", audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=224371653/transparent=true/" },
-        { title: "10. 교동도 남산포구 밀물", lat: 37.763106, lng: 126.290747, desc: "차오르는 바다의 자장가", audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=4164866312/transparent=true/" },
-        { title: "11. 북일곶돈대 해안가", lat: 37.611408, lng: 126.375040, desc: "거친 바위 해안의 파도", audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=519450696/transparent=true/" },
-        { title: "12. 교동도 월선포구 썰물", lat: 37.774263, lng: 126.316992, desc: "갯벌이 숨 쉬는 시간", audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=64694152/transparent=true/" },
-        { title: "13. 강화도 첫눈", lat: 37.638092, lng: 126.490264, desc: "첫눈이 내리는 고요함", audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=2110564066/transparent=true/" },
-        { title: "14. 온수리 성당 삼종소리", lat: 37.640278, lng: 126.489879, desc: "기도를 알리는 낮의 종소리", audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=2505151801/transparent=true/" },
-        { title: "15. 평화전망대 북쪽 소리", lat: 37.820137, lng: 126.444672, desc: "바람을 타고 온 북녘의 소리", audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=3520696282/transparent=true/" },
-        { title: "16. 교동도 새벽의 바람", lat: 37.768691, lng: 126.290418, desc: "수탁의 울음과 섬의 아침", audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=3411754260/transparent=true/" }
+        {
+            title: "01. 강화도 국자와주걱 책방 앞",
+            lat: 37.652175, lng: 126.440529,
+            desc: "강화도 도장리 마을의 오후 소리풍경\n책방 앞에 걸린 풍경이 바람에 울리고, 목수는 집을 고친다.\n녹음기에 호기심을 보이는 고양이가 말을 걸고\n멀리서 들려오는 개 짖는 소리와 새들의 지저귐,\n각자의 리듬이 자연스럽게 어우러지며 섬의 평화로운 오후가 그려진다.\n\nDate: 2025-11-20 ☁️\nRecording: Zoom F3 / Clippy EM272 pair / AB Stereo",
+            audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=2989378636/transparent=true/autofill=true/"
+        },
+        {
+            title: "02. 사운드워킹-석모도 민머루해변",
+            lat: 37.6512988, lng: 126.3331996,
+            desc: "모래사장 위를 걸으면 기분 좋은 소리를 듣다\n세삼스럽게 내 속도를 느낄때,\n어느새 바다에 가까워진 태양 위로 떠나가는 비행기,\n\nDate: 2026-02-04 17:10 🌤️\nRecording: Zoom F3 / Clippy EM272 pair / AB Stereo",
+            audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=753759855/transparent=true/autofill=true/"
+        },
+        {
+            title: "03. 강화도 정족산 14처길 낮",
+            lat: 37.6365248, lng: 126.4875273,
+            desc: "여름의 강화도는 생명력이 넘쳐흐른다.\n7년이라는 긴 시간을 땅속에서 견디고 마침내 세상 밖으로 터져 나온 매미들의 압도적인 에너지가 공기를 가득 채운다.\n그 기세에 질세라, 시샘 어린 동네 개들이 짖어대며 사이키델릭한 강화도의 여름풍경이 그려진다.\n\nDate: 2025-08-06 14:00 ☀️\nRecording: Zoom F3 / Clippy EM272 pair / AB Stereo",
+            audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=1719650266/transparent=true/autoplay=true/"
+        },
+        {
+            title: "04. 강화도 정족산 입구 밤",
+            lat: 37.631870, lng: 126.477204,
+            desc: "정족산 입구의 고요한 밤의 소리 기록",
+            audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=843445286/transparent=true/autoplay=true/"
+        },
+        {
+            title: "05. 전등사 저녁예불 대고",
+            lat: 37.631830, lng: 126.484682,
+            desc: "전등사에서 울려퍼지는 저녁예불 대고 소리",
+            audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=372803100/transparent=true/autoplay=true/"
+        },
+        {
+            title: "06. 전등사 저녁예불 범종",
+            lat: 37.631493, lng: 126.483674,
+            desc: "전등사 저녁예불 범종의 깊은 울림",
+            audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=1394143868/transparent=true/autoplay=true/"
+        },
+        {
+            title: "07. 동검도 동그랑섬",
+            lat: 37.589020, lng: 126.525597,
+            desc: "동검도 동그랑섬 인근의 바다 소리",
+            audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=925560464/transparent=true/autoplay=true/"
+        },
+        {
+            title: "08. 강화도 대산저수지",
+            lat: 37.785945, lng: 126.479647,
+            desc: "강화도 대산저수지 인근의 환경 소리",
+            audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=1588339098/transparent=true/autoplay=true/"
+        },
+        {
+            title: "09. 광성보 우수관 빗방울 소리",
+            lat: 37.665276, lng: 126.530615,
+            desc: "광성보를 산책하다 갯벌 하구로 연결된 우수관을 발견했고\n녹음기를 넣어 공간의 울림을 들어봤다.\n똑,똑,똑 떨어지는 물소리 그리고 이따금 한번씩 들려오는 저역대의 숨소리\n\nDate: 2025-11-19 🌧️\nRecording: Zoom F3 / Clippy EM272 pair / AB Stereo",
+            audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=224371653/transparent=true/autoplay=true/"
+        },
+        {
+            title: "10. 교동도 남산포구 밀물때",
+            lat: 37.763106, lng: 126.290747,
+            desc: "갯벌에 물이 차오르는 소리는 부드러운 자장가 같다.\n미루지항에서 엄마와 함께 물이 들어오는 소리를 녹음했다.\n\nDate: 2026-01-17 🌤️\nRecording: Zoom F3 / Earsight The One microphone / ORTF stereo",
+            audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=4164866312/transparent=true/autoplay=true/"
+        },
+        {
+            title: "11. 강화도 북일곶돈대 해안가",
+            lat: 37.611408, lng: 126.375040,
+            desc: "강화도 북일곶돈대 해안가의 파도와 바람 소리",
+            audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=519450696/transparent=true/autoplay=true/"
+        },
+        {
+            title: "12. 교동도 월선포구 썰물때",
+            lat: 37.774263, lng: 126.316992,
+            desc: "교동도 월선포구 썰물 때의 갯벌 소리 기록",
+            audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=64694152/transparent=true/autoplay=true/"
+        },
+        {
+            title: "13. 강화도 첫눈",
+            lat: 37.638092, lng: 126.490264,
+            desc: "강화도에 내리는 첫눈의 고요한 소리 풍경",
+            audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=2110564066/transparent=true/autoplay=true/"
+        },
+        {
+            title: "14. 온수리 성당 삼종소리",
+            lat: 37.640278, lng: 126.489879,
+            desc: "온수리 성공회 성당 종소리 땡그랑~땡그랑~\n고상만 복사님은 매일 기도하는 신자를 위해 삼종을 쳐주신다.\n하루 세 번 종을 울리신다.\n\nDate: 2025-11-22-12:00 🌤️\nRecording: Zoom F3 / Earsight The One microphone / ORTF stereo",
+            audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=2505151801/transparent=true/autoplay=true/"
+        },
+        {
+            title: "15. 평화전망대 앞 바람이 실어온 북쪽 소리",
+            lat: 37.820137, lng: 126.444672,
+            desc: "민간인 통제 지역인 강화도 평화전망대 인근 강가에서 기록했다.\n철조망과 강을 사이에 두고 북한에서 민통선을 넘어온 음악이 바람에 덮여 아주 희미하게 들린다.\n\nDate: 2026-1-14 ☁️\nRecording: Zoom F3 / Earsight The One microphone / ORTF stereo",
+            audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=3520696282/transparent=true/autoplay=true/"
+        },
+        {
+            title: "16. 교동도 민가 새벽의 바람",
+            lat: 37.768691, lng: 126.290418,
+            desc: "수탁과 개가 섬을 깨우고\n섬 바람에 나무들이 일어나며 기지게를 편다.\n\nDate: 2025-11-22 ☁️\nRecording: Zoom F3 / Audio-Technica AT8022 / XY stereo\nformat: 48kHz / 32bit float",
+            audio: "https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=0687f5/track=3411754260/transparent=true/autoplay=true/"
+        }
     ];
 
-    soundData.forEach(data => {
+    const listContainer = document.getElementById('track-list');
+
+    soundData.forEach((data, index) => {
+        // 마커 생성
         const marker = L.marker([data.lat, data.lng], { icon: earIcon }).addTo(map);
+        
+        // 팝업 내용
         const popupContent = `
-            <div style="width:250px">
+            <div style="width:280px">
                 <b>${data.title}</b>
                 <p>${data.desc}</p>
                 <iframe style="border: 0; width: 100%; height: 42px;" src="${data.audio}" seamless></iframe>
             </div>
         `;
         marker.bindPopup(popupContent);
+
+        // 오른쪽 플레이 리스트 아이템 생성
+        const trackItem = document.createElement('div');
+        trackItem.className = 'track-item';
+        trackItem.innerHTML = `<b>${data.title}</b><span>${data.lat.toFixed(3)}, ${data.lng.toFixed(3)}</span>`;
+        
+        // 클릭 이벤트: 지도 이동 + 팝업 열기
+        trackItem.onclick = () => {
+            map.flyTo([data.lat, data.lng], 14, { duration: 1.5 });
+            setTimeout(() => marker.openPopup(), 1600);
+        };
+        
+        listContainer.appendChild(trackItem);
     });
 </script>
 
