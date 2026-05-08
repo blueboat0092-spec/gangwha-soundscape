@@ -19,7 +19,6 @@
 
         #map { width: 100%; height: 100%; z-index: 1; filter: sepia(0.1) contrast(0.95); }
         
-        /* 왼쪽 인터페이스 */
         .left-interface {
             position: absolute; left: 0; top: 0; bottom: 0; width: 60px;
             background: var(--beige-bg); border-right: 1px solid rgba(0,0,0,0.1);
@@ -30,7 +29,6 @@
         .z-btn { width: 36px; height: 36px; background: white; border: 1px solid #ddd; cursor: pointer; font-weight: bold; }
         .branding { position: absolute; bottom: 40px; writing-mode: vertical-rl; transform: rotate(180deg); color: var(--accent-red); font-weight: 900; font-size: 17px; letter-spacing: 1.5px; white-space: nowrap; z-index: 3000; }
 
-        /* 정보 모달 */
         #info-modal {
             position: fixed; top: 0; left: 60px; bottom: 0; width: 380px;
             background: white; z-index: 4000; display: none; box-shadow: 10px 0 30px rgba(0,0,0,0.1);
@@ -41,28 +39,23 @@
         .info-sec { margin-bottom: 25px; font-size: 14px; line-height: 1.8; color: #444; }
         .info-sec h3 { font-size: 11px; color: #aaa; letter-spacing: 1px; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 4px; }
 
-        /* 오른쪽 사이드바 */
-        #sidebar-right { width: 320px; background: rgba(255, 255, 255, 0.98); z-index: 2000; display: flex; flex-direction: column; border-left: 1px solid #eee; }
+        #sidebar-right { width: 350px; background: rgba(255, 255, 255, 0.98); z-index: 2000; display: flex; flex-direction: column; border-left: 1px solid #eee; }
         .list-header { padding: 35px 25px 15px; font-weight: 800; color: #bbb; font-size: 11px; letter-spacing: 2px; }
         #track-list { flex: 1; overflow-y: auto; }
-        .track-item { padding: 16px 25px; border-bottom: 1px solid #f2f2f2; cursor: pointer; transition: 0.2s; font-size: 13px; color: #666; }
+        .track-item { padding: 14px 25px; border-bottom: 1px solid #f2f2f2; cursor: pointer; transition: 0.2s; font-size: 13px; color: #666; }
         .track-item:hover { background: var(--beige-bg); }
         .track-item.active { border-left: 6px solid var(--accent-red); color: var(--accent-red); font-weight: 700; background: #fff; }
 
-        /* 하단 컨트롤러 */
-        #master-controller { height: 140px; background: var(--dark-panel); display: flex; flex-direction: column; align-items: center; padding: 20px; box-sizing: border-box; }
-        .now-playing { color: #888; font-size: 11px; margin-bottom: 8px; font-weight: 600; text-align: center; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .ctrl-row { display: flex; align-items: center; gap: 40px; margin-bottom: 15px; }
-        .btn-ui { background: none; border: none; color: white; cursor: pointer; font-size: 26px; }
-        .progress-bar { width: 100%; height: 3px; background: #333; position: relative; }
-        .progress-fill { width: 0%; height: 100%; background: var(--accent-red); transition: width 0.5s linear; }
+        /* 수정된 부분: 하단 컨트롤러 대신 임베드 플레이어 영역 */
+        #master-player-container { 
+            height: 470px; 
+            background: #fff; 
+            border-top: 1px solid #eee; 
+            overflow: hidden; 
+        }
 
-        /* 마커 및 팝업 */
         .ear-icon { background: var(--accent-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.4); border: 2px solid white; cursor: pointer; }
         .custom-popup .leaflet-popup-content-wrapper { border-radius: 0; padding: 12px; background: var(--beige-bg); }
-        .popup-embed { margin-top: 12px; border: 0; width: 100%; height: 42px; }
-        
-        /* 다이어리 텍스트 줄바꿈 및 스타일 */
         .diary-box { white-space: pre-wrap; word-break: keep-all; line-height: 1.6; font-size: 13.5px; color: #333; }
     </style>
 </head>
@@ -78,41 +71,16 @@
         <div class="branding">GANGHWA ISLAND SOUNDSCAPE</div>
     </div>
 
-    <!-- 정보 모달 -->
     <div id="info-modal">
         <span class="close-x" onclick="toggleInfo()">×</span>
         <h1>ALBUM INFO</h1>
         <div class="info-sec">
             <h3>ABOUT PROJECT</h3>
-            강화도와 그 주변 섬들을 유영하며 기록한 사계절의 사운드스케이프 앨범입니다. <br>
-            강화 사운드스케이프 앨범을 제작하며 소리를 단순히 음악의 재료로 사용하기보다, <br>
-            사운드의 레이어와 리듬이 선명하게 드러나는 찰나를 포착하여 그 공간이 품은 본연의 질감을 온전히 담아내는 데 집중했습니다. <br>
-            음악가로서의 감각을 살려 앨범 전체가 하나의 음악으로 그려질 수 있게 트랙 배치를 의도하였습니다. <br>
- <br> 
-            강화도는 제 유년 시절의 가장 중요한 시기를 보낸 장소입니다. <br>
-            당시 기숙 생활을 하던 제게 강화는 그저 지루한 시골 섬일 뿐이었고, <br>
-            주말이면 시끌벅적한 서울로 탈출하고 싶은 마음뿐이었습니다. <br>
-            이후 20대 시절, 음악을 하겠다며 상경해 밴드 활동을 하며 보냈고, 모든 것이 빠르게 변하는 도시의 속도 속에서 저만의 리듬을 잃어버렸습니다. <br>
-            더는 견딜 수 없다고 느껴질 때쯤, 모든 것을 내려놓고 마치 고려 시대의 왕이 피란을 떠나듯 이곳 강화도로 도망쳤습니다. <br>
-            다시 돌아온 섬에서 전등사에서 들려오는 저녁 예불의 낮은 종소리와 풀벌레의 하모니, <br> 
-            아침과 저녁으로 기도를 위해 울리는 온수리 성당의 여백 미 넘치는 삼종 소리, <br>
-            그리고 밀물과 썰물이 만들어내는 바다의 다양한 얼굴들을 만났고 기록했습니다. <br>
-            그 과정은 못난 마음을 바라봐 주는 시간이 되기도 했습니다. <br>
-            그렇게 다시 마주한 강화도는 제가 예전에 알던 것보다 훨씬 깊고 신비로운 소리의 층위를 품고 있었습니다.<br>
-            소리들이 당신의 공간을 채울 때, 제가 강화도의 일상에서 발견한 위로와 아름다운 순간들이 듣는 분들에게도 잘 전달되었으면 좋겠습니다.<br>
-
+            강화도와 그 주변 섬들을 유영하며 기록한 사계절의 사운드스케이프 앨범입니다.
         </div>
         <div class="info-sec">
             <h3>CREDITS</h3>
-            Produced by 이철민 <br>
-            Recorded, edited and mastered by 이철민 <br>
-            Illustrations by 이철민 <br>
-            Cover photo by 이철민 <br>
-            Designed by 이재수 <br>
-        </div>
-        <div class="info-sec">
-            <h3>EQUIPMENT</h3>
-            Audio-Technica AT8022, Earsight The One, Clippy EM272, Zoom F3, Zoom H6
+            Produced by 이철민
         </div>
     </div>
 
@@ -121,14 +89,13 @@
     <div id="sidebar-right">
         <div class="list-header">강화 사운드스케이프 앨범</div>
         <div id="track-list"></div>
-        <div id="master-controller">
-            <div id="current-title" class="now-playing">STANDBY</div>
-            <div class="ctrl-row">
-                <button class="btn-ui" onclick="changeTrack(-1)">⏮</button>
-                <button id="play-pause-btn" class="btn-ui" style="font-size:36px;" onclick="refreshCurrent()">▶</button>
-                <button class="btn-ui" onclick="changeTrack(1)">⏭</button>
-            </div>
-            <div class="progress-bar"><div id="p-fill" class="progress-fill"></div></div>
+        
+        <!-- 수정된 부분: 요청하신 임베드 링크가 삽입되는 공간 -->
+        <div id="master-player-container">
+            <iframe id="main-player" style="border: 0; width: 100%; height: 470px;" 
+                src="https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=large/bgcol=ffffff/linkcol=8e1d32/tracklist=false/track=2989378636/transparent=true/" 
+                seamless>
+            </iframe>
         </div>
     </div>
 </div>
@@ -136,11 +103,9 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     let activeIdx = -1;
-    let progressTimer;
     
-    // 데이터 구조 (desc 사용)
     const soundData = [
-        { id: "2989378636", title: "강화도 국자와주걱 책방 앞_251120", lat: 35.652175, lng: 126.440529, desc: "강화도 도장리 마을의 오후 소리풍경\n책방 앞에 걸린 풍경이 바람에 울리고, 목수는 집을 고친다.", meta: "Date: 2025-11-20 ☁️" },
+        { id: "2989378636", title: "강화도 국자와주걱 책방 앞_251120", lat: 37.652175, lng: 126.440529, desc: "강화도 도장리 마을의 오후 소리풍경\n책방 앞에 걸린 풍경이 바람에 울리고, 목수는 집을 고친다.", meta: "Date: 2025-11-20 ☁️" },
         { id: "753759855", title: "사운드워킹-석모도 민머루해변_260204", lat: 37.651298, lng: 126.333199, desc: "모래사장 위를 걸으며 내 속도를 느낄 때.", meta: "Date: 2026-02-04 🌤️" },
         { id: "1719650266", title: "강화도 정족산 14처길 낮_250806", lat: 37.636524, lng: 126.487527, desc: "여름 강화도의 생명력 넘치는 매미 소리.", meta: "Date: 2025-08-06 ☀️" },
         { id: "843445286", title: "강화도 정족산 입구 밤_250820", lat: 37.631870, lng: 126.477204, desc: "정족산성 입구 밤의 소리풍경.", meta: "Recording: Zoom F3" },
@@ -168,64 +133,22 @@
         modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
     }
 
-    // 트랙 선택 시 자동 재생 유도 로직 포함
+    // 수정된 부분: 하단 플레이어 트랙 변경 함수
     function selectTrack(idx) {
         if(idx < 0) return;
         activeIdx = idx;
         const track = soundData[idx];
 
-        document.getElementById('current-title').innerText = track.title.toUpperCase();
+        // 리스트 하이라이트
         document.querySelectorAll('.track-item').forEach((item, i) => item.classList.toggle('active', i === idx));
-        document.getElementById('play-pause-btn').innerText = "⏸";
         
+        // 지도 이동 및 팝업
         map.flyTo([track.lat, track.lng], 14);
-        
-        setTimeout(() => {
-            const marker = markers[idx];
-            marker.openPopup();
+        setTimeout(() => { markers[idx].openPopup(); }, 400);
 
-            // 팝업 안의 iframe을 강제로 다시 로드하여 autoplay 트리거
-            const popupNode = marker.getPopup().getElement();
-            const iframe = popupNode.querySelector('iframe');
-            if (iframe) {
-                const src = iframe.src;
-                iframe.src = ''; // 리셋
-                iframe.src = src; // 재삽입으로 자동재생 유도
-            }
-        }, 400);
-
-        resetProgressBar();
-    }
-
-    function changeTrack(step) {
-        let next = (activeIdx + step + soundData.length) % soundData.length;
-        selectTrack(next);
-    }
-
-    function refreshCurrent() {
-        if(activeIdx === -1) {
-            selectTrack(0);
-        } else {
-            const btn = document.getElementById('play-pause-btn');
-            if (btn.innerText === "▶") {
-                markers[activeIdx].openPopup();
-                btn.innerText = "⏸";
-            } else {
-                map.closePopup();
-                btn.innerText = "▶";
-            }
-        }
-    }
-
-    function resetProgressBar() {
-        clearInterval(progressTimer);
-        const fill = document.getElementById('p-fill');
-        let width = 0;
-        fill.style.width = '0%';
-        progressTimer = setInterval(() => {
-            if (width >= 100) clearInterval(progressTimer);
-            else { width += 0.5; fill.style.width = width + '%'; }
-        }, 1000);
+        // 하단 플레이어 트랙 교체 (autoplay 포함)
+        const player = document.getElementById('main-player');
+        player.src = `https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=large/bgcol=ffffff/linkcol=8e1d32/tracklist=false/track=${track.id}/transparent=true/autoplay=true/`;
     }
 
     soundData.forEach((data, idx) => {
@@ -237,23 +160,16 @@
         const marker = L.marker([data.lat, data.lng], { icon }).addTo(map);
         markers.push(marker);
 
-        // data.desc를 텍스트 영역으로 사용
+        // 팝업 내부에는 플레이어를 빼고 텍스트 정보만 남겨 깔끔하게 구성 (선택사항)
         const popupContent = `
             <div class="diary-box">
                 <b style="color:var(--accent-red); font-size:15px;">${data.title}</b><br><br>
                 ${data.desc}<br><br>
                 <small style="color:#888;">${data.meta}</small>
-                <iframe class="popup-embed" src="https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=f5f1e6/linkcol=8e1d32/track=${data.id}/transparent=true/autoplay=true/"></iframe>
             </div>`;
         marker.bindPopup(popupContent, { className: 'custom-popup', maxWidth: 280 });
         
-        marker.on('click', () => {
-            activeIdx = idx;
-            document.getElementById('current-title').innerText = data.title.toUpperCase();
-            document.querySelectorAll('.track-item').forEach((item, i) => item.classList.toggle('active', i === idx));
-            document.getElementById('play-pause-btn').innerText = "⏸";
-            resetProgressBar();
-        });
+        marker.on('click', () => selectTrack(idx));
 
         const item = document.createElement('div');
         item.className = 'track-item';
