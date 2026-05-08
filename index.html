@@ -46,17 +46,19 @@
         .track-item:hover { background: var(--beige-bg); }
         .track-item.active { border-left: 6px solid var(--accent-red); color: var(--accent-red); font-weight: 700; background: #fff; }
 
-        /* 수정된 부분: 하단 컨트롤러 대신 임베드 플레이어 영역 */
+        /* 하단 플레이어: 높이 120px로 조정 */
         #master-player-container { 
-            height: 470px; 
+            height: 120px; 
             background: #fff; 
             border-top: 1px solid #eee; 
             overflow: hidden; 
         }
 
         .ear-icon { background: var(--accent-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.4); border: 2px solid white; cursor: pointer; }
-        .custom-popup .leaflet-popup-content-wrapper { border-radius: 0; padding: 12px; background: var(--beige-bg); }
-        .diary-box { white-space: pre-wrap; word-break: keep-all; line-height: 1.6; font-size: 13.5px; color: #333; }
+        
+        /* 팝업 스타일 수정: 폭을 넓히고 여백 조정 */
+        .custom-popup .leaflet-popup-content-wrapper { border-radius: 0; padding: 20px; background: var(--beige-bg); }
+        .diary-box { white-space: pre-wrap; word-break: keep-all; line-height: 1.7; font-size: 14.5px; color: #333; }
     </style>
 </head>
 <body>
@@ -75,12 +77,36 @@
         <span class="close-x" onclick="toggleInfo()">×</span>
         <h1>ALBUM INFO</h1>
         <div class="info-sec">
-            <h3>ABOUT PROJECT</h3>
-            강화도와 그 주변 섬들을 유영하며 기록한 사계절의 사운드스케이프 앨범입니다.
+               <h3>ABOUT PROJECT</h3>
+            강화도와 그 주변 섬들을 유영하며 기록한 사계절의 사운드스케이프 앨범입니다. <br>
+            강화 사운드스케이프 앨범을 제작하며 소리를 단순히 음악의 재료로 사용하기보다, <br>
+            사운드의 레이어와 리듬이 선명하게 드러나는 찰나를 포착하여 그 공간이 품은 본연의 질감을 온전히 담아내는 데 집중했습니다. <br>
+            음악가로서의 감각을 살려 앨범 전체가 하나의 음악으로 그려질 수 있게 트랙 배치를 의도하였습니다. <br>
+ <br> 
+            강화도는 제 유년 시절의 가장 중요한 시기를 보낸 장소입니다. <br>
+            당시 기숙 생활을 하던 제게 강화는 그저 지루한 시골 섬일 뿐이었고, <br>
+            주말이면 시끌벅적한 서울로 탈출하고 싶은 마음뿐이었습니다. <br>
+            이후 20대 시절, 음악을 하겠다며 상경해 밴드 활동을 하며 보냈고, 모든 것이 빠르게 변하는 도시의 속도 속에서 저만의 리듬을 잃어버렸습니다. <br>
+            더는 견딜 수 없다고 느껴질 때쯤, 모든 것을 내려놓고 마치 고려 시대의 왕이 피란을 떠나듯 이곳 강화도로 도망쳤습니다. <br>
+            다시 돌아온 섬에서 전등사에서 들려오는 저녁 예불의 낮은 종소리와 풀벌레의 하모니, <br> 
+            아침과 저녁으로 기도를 위해 울리는 온수리 성당의 여백 미 넘치는 삼종 소리, <br>
+            그리고 밀물과 썰물이 만들어내는 바다의 다양한 얼굴들을 만났고 기록했습니다. <br>
+            그 과정은 못난 마음을 바라봐 주는 시간이 되기도 했습니다. <br>
+            그렇게 다시 마주한 강화도는 제가 예전에 알던 것보다 훨씬 깊고 신비로운 소리의 층위를 품고 있었습니다.<br>
+            소리들이 당신의 공간을 채울 때, 제가 강화도의 일상에서 발견한 위로와 아름다운 순간들이 듣는 분들에게도 잘 전달되었으면 좋겠습니다.<br>
+
         </div>
         <div class="info-sec">
             <h3>CREDITS</h3>
-            Produced by 이철민
+            Produced by 이철민 <br>
+            Recorded, edited and mastered by 이철민 <br>
+            Illustrations by 이철민 <br>
+            Cover photo by 이철민 <br>
+            Designed by 이재수 <br>
+        </div>
+        <div class="info-sec">
+            <h3>EQUIPMENT</h3>
+            Audio-Technica AT8022, Earsight The One, Clippy EM272, Zoom F3, Zoom H6
         </div>
     </div>
 
@@ -90,10 +116,10 @@
         <div class="list-header">강화 사운드스케이프 앨범</div>
         <div id="track-list"></div>
         
-        <!-- 수정된 부분: 요청하신 임베드 링크가 삽입되는 공간 -->
         <div id="master-player-container">
-            <iframe id="main-player" style="border: 0; width: 100%; height: 470px;" 
-                src="https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=large/bgcol=ffffff/linkcol=8e1d32/tracklist=false/track=2989378636/transparent=true/" 
+            <!-- 가로형 슬림 플레이어로 변경 -->
+            <iframe id="main-player" style="border: 0; width: 100%; height: 120px;" 
+                src="https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=large/bgcol=ffffff/linkcol=8e1d32/tracklist=false/artwork=small/track=2989378636/transparent=true/" 
                 seamless>
             </iframe>
         </div>
@@ -133,22 +159,19 @@
         modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
     }
 
-    // 수정된 부분: 하단 플레이어 트랙 변경 함수
     function selectTrack(idx) {
         if(idx < 0) return;
         activeIdx = idx;
         const track = soundData[idx];
 
-        // 리스트 하이라이트
         document.querySelectorAll('.track-item').forEach((item, i) => item.classList.toggle('active', i === idx));
         
-        // 지도 이동 및 팝업
         map.flyTo([track.lat, track.lng], 14);
         setTimeout(() => { markers[idx].openPopup(); }, 400);
 
-        // 하단 플레이어 트랙 교체 (autoplay 포함)
         const player = document.getElementById('main-player');
-        player.src = `https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=large/bgcol=ffffff/linkcol=8e1d32/tracklist=false/track=${track.id}/transparent=true/autoplay=true/`;
+        // 요청하신 슬림형 플레이어 URL 형식 유지
+        player.src = `https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=large/bgcol=ffffff/linkcol=8e1d32/tracklist=false/artwork=small/track=${track.id}/transparent=true/autoplay=true/`;
     }
 
     soundData.forEach((data, idx) => {
@@ -160,14 +183,15 @@
         const marker = L.marker([data.lat, data.lng], { icon }).addTo(map);
         markers.push(marker);
 
-        // 팝업 내부에는 플레이어를 빼고 텍스트 정보만 남겨 깔끔하게 구성 (선택사항)
         const popupContent = `
             <div class="diary-box">
-                <b style="color:var(--accent-red); font-size:15px;">${data.title}</b><br><br>
+                <b style="color:var(--accent-red); font-size:16px;">${data.title}</b><br><br>
                 ${data.desc}<br><br>
-                <small style="color:#888;">${data.meta}</small>
+                <small style="color:#888; font-size:12px;">${data.meta}</small>
             </div>`;
-        marker.bindPopup(popupContent, { className: 'custom-popup', maxWidth: 280 });
+            
+        // 팝업 maxWidth를 350으로 확장
+        marker.bindPopup(popupContent, { className: 'custom-popup', maxWidth: 350 });
         
         marker.on('click', () => selectTrack(idx));
 
