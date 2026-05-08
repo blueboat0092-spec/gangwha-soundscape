@@ -9,78 +9,96 @@
         @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap');
 
         :root {
-            --primary-color: #8e1d32;
-            --bg-glass: rgba(255, 255, 255, 0.9);
+            --accent-red: #8e1d32;
+            --beige-bg: #f5f1e6;
+            --map-overlay: rgba(214, 164, 164, 0.4);
         }
 
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Pretendard', sans-serif; background: #f4f4f2; overflow: hidden; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Pretendard', sans-serif; background: #e8caca; overflow: hidden; }
         #app { display: flex; width: 100vw; height: 100vh; position: relative; }
 
-        /* 좌측 패널 */
-        #left-panel { 
-            width: 350px; background: var(--bg-glass); backdrop-filter: blur(12px);
-            padding: 40px; display: flex; flex-direction: column; z-index: 2000;
-            box-shadow: 10px 0 30px rgba(0,0,0,0.05);
+        /* 지도 설정: 톤 다운된 레드/베이지 필터 */
+        #map { width: 100%; height: 100%; background: #e8caca; z-index: 1; }
+        .map-filter { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: var(--map-overlay); pointer-events: none; z-index: 2; 
         }
-        h1 { font-family: 'Noto Serif KR', serif; font-size: 22px; margin: 0 0 30px 0; color: #1a1a1a; line-height: 1.4; }
 
-        .tab-menu { display: flex; gap: 15px; border-bottom: 1px solid #ddd; margin-bottom: 20px; }
-        .tab-btn { background: none; border: none; cursor: pointer; font-size: 11px; font-weight: 700; color: #999; padding-bottom: 10px; letter-spacing: 1px; }
-        .tab-btn.active { color: var(--primary-color); border-bottom: 2px solid var(--primary-color); }
-        #tab-content { flex: 1; overflow-y: auto; font-size: 13px; line-height: 1.8; color: #444; white-space: pre-wrap; }
+        /* 왼쪽 세로 로고 바 */
+        .side-bar {
+            position: absolute; left: 0; top: 0; bottom: 0; width: 60px;
+            background: var(--beige-bg); border-right: 1px solid rgba(0,0,0,0.1);
+            z-index: 2000; display: flex; align-items: flex-end; padding-bottom: 40px;
+            writing-mode: vertical-rl; transform: rotate(180deg);
+        }
+        .side-bar span { font-family: 'Noto Serif KR', serif; font-size: 22px; font-weight: 700; color: var(--accent-red); letter-spacing: 2px; }
 
-        /* 지도 */
-        #map { flex: 1; z-index: 1; filter: grayscale(0.1) sepia(0.05); }
+        /* 오른쪽 상단 정보 버튼 및 팝업 */
+        .info-trigger {
+            position: absolute; right: 340px; top: 30px; z-index: 3000;
+            width: 44px; height: 44px; background: var(--accent-red); color: white;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 20px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        #about-popup {
+            display: none; position: absolute; right: 340px; top: 85px; width: 340px;
+            background: white; color: #1a1a1a; padding: 35px; z-index: 3000;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2); border-top: 5px solid var(--accent-red);
+        }
+        #about-popup h2 { font-family: 'Noto Serif KR', serif; margin-top: 0; color: var(--accent-red); border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        #about-popup p { font-size: 14px; line-height: 1.8; color: #444; white-space: pre-wrap; }
 
-        /* 우측 사이드바: 재생목록 + 고정 컨트롤러 */
+        /* 우측 사이드바: 16개 트랙 리스트 */
         #right-sidebar { 
-            width: 320px; background: #fff; border-left: 1px solid #eee; 
+            width: 320px; background: rgba(255, 255, 255, 0.95); border-left: 1px solid #eee; 
             display: flex; flex-direction: column; z-index: 2000; 
         }
-        .list-header { padding: 25px 20px 10px; font-size: 11px; font-weight: 800; color: #aaa; letter-spacing: 1.5px; border-bottom: 1px solid #f9f9f9; }
+        .list-header { padding: 30px 25px 15px; font-size: 11px; font-weight: 800; color: #aaa; letter-spacing: 2px; border-bottom: 1px solid #f0f0f0; }
         #track-list { flex: 1; overflow-y: auto; }
         .track-item { 
-            padding: 15px 20px; border-bottom: 1px solid #f5f5f5; cursor: pointer; 
-            font-size: 13px; transition: 0.2s; color: #666; display: flex; align-items: center;
+            padding: 16px 25px; border-bottom: 1px solid #f5f5f5; cursor: pointer; 
+            font-size: 13px; color: #666; transition: 0.2s; display: flex; align-items: center;
         }
-        .track-item:hover { background: #fffafb; color: var(--primary-color); }
-        .track-item.active { background: #fffafb; color: var(--primary-color); font-weight: 700; border-right: 4px solid var(--primary-color); }
-        .track-num { width: 25px; font-size: 10px; opacity: 0.5; font-family: monospace; }
+        .track-item:hover { background: var(--beige-bg); color: var(--accent-red); }
+        .track-item.active { background: #fff; color: var(--accent-red); font-weight: bold; border-left: 5px solid var(--accent-red); }
+        .track-num { width: 30px; font-size: 10px; opacity: 0.5; }
 
-        /* 하단 고정 컨트롤러 (앨범 전체 제어) */
-        #main-player-wrap { 
-            height: 140px; background: #1a1a1a; padding: 10px;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
+        /* 하단 고정 플레이어 */
+        #player-wrap { height: 120px; background: #1a1a1a; z-index: 2500; }
+
+        /* 귀 모양 마커 커스텀 */
+        .ear-marker {
+            background: var(--accent-red); border-radius: 50% 50% 50% 10%;
+            border: 2px solid white; display: flex; align-items: center; justify-content: center;
+            transform: rotate(-45deg);
         }
+        .ear-marker svg { fill: white; width: 18px; height: 18px; transform: rotate(45deg); }
 
-        /* 팝업 디자인 */
-        .leaflet-popup-content-wrapper { border-radius: 4px; padding: 5px; }
-        .track-info-popup b { font-family: 'Noto Serif KR', serif; font-size: 16px; color: var(--primary-color); display: block; margin-bottom: 8px; }
-        .track-desc { font-size: 13px; line-height: 1.6; color: #333; margin-bottom: 10px; white-space: pre-wrap; }
-        .track-meta-box { background: #f8f8f8; padding: 8px; font-size: 11px; color: #777; border-top: 1px solid #eee; }
+        /* 리플렛 팝업 커스텀 */
+        .leaflet-popup-content-wrapper { border-radius: 0; background: var(--beige-bg); }
+        .track-info-popup b { font-family: 'Noto Serif KR', serif; font-size: 16px; color: var(--accent-red); display: block; margin-bottom: 10px; }
+        .track-info-popup div { font-size: 13px; line-height: 1.6; color: #333; white-space: pre-wrap; margin-bottom: 10px; }
+        .track-meta { font-size: 11px; color: #777; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 10px; }
     </style>
 </head>
 <body>
 
 <div id="app">
-    <div id="left-panel">
-        <h1>강화도 사운드스케이프<br><small style="font-size: 14px; font-weight: 400; color: #666;">Yi Cheolmin Sound Archive</small></h1>
-        <div class="tab-menu">
-            <button class="tab-btn active" onclick="showTab('about', this)">ABOUT</button>
-            <button class="tab-btn" onclick="showTab('credits', this)">CREDITS</button>
-            <button class="tab-btn" onclick="showTab('equipment', this)">EQUIPMENT</button>
-        </div>
-        <div id="tab-content"></div>
+    <div class="side-bar"><span>GANGHWA SOUNDSCAPE ARCHIVE</span></div>
+    
+    <div class="info-trigger" onclick="toggleAbout()">?</div>
+    <div id="about-popup">
+        <h2>About Archive</h2>
+        <p>강화도와 그 주변 섬들을 유영하며 기록한 사계절의 사운드스케이프입니다. 섬의 평화로운 오후부터 분단의 소리까지, 이철민 아티스트의 필드 노트를 따라 소리의 지도를 탐험해 보세요.</p>
     </div>
 
     <div id="map"></div>
+    <div class="map-filter"></div>
 
     <div id="right-sidebar">
-        <div class="list-header">TRACKLIST</div>
+        <div class="list-header">16 SOUNDS OF GANGHWA</div>
         <div id="track-list"></div>
-        
-        <!-- 고정 컨트롤러: 재생, 정지, 다음곡 기능을 포함한 밴드캠프 통합 플레이어 -->
-        <div id="main-player-wrap">
+        <div id="player-wrap">
             <iframe id="main-player" style="border: 0; width: 100%; height: 120px;" src="https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=large/bgcol=333333/linkcol=ffffff/tracklist=false/artwork=small/transparent=true/" seamless></iframe>
         </div>
     </div>
@@ -88,60 +106,47 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    const infoData = {
-        about: `강화도와 그 주변 섬들을 유영하며 기록한 사계절의 사운드스케이프 앨범입니다.
-강화 사운드스케이프 앨범을 제작하며 소리를 단순히 음악의 재료로 사용하기보다,
-사운드의 레이어와 리듬이 선명하게 드러나는 찰나를 포착하여 그 공간이 품은 본연의 질감을 온전히 담아내는 데 집중했습니다.
-음악가로서의 감각을 살려 앨범 전체가 하나의 음악으로 그려질 수 있게 트랙 배치를 의도하였습니다.
-
-강화도는 제 유년 시절의 가장 중요한 시기를 보낸 장소입니다.
-당시 기숙 생활을 하던 제게 강화는 그저 지루한 시골 섬일 뿐이었고,
-주말이면 시끌벅적한 서울로 탈출하고 싶은 마음뿐이었습니다.
-이후 20대 시절, 음악을 하겠다며 상경해 밴드 활동을 하며 보냈고, 모든 것이 빠르게 변하는 도시의 속도 속에서 저만의 리듬을 잃어버렸습니다. 더는 견딜 수 없다고 느껴질 때쯤, 모든 것을 내려놓고 마치 고려 시대의 왕이 피란을 떠나듯 이곳 강화도로 도망쳤습니다.
-
-다시 돌아온 섬에서 전등사에서 들려오는 저녁 예불의 낮은 종소리와 풀벌레의 하모니, 아침과 저녁으로 기도를 위해 울리는 온수리 성당의 여백 미 넘치는 삼종 소리, 그리고 밀물과 썰물이 만들어내는 바다의 다양한 얼굴들을 만났고 기록했습니다. 그 과정은 못난 마음을 바라봐 주는 시간이 되기도 했습니다. 그렇게 다시 마주한 강화도는 제가 예전에 알던 것보다 훨씬 깊고 신비로운 소리의 층위를 품고 있었습니다.
-`,
-        credits: `Released April 2026\nPRODUCED BY 이철민\nDESIGNED BY 이재수\nCOLLABORATORS: yi, binna`,
-        equipment: `RECORDER: Zoom F8n, Zoom F3\nMIC: NT-SF1, AT8022, Clippy EM272`
-    };
+    const earIconSvg = `<svg viewBox="0 0 24 24"><path d="M9,2C5.13,2,2,5.13,2,9c0,2.38,1.19,4.47,3,5.74V17c0,0.55,0.45,1,1,1h2c0.55,0,1-0.45,1-1v-2.26C10.81,13.47,12,11.38,12,9 C12,5.13,8.87,2,9,2z M9,12c-1.66,0-3-1.34-3-3s1.34-3,3-3s3,1.34,3,3S10.66,12,9,12z"/></svg>`;
 
     const soundData = [
-        { id: "2989378636", title: "01. 강화도 국자와주걱 책방 앞", lat: 37.652175, lng: 126.440529, desc: "책방 앞에 걸린 풍경이 바람에 울리고, 목수는 집을 고친다. 녹음기에 호기심을 보이는 고양이가 말을 걸고...", date: "2025-11-20 ☁️", rec: "Zoom F3 / Clippy EM272" },
-        { id: "753759855", title: "02. 사운드워킹-석모도 민머루해변", lat: 37.651298, lng: 126.333199, desc: "모래사장 위를 걸으며 느끼는 내 속도. 태양 위로 떠나가는 비행기 소리.", date: "2026-02-04 🌤️", rec: "Zoom F3 / Clippy EM272" },
-        { id: "1719650266", title: "03. 강화도 정족산 14처길 낮", lat: 37.636524, lng: 126.487527, desc: "매미들의 압도적인 에너지와 시샘 어린 동네 개들이 짖어대는 사이키델릭한 여름.", date: "2025-08-06 ☀️", rec: "Zoom F3 / Clippy EM272" },
-        { id: "224371653", title: "09. 광성보 우수관 빗방울 소리", lat: 37.665276, lng: 126.530615, desc: "우수관 내부의 독특한 리듬감과 공명. 똑,똑,똑 떨어지는 물소리.", date: "2025-11-19 🌧️", rec: "Zoom F3 / Clippy EM272" },
-        { id: "4164866312", title: "10. 교동도 남산포구 밀물때", lat: 37.763106, lng: 126.290747, desc: "갯벌에 물이 차오르는 부드러운 자장가. 엄마와 함께 기록한 미루지항.", date: "2026-01-17 🌤️", rec: "Zoom F3 / Earsight The One" },
-        { id: "2505151801", title: "14. 온수리 성당 삼종소리", lat: 37.640278, lng: 126.489879, desc: "매일 세 번 마을로 퍼지는 정오의 삼종 소리. 땡그랑~땡그랑~", date: "2025-11-22 🌤️", rec: "Zoom F3 / Earsight The One" },
-        { id: "3520696282", title: "15. 평화전망대 앞 바람 소리", lat: 37.820137, lng: 126.444672, desc: "철조망을 넘어 바람에 실려온 북쪽의 희미한 소리들.", date: "2026-01-14 ☁️", rec: "Zoom F3 / Earsight The One" },
-        { id: "3411754260", title: "16. 교동도 민가 새벽의 바람", lat: 37.768691, lng: 126.290418, desc: "수탁과 개가 섬을 깨우고 나무들이 기지개를 켜는 새벽.", date: "2025-11-22 ☁️", rec: "Zoom F3 / AT8022 (32bit float)" }
+        { id: "2989378636", title: "01. 강화도 국자와주걱 책방 앞", lat: 37.652175, lng: 126.440529, desc: "강화도 도장리 마을의 오후 소리풍경\n책방 앞에 걸린 풍경이 바람에 울리고, 목수는 집을 고친다.\n녹음기에 호기심을 보이는 고양이가 말을 걸고\n멀리서 들려오는 개 짖는 소리와 새들의 지저귐,\n각자의 리듬이 자연스럽게 어우러지며 섬의 평화로운 오후가 그려진다.", meta: "Date: 2025-11-20 ☁️\nRecording: Zoom F3 / Clippy EM272 pair / AB Stereo" },
+        { id: "753759855", title: "02. 사운드워킹-석모도 민머루해변", lat: 37.651298, lng: 126.333199, desc: "모래사장 위를 걸으면 기분 좋은 소리를 듣다\n세삼스럽게 내 속도를 느낄때,\n어느새 바다에 가까워진 태양 위로 떠나가는 비행기", meta: "Date: 2026-02-04 17:10 🌤️\nRecording: Zoom F3 / Clippy EM272 pair / AB Stereo" },
+        { id: "1719650266", title: "03. 강화도 정족산 14처길 낮", lat: 37.636524, lng: 126.487527, desc: "여름의 강화도는 생명력이 넘쳐흐른다.\n7년이라는 긴 시간을 땅속에서 견디고 마침내 세상 밖으로 터져 나온 매미들의 압도적인 에너지가 공기를 가득 채운다.\n그 기세에 질세라, 시샘 어린 동네 개들이 짖어대며 사이키델릭한 강화도의 여름풍경이 그려진다.", meta: "Date: 2025-08-06 14:00 ☀️\nRecording: Zoom F3 / Clippy EM272 pair / AB Stereo" },
+        { id: "843445286", title: "04. 강화도 정족산 입구 밤", lat: 37.631870, lng: 126.477204, desc: "정족산 밤의 소리.", meta: "Recording: Zoom F3" },
+        { id: "372803100", title: "05. 전등사 저녁예불 대고", lat: 37.631830, lng: 126.484682, desc: "대고 소리.", meta: "Recording: Zoom F3" },
+        { id: "1394143868", title: "06. 전등사 저녁예불 범종", lat: 37.631493, lng: 126.483674, desc: "범종 소리.", meta: "Recording: Zoom F3" },
+        { id: "925560464", title: "07. 동검도 동그랑섬", lat: 37.589020, lng: 126.525597, desc: "갯벌 소리.", meta: "Recording: Zoom F3" },
+        { id: "1588339098", title: "08. 강화도 대산저수지", lat: 37.785945, lng: 126.479647, desc: "저수지 소리.", meta: "Recording: Zoom F3" },
+        { id: "224371653", title: "09. 광성보 우수관 빗방울 소리", lat: 37.665276, lng: 126.530615, desc: "광성보를 산책하다 갯벌 하구로 연결된 우수관을 발견했고\n녹음기를 넣어 공간의 울림을 들어봤다.\n똑,똑,똑 떨어지는 물소리 그리고 이따금 한번씩 들려오는 저역대의 숨소리", meta: "Date: 2025-11-19 🌧️\nRecording: Zoom F3 / Clippy EM272 pair / AB Stereo" },
+        { id: "4164866312", title: "10. 교동도 남산포구 밀물때", lat: 37.763106, lng: 126.290747, desc: "갯벌에 물이 차오르는 소리는 부드러운 자장가 같다.\n미루지항에서 엄마와 함께 물이 들어오는 소리를 녹음했다.", meta: "Date: 2026-01-17 🌤️\nRecording: Zoom F3 / Earsight The One / ORTF" },
+        { id: "519450696", title: "11. 강화도 북일곶돈대 해안가", lat: 37.611408, lng: 126.375040, desc: "해안가 소리.", meta: "Recording: Zoom F3" },
+        { id: "64694152", title: "12. 교동도 월선포구 썰물때", lat: 37.774263, lng: 126.316992, desc: "썰물 소리.", meta: "Recording: Zoom F3" },
+        { id: "2110564066", title: "13. 강화도 첫눈", lat: 37.638092, lng: 126.490264, desc: "눈 내리는 소리.", meta: "Recording: Zoom F3" },
+        { id: "2505151801", title: "14. 온수리 성당 삼종소리", lat: 37.640278, lng: 126.489879, desc: "온수리 성공회 성당 종소리 땡그랑~땡그랑~\n고상만 복사님은 매일 기도하는 신자를 위해 삼종을 쳐주신다.\n하루 세 번 종을 울리신다.", meta: "Date: 2025-11-22-12:00 🌤️\nRecording: Zoom F3 / Earsight The One / ORTF" },
+        { id: "3520696282", title: "15. 평화전망대 앞 북쪽 소리", lat: 37.820137, lng: 126.444672, desc: "민간인 통제 지역인 강화도 평화전망대 인근 강가에서 기록했다.\n철조망과 강을 사이에 두고 북한에서 민통선을 넘어온 음악이 바람에 덮여 아주 희미하게 들린다.", meta: "Date: 2026-1-14 ☁️\nRecording: Zoom F3 / Earsight The One / ORTF" },
+        { id: "3411754260", title: "16. 교동도 민가 새벽의 바람", lat: 37.768691, lng: 126.290418, desc: "수탁과 개가 섬을 깨우고\n섬 바람에 나무들이 일어나며 기지게를 편다.", meta: "Date: 2025-11-22 ☁️\nRecording: Zoom F3 / AT8022 / XY stereo" }
     ];
 
     const map = L.map('map', { zoomControl: false }).setView([37.68, 126.43], 11);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/light_nolabels/{z}/{x}/{y}{r}.png').addTo(map);
+
+    function toggleAbout() {
+        const p = document.getElementById('about-popup');
+        p.style.display = p.style.display === 'block' ? 'none' : 'block';
+    }
 
     function playTrack(trackId, idx) {
-        // 하단 플레이어 업데이트 (특정 트랙 재생)
-        const player = document.getElementById('main-player');
-        player.src = `https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=large/bgcol=333333/linkcol=ffffff/tracklist=false/artwork=small/track=${trackId}/transparent=true/autoplay=true/`;
-        
-        // 리스트 UI 업데이트
+        document.getElementById('main-player').src = `https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=large/bgcol=333333/linkcol=ffffff/tracklist=false/artwork=small/track=${trackId}/transparent=true/autoplay=true/`;
         document.querySelectorAll('.track-item').forEach((el, i) => el.classList.toggle('active', i === idx));
     }
 
     soundData.forEach((data, idx) => {
-        const marker = L.marker([data.lat, data.lng]).addTo(map);
+        const icon = L.divIcon({ className: 'ear-marker', html: earIconSvg, iconSize: [32, 32], iconAnchor: [16, 16] });
+        const marker = L.marker([data.lat, data.lng], { icon }).addTo(map);
+        
         marker.on('click', () => {
             playTrack(data.id, idx);
-            const content = `
-                <div class="track-info-popup">
-                    <b>${data.title}</b>
-                    <div class="track-desc">${data.desc}</div>
-                    <div class="track-meta-box">
-                        <div>DATE: ${data.date}</div>
-                        <div>REC: ${data.rec}</div>
-                    </div>
-                </div>`;
-            marker.bindPopup(content, { maxWidth: 300 }).openPopup();
+            marker.bindPopup(`<div class="track-info-popup"><b>${data.title}</b><div>${data.desc}</div><div class="track-meta">${data.meta.replace(/\n/g, '<br>')}</div></div>`, { maxWidth: 280 }).openPopup();
         });
 
         const item = document.createElement('div');
@@ -150,13 +155,6 @@
         item.onclick = () => { map.flyTo([data.lat, data.lng], 14); marker.fire('click'); };
         document.getElementById('track-list').appendChild(item);
     });
-
-    function showTab(type, btn) {
-        document.getElementById('tab-content').innerText = infoData[type];
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-    }
-    showTab('about', document.querySelector('.tab-btn'));
 </script>
 </body>
 </html>
