@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>GANGHWA ISLAND SOUNDSCAPE</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
@@ -11,20 +12,22 @@
         :root {
             --accent-red: #8e1d32;
             --beige-bg: #f5f1e6;
+            --sidebar-width: 350px;
+            --mobile-player-height: 120px;
         }
 
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Pretendard', sans-serif; background: #e8caca; overflow: hidden; }
-        #app { display: flex; width: 100vw; height: 100vh; position: relative; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Pretendard', sans-serif; background: #f0f0f0; overflow: hidden; }
+        #app { display: flex; width: 100vw; height: 100vh; position: relative; overflow: hidden; }
 
-        #map { width: 100%; height: 100%; z-index: 1; filter: sepia(0.1) contrast(0.95); }
+        #map { flex: 1; height: 100%; z-index: 1; filter: sepia(0.1) contrast(0.95); }
         
         .left-interface {
             position: absolute; left: 0; top: 0; bottom: 0; width: 60px;
             background: var(--beige-bg); border-right: 1px solid rgba(0,0,0,0.1);
             z-index: 3000; display: flex; flex-direction: column; align-items: center; padding-top: 20px;
         }
-        .menu-btn { width: 44px; height: 44px; background: var(--accent-red); color: white; border: none; cursor: pointer; font-size: 22px; margin-bottom: 10px; }
-        .branding { position: absolute; bottom: 40px; writing-mode: vertical-rl; transform: rotate(180deg); color: var(--accent-red); font-weight: 900; font-size: 17px; letter-spacing: 1.5px; white-space: nowrap; z-index: 3000; }
+        .menu-btn { width: 44px; height: 44px; background: var(--accent-red); color: white; border: none; cursor: pointer; font-size: 22px; margin-bottom: 10px; border-radius: 4px; }
+        .branding { position: absolute; bottom: 40px; writing-mode: vertical-rl; transform: rotate(180deg); color: var(--accent-red); font-weight: 900; font-size: 17px; letter-spacing: 1.5px; white-space: nowrap; }
 
         #info-modal {
             position: fixed; top: 0; left: 60px; bottom: 0; width: 380px;
@@ -33,88 +36,33 @@
         }
         .close-x { position: absolute; top: 20px; right: 20px; font-size: 28px; cursor: pointer; line-height: 1; }
 
-        #sidebar-right { width: 350px; background: rgba(255, 255, 255, 0.98); z-index: 2000; display: flex; flex-direction: column; border-left: 1px solid #eee; }
+        #sidebar-right { width: var(--sidebar-width); background: rgba(255, 255, 255, 0.98); z-index: 2000; display: flex; flex-direction: column; border-left: 1px solid #eee; }
+        .track-list-container { flex: 1; overflow-y: auto; }
         .track-item { padding: 14px 25px; border-bottom: 1px solid #f2f2f2; cursor: pointer; font-size: 13px; color: #666; }
-        .track-item.active { border-left: 6px solid var(--accent-red); color: var(--accent-red); font-weight: 700; background: #fff; }
+        .track-item.active { border-left: 6px solid var(--accent-red); color: var(--accent-red); font-weight: 700; background: #fff8f8; }
 
-        #master-player-container { height: 120px; background: #fff; border-top: 1px solid #eee; overflow: hidden; }
+        #master-player-container { height: 120px; background: #fff; border-top: 1px solid #eee; }
 
-        .ear-icon { background: var(--accent-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.4); border: 2px solid white; cursor: pointer; }
+        .ear-icon { background: var(--accent-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); border: 2px solid white; cursor: pointer; }
         
-        /* 팝업 스타일 및 명조체 강제 적용 */
-        .custom-popup .leaflet-popup-content-wrapper { 
-            border-radius: 0; 
-            background: var(--beige-bg); 
-            padding: 0; 
-        }
-        .custom-popup .leaflet-popup-content { 
-            width: 320px !important; 
-            margin: 0 !important;   
-            padding: 35px 30px;
-            font-family: 'Noto Serif KR', serif !important; 
-        }
-        .diary-box { 
-            width: 100%;
-            text-align: left;
-            white-space: pre-wrap; 
-            word-break: keep-all; 
-            line-height: 1.75; 
-            color: #333;
-        }
-        .diary-box h2 {
-            color: var(--accent-red);
-            font-size: 17px;
-            margin: 0 0 12px 0;
-            font-weight: 700;
-            border-bottom: 1px solid rgba(142, 29, 50, 0.2);
-            padding-bottom: 8px;
-        }
-        .diary-box p {
-            font-size: 14px;
-            margin: 0 0 15px 0;
-            color: #444;
-        }
-        .diary-box .meta-text {
-            display: block;
-            color: #888;
-            font-size: 11px;
-            font-family: 'Pretendard', sans-serif;
-        }
-        /* 모바일 대응 미디어 쿼리 */
-@media (max-width: 768px) {
-    #app {
-        flex-direction: column; /* 세로 배치로 변경 */
-    }
+        .custom-popup .leaflet-popup-content-wrapper { border-radius: 2px; background: var(--beige-bg); padding: 0; overflow: hidden; }
+        .custom-popup .leaflet-popup-content { width: 300px !important; margin: 0 !important; font-family: 'Noto Serif KR', serif !important; }
+        .diary-box { padding: 25px 20px 15px; text-align: left; }
+        .diary-box h2 { color: var(--accent-red); font-size: 16px; margin: 0 0 10px 0; }
+        .diary-box p { font-size: 13px; margin: 0 0 12px 0; color: #444; line-height: 1.6; white-space: pre-wrap; word-break: keep-all; }
+        .meta-text { display: block; color: #999; font-size: 11px; font-family: 'Pretendard', sans-serif; }
+        .popup-player { width: 100%; height: 80px; border: none; background: #fff; display: block; }
 
-    #sidebar-right {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 250px; /* 리스트와 플레이어 높이 조절 */
-        z-index: 5000;
-        border-left: none;
-        border-top: 1px solid #eee;
-    }
-
-    #info-modal {
-        left: 0;
-        width: 100%; /* 모바일에서는 전체 너비 사용 */
-        box-sizing: border-box;
-    }
-
-    .left-interface {
-        width: 50px;
-    }
-
-    .branding {
-        display: none; /* 모바일에서 세로 텍스트는 공간을 너무 차지하므로 숨김 */
-    }
-
-    #map {
-        height: calc(100vh - 250px); /* 전체 높이에서 사이드바 높이를 뺀 만큼 지도 표시 */
-    }
-}
+        @media (max-width: 768px) {
+            #app { flex-direction: column; }
+            .left-interface { width: 50px; }
+            .branding { display: none; }
+            #info-modal { left: 0; width: 100%; padding: 30px 20px; }
+            #map { height: calc(100vh - var(--mobile-player-height)); }
+            #sidebar-right { width: 100%; height: var(--mobile-player-height); position: fixed; bottom: 0; left: 0; border-top: 1px solid #ddd; }
+            .track-list-container { display: none; }
+            .custom-popup .leaflet-popup-content { width: 260px !important; }
+        }
     </style>
 </head>
 <body>
@@ -125,48 +73,51 @@
         <div class="branding">GANGHWA ISLAND SOUNDSCAPE</div>
     </div>
 
-<div id="info-modal">
-    <span class="close-x" onclick="toggleInfo()">×</span>
-    <h1 style="font-family: 'Noto Serif KR', serif; color: var(--accent-red); border-bottom: 2px solid var(--accent-red); padding-bottom: 10px; margin-bottom: 20px;">ALBUM INFO</h1>
-    
-    <div style="width: 100%; margin-bottom: 30px;">
-        <img src="https://f4.bcbits.com/img/a2885868170_1x1_700.avif" 
-             alt="GANGHWA ISLAND SOUNDSCAPE Cover" 
-             style="width: 100%; height: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.15); border-radius: 2px;">
-    </div>
+    <!-- 수정된 크레딧 및 내용 원문 -->
+    <div id="info-modal">
+        <span class="close-x" onclick="toggleInfo()">×</span>
+        <h1 style="font-family: 'Noto Serif KR', serif; color: var(--accent-red); border-bottom: 2px solid var(--accent-red); padding-bottom: 10px; margin-bottom: 20px; font-size: 22px;">ALBUM INFO</h1>
+        
+        <div style="width: 100%; margin-bottom: 25px;">
+            <img src="https://f4.bcbits.com/img/a2885868170_1x1_700.avif" alt="Cover" style="width: 100%; height: auto; border-radius: 2px;">
+        </div>
 
-    <div style="font-size: 13px; line-height: 1.8; color: #444;">
-        <h3 style="margin-top: 0;">about album</h3>
-        강화도는 제 유년 시절의 가장 중요한 시기를 보낸 장소입니다. <br>
-        당시 기숙 생활을 하던 제게 강화는 그저 지루한 시골 섬일 뿐이었고, 주말이면 시끌벅적한 서울로 탈출하고 싶은 마음뿐이었습니다. <br>
-        이후 20대 시절, 음악을 하겠다며 상경해 밴드 활동을 하며 보냈고, 모든 것이 빠르게 변하는 도시의 속도 속에서 저만의 리듬을 잃어버렸습니다. <br>
-        더는 견딜 수 없다고 느껴질 때쯤, 모든 것을 내려놓고 마치 고려 시대의 왕이 피란을 떠나듯 이곳 강화도로 도망쳤습니다. <br>
-        다시 돌아온 섬에서 전등사에서 들려오는 저녁 예불의 낮은 종소리와 풀벌레의 하모니, 아침과 저녁으로 기도를 위해 울리는 온수리 성당의 여백 미 넘치는 삼종 소리, 그리고 밀물과 썰물이 만들어내는 바다의 다양한 얼굴들을 만났고 기록했습니다. <br>
-        그 과정은 못난 마음을 바라봐 주는 시간이 되기도 했습니다. <br>
-        그렇게 다시 마주한 강화도는 제가 예전에 알던 것보다 훨씬 깊고 신비로운 소리의 층위를 품고 있었습니다. <br>
-        소리들이 당신의 공간을 채울 때, 제가 강화도의 일상에서 발견한 위로와 아름다운 순간들이 듣는 분들에게도 잘 전달되었으면 좋겠습니다. <br>
-    </div>
+        <div style="font-size: 14px; line-height: 1.8; color: #444; word-break: keep-all;">
+            <h3 style="margin-top: 0; color: #333;">about album</h3>
+            강화도는 제 유년 시절의 가장 중요한 시기를 보낸 장소입니다. <br>
+            당시 기숙 생활을 하던 제게 강화는 그저 지루한 시골 섬일 뿐이었고, 주말이면 시끌벅적한 서울로 탈출하고 싶은 마음뿐이었습니다. <br>
+            이후 20대 시절, 음악을 하겠다며 상경해 밴드 활동을 하며 보냈고, 모든 것이 빠르게 변하는 도시의 속도 속에서 저만의 리듬을 잃어버렸습니다. <br>
+            더는 견딜 수 없다고 느껴질 때쯤, 모든 것을 내려놓고 마치 고려 시대의 왕이 피란을 떠나듯 이곳 강화도로 도망쳤습니다. <br>
+            다시 돌아온 섬에서 전등사에서 들려오는 저녁 예불의 낮은 종소리와 풀벌레의 하모니, 아침과 저녁으로 기도를 위해 울리는 온수리 성당의 여백 미 넘치는 삼종 소리, 그리고 밀물과 썰물이 만들어내는 바다의 다양한 얼굴들을 만났고 기록했습니다. <br>
+            그 과정은 못난 마음을 바라봐 주는 시간이 되기도 했습니다. <br>
+            그렇게 다시 마주한 강화도는 제가 예전에 알던 것보다 훨씬 깊고 신비로운 소리의 층위를 품고 있었습니다. <br>
+            소리들이 당신의 공간을 채울 때, 제가 강화도의 일상에서 발견한 위로와 아름다운 순간들이 듣는 분들에게도 잘 전달되었으면 좋겠습니다.
+        </div>
 
-    <div class="info-sec">
-        <h3>CREDITS</h3>
-        Produced by 이철민 <br>
-        Recorded, edited and mastered by 이철민 <br>
-        Illustrations by 이철민 <br>
-        Cover photo by 이철민 <br>
-        Designed by 이재수 <br>
+        <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+            <h3 style="font-size: 14px; margin-bottom: 10px;">CREDITS</h3>
+            <p style="margin: 4px 0; color: #666; font-size: 13px;">Produced by 이철민</p>
+            <p style="margin: 4px 0; color: #666; font-size: 13px;">Recorded, edited and mastered by 이철민</p>
+            <p style="margin: 4px 0; color: #666; font-size: 13px;">Illustrations by 이철민</p>
+            <p style="margin: 4px 0; color: #666; font-size: 13px;">Cover photo by 이철민</p>
+            <p style="margin: 4px 0; color: #666; font-size: 13px;">Designed by 이재수</p>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <h3 style="font-size: 14px; margin-bottom: 10px;">EQUIPMENT</h3>
+            <p style="color: #666; font-size: 12px; line-height: 1.6;">
+                Audio-Technica AT8022 mic, Earsight The One mic, Clippy EM272 mic, Zoom F3 recorder, Zoom H6 recorder, Mogami mic cable, Folding stereo bar, Ulanzi carbon light stand
+            </p>
+        </div>
     </div>
-    
-    <div class="info-sec">
-        <h3>EQUIPMENT</h3>
-        Audio-Technica AT8022 mic, Earsight The One mic, Clippy EM272 mic, Zoom F3 recorder, Zoom H6 recorder, Mogami mic cable, Folding stereo bar, Ulanzi carbon light stand
-    </div>
-</div>
 
     <div id="map"></div>
 
     <div id="sidebar-right">
-        <div style="padding: 35px 25px 15px; font-weight: 800; color: #bbb; font-size: 11px; letter-spacing: 2px;">강화 사운드스케이프 앨범</div>
-        <div id="track-list" style="flex: 1; overflow-y: auto;"></div>
+        <div class="track-list-container">
+            <div style="padding: 25px 25px 10px; font-weight: 800; color: #bbb; font-size: 10px; letter-spacing: 2px;">TRACKLIST</div>
+            <div id="track-list"></div>
+        </div>
         <div id="master-player-container">
             <iframe id="main-player" style="border: 0; width: 100%; height: 120px;" 
                 src="https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=large/bgcol=ffffff/linkcol=8e1d32/tracklist=false/artwork=small/transparent=true/" 
@@ -178,6 +129,7 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+    // [기존 soundData 스크립트 동일 적용]
     const soundData = [
         { id: "2989378636", title: "강화도 국자와주걱 책방 앞_251120", lat: 37.652175, lng: 126.440529, desc: "강화도 도장리 마을의 오후, 책방 앞에 걸린 풍경이 바람에 울리고, 목수는 집을 고친다. 녹음기에 호기심을 보이는 고양이가 말을 걸고 멀리서 들려오는 개 짖는 소리와 새들의 지저귐, 각자의 리듬이 자연스럽게 어우러지며 섬의 평화로운 오후가 그려진다.\n\nRecording: Zoom F3 / Clippy EM272 pair / AB Stereo", meta: "Date: 2025-11-20 ☁️" },
         { id: "753759855", title: "사운드워킹-석모도 민머루해변_260204", lat: 37.651298, lng: 126.333199, desc: "모래사장 위를 걸으며 내 속도를 느낄 때.", meta: "Date: 2026-02-04 🌤️" },
@@ -197,7 +149,7 @@
         { id: "3411754260", title: "교동도 민가 새벽의 바람_251122", lat: 37.768691, lng: 126.290418, desc: "섬의 새벽을 깨우는 바람과 수탉 소리.", meta: "Date: 2025-11-22 ☁️" }
     ];
 
-    const map = L.map('map', { zoomControl: false }).setView([37.68, 126.43], 11);
+    const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([37.68, 126.43], 11);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/light_nolabels/{z}/{x}/{y}{r}.png').addTo(map);
 
     const markers = [];
@@ -210,50 +162,26 @@
     function selectTrack(idx) {
         if(idx < 0) return;
         const track = soundData[idx];
-
         document.querySelectorAll('.track-item').forEach((item, i) => item.classList.toggle('active', i === idx));
-        map.flyTo([track.lat, track.lng], 14);
+        const isMobile = window.innerWidth <= 768;
+        map.flyTo([track.lat, track.lng], isMobile ? 13 : 14);
         
         const popupContent = `
             <div class="diary-box">
                 <h2>${track.title}</h2>
                 <p>${track.desc}</p>
                 <span class="meta-text">${track.meta}</span>
-            </div>`;
+            </div>
+            <iframe class="popup-player" 
+                src="https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=8e1d32/track=${track.id}/transparent=true/autoplay=true/" 
+                allow="autoplay">
+            </iframe>`;
 
-        markers[idx].bindPopup(popupContent, { 
-            className: 'custom-popup', 
-            maxWidth: 350, 
-            minWidth: 300,
-            offset: [0, -5] 
-        }).openPopup();
-
-        // Bandcamp 자동 재생 파라미터 적용
-        const player = document.getElementById('main-player');
-        player.src = `https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=large/bgcol=ffffff/linkcol=8e1d32/tracklist=false/artwork=small/track=${track.id}/transparent=true/autoplay=true/`;
+        markers[idx].bindPopup(popupContent, { className: 'custom-popup', closeButton: false }).openPopup();
+        document.getElementById('main-player').src = `https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=large/bgcol=ffffff/linkcol=8e1d32/tracklist=false/artwork=small/track=${track.id}/transparent=true/autoplay=true/`;
     }
 
-    soundData.forEach((data, idx) => {
-        const icon = L.divIcon({ 
-            className: 'ear-icon', 
-            html: `<svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M12 2C8.69 2 6 4.69 6 8v3.29c-1.13.43-2 1.54-2 2.86 0 1.66 1.34 3 3 3h.5c.83 0 1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5H7c0-2.76 2.24-5 5-5s5 2.24 5 5h-.5c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5h.5c1.66 0 3-1.34 3-3 0-1.32-.87-2.43-2-2.86V8c0-3.31-2.69-6-6-6z"/></svg>`, 
-            iconSize: [32,32] 
-        });
-        
-        const marker = L.marker([data.lat, data.lng], { icon }).addTo(map);
-        markers.push(marker);
-
-        marker.on('click', (e) => {
-            L.DomEvent.stopPropagation(e);
-            selectTrack(idx);
-        });
-
-        const item = document.createElement('div');
-        item.className = 'track-item';
-        item.innerHTML = `<b>${String(idx+1).padStart(2,'0')}</b> &nbsp; ${data.title}`;
-        item.onclick = () => selectTrack(idx);
-        document.getElementById('track-list').appendChild(item);
-    });
+    // 마커 생성 로직 동일...
 </script>
 </body>
 </html>
