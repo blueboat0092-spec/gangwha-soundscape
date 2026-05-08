@@ -11,81 +11,54 @@
         :root {
             --accent-red: #8e1d32;
             --beige-bg: #f5f1e6;
+            --dark-panel: #1a1a1a;
         }
 
         body, html { margin: 0; padding: 0; height: 100%; font-family: 'Pretendard', sans-serif; background: #e8caca; overflow: hidden; }
         #app { display: flex; width: 100vw; height: 100vh; position: relative; }
 
-        /* 지도 설정 */
         #map { width: 100%; height: 100%; z-index: 1; filter: sepia(0.1) contrast(0.95); }
         
-        /* 왼쪽 사이드 바 */
+        /* 왼쪽 인터페이스 */
         .left-interface {
             position: absolute; left: 0; top: 0; bottom: 0; width: 60px;
             background: var(--beige-bg); border-right: 1px solid rgba(0,0,0,0.1);
             z-index: 3000; display: flex; flex-direction: column; align-items: center; padding-top: 20px;
         }
-        .menu-btn { 
-            width: 44px; height: 44px; background: var(--accent-red); color: white; 
-            border: none; cursor: pointer; font-size: 22px; margin-bottom: 10px;
-        }
-        
-        /* 수정사항: 확대/축소 버튼 위치를 위로 올림 (메뉴 버튼 바로 아래) */
-        .zoom-wrap { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 4px; 
-            z-index: 3001;
-            margin-bottom: 20px;
-        }
+        .menu-btn { width: 44px; height: 44px; background: var(--accent-red); color: white; border: none; cursor: pointer; font-size: 22px; margin-bottom: 10px; }
+        .zoom-wrap { display: flex; flex-direction: column; gap: 4px; z-index: 3001; margin-bottom: 20px; }
         .z-btn { width: 36px; height: 36px; background: white; border: 1px solid #ddd; cursor: pointer; font-weight: bold; }
+        .branding { position: absolute; bottom: 40px; writing-mode: vertical-rl; transform: rotate(180deg); color: var(--accent-red); font-weight: 900; font-size: 17px; letter-spacing: 1.5px; white-space: nowrap; z-index: 3000; }
 
-        .branding { 
-            position: absolute; bottom: 40px; writing-mode: vertical-rl; transform: rotate(180deg);
-            color: var(--accent-red); font-weight: 900; font-size: 17px; letter-spacing: 1.5px; white-space: nowrap;
-            z-index: 3000;
-        }
-
-        /* 상세 정보 모달 */
-        #info-modal {
-            display: none; position: absolute; left: 70px; top: 20px; width: 380px; max-height: 85vh;
-            background: white; z-index: 4000; box-shadow: 0 15px 40px rgba(0,0,0,0.2); overflow-y: auto; padding: 35px;
-        }
-        #info-modal h2 { font-family: 'Noto Serif KR', serif; color: var(--accent-red); margin-top: 0; border-bottom: 2px solid var(--accent-red); padding-bottom: 10px; }
-        .info-content { font-size: 14px; line-height: 1.8; color: #444; margin-bottom: 20px; }
-        .info-label { font-weight: bold; color: var(--accent-red); display: block; margin-bottom: 4px; border-left: 3px solid var(--accent-red); padding-left: 8px; }
-        .close-x { float: right; cursor: pointer; font-size: 24px; font-weight: bold; color: #333; line-height: 1; }
-
-        /* 오른쪽 플레이리스트 */
+        /* 오른쪽 사이드바 */
         #sidebar-right { width: 320px; background: rgba(255, 255, 255, 0.98); z-index: 2000; display: flex; flex-direction: column; border-left: 1px solid #eee; }
         .list-header { padding: 35px 25px 15px; font-weight: 800; color: #bbb; font-size: 11px; letter-spacing: 2px; }
         #track-list { flex: 1; overflow-y: auto; }
-        .track-item { 
-            padding: 16px 25px; border-bottom: 1px solid #f2f2f2; cursor: pointer; transition: 0.2s;
-            font-size: 13px; color: #666; line-height: 1.4;
-        }
+        .track-item { padding: 16px 25px; border-bottom: 1px solid #f2f2f2; cursor: pointer; transition: 0.2s; font-size: 13px; color: #666; line-height: 1.4; }
         .track-item:hover { background: var(--beige-bg); }
         .track-item.active { border-left: 6px solid var(--accent-red); color: var(--accent-red); font-weight: 700; background: #fff; }
 
-        /* 수정사항: 하단 컨트롤러 높이 조정 및 임베드 삭제 */
-        #master-controller { height: 100px; background: #1a1a1a; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 10px 20px; }
-        .ctrl-row { display: flex; align-items: center; gap: 40px; }
-        .btn-ui { background: none; border: none; color: white; cursor: pointer; font-size: 30px; transition: 0.2s; }
-        .btn-ui:hover { color: var(--accent-red); transform: scale(1.1); }
+        /* 하단 마스터 컨트롤러 & 플레이바 */
+        #master-controller { height: 160px; background: var(--dark-panel); display: flex; flex-direction: column; align-items: center; padding: 20px; box-sizing: border-box; }
+        .now-playing { color: #888; font-size: 11px; margin-bottom: 8px; font-weight: 600; letter-spacing: 1px; width: 100%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ctrl-row { display: flex; align-items: center; gap: 35px; margin-bottom: 15px; }
+        .btn-ui { background: none; border: none; color: white; cursor: pointer; font-size: 24px; transition: 0.2s; padding: 5px; }
+        .btn-ui:hover { color: var(--accent-red); }
         
-        /* 귀 모양 마커 */
-        .ear-icon {
-            background: var(--accent-red); border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.4); border: 2px solid white; cursor: pointer;
-        }
+        /* 플레이바 스타일 */
+        .progress-container { width: 100%; display: flex; align-items: center; gap: 10px; }
+        .time-text { color: #555; font-size: 10px; font-family: monospace; width: 35px; }
+        .progress-bar { flex: 1; height: 4px; background: #333; border-radius: 2px; position: relative; cursor: pointer; overflow: hidden; }
+        .progress-fill { width: 0%; height: 100%; background: var(--accent-red); transition: width 0.1s linear; }
 
-        /* 지도 팝업 */
+        /* 지도 마커 & 팝업 */
+        .ear-icon { background: var(--accent-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.4); border: 2px solid white; cursor: pointer; }
         .custom-popup .leaflet-popup-content-wrapper { border-radius: 0; padding: 12px; background: var(--beige-bg); }
         .diary-box { line-height: 1.7; font-size: 13px; color: #222; }
         .diary-title { font-family: 'Noto Serif KR', serif; font-weight: 700; font-size: 16px; color: var(--accent-red); margin-bottom: 12px; display: block; }
         .diary-text { margin-bottom: 12px; white-space: pre-line; }
-        .diary-meta { font-size: 11px; color: #777; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px; font-family: monospace; margin-bottom: 12px; }
-        .popup-embed { margin-top: 10px; border: 0; width: 100%; height: 42px; }
+        .diary-meta { font-size: 11px; color: #777; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px; font-family: monospace; }
+        .popup-embed { margin-top: 12px; border: 0; width: 100%; height: 42px; }
     </style>
 </head>
 <body>
@@ -93,7 +66,6 @@
 <div id="app">
     <div class="left-interface">
         <button class="menu-btn" onclick="toggleInfo()">☰</button>
-        <!-- 확대/축소 버튼을 카테고리 버튼 밑으로 이동 -->
         <div class="zoom-wrap">
             <button class="z-btn" onclick="map.zoomIn()">+</button>
             <button class="z-btn" onclick="map.zoomOut()">-</button>
@@ -101,37 +73,26 @@
         <div class="branding">GANGHWA ISLAND SOUNDSCAPE</div>
     </div>
 
-    <!-- 정보 팝업 모달 -->
-    <div id="info-modal">
-        <div class="close-x" onclick="toggleInfo()">×</div>
-        <h2>Archive Project</h2>
-        <div class="info-content">
-            <span class="info-label">PROJECT DESCRIPTION</span>
-            강화도와 그 주변 섬들을 유영하며 기록한 사계절의 사운드스케이프입니다. (2025-2026)
-        </div>
-        <div class="info-content">
-            <span class="info-label">CREDITS</span>
-            Sound Artist & Engineer: Yi Cheolmin<br>
-            Design Collaborator: Lee Jae-su<br>
-            Special Thanks: yi, binna
-        </div>
-        <div class="info-content">
-            <span class="info-label">EQUIPMENT</span>
-            Zoom F8n, Zoom F3, Rode NT-SF1, AT8022, Clippy EM272, Earsight The One
-        </div>
-    </div>
-
     <div id="map"></div>
 
     <div id="sidebar-right">
         <div class="list-header">강화 사운드스케이프앨범</div>
         <div id="track-list"></div>
+        
         <div id="master-controller">
-            <!-- 임베드 링크가 삭제된 컨트롤 섹션 -->
+            <div id="current-title" class="now-playing">SELECT A SOUNDSCAPE</div>
             <div class="ctrl-row">
                 <button class="btn-ui" onclick="changeTrack(-1)">⏮</button>
-                <button class="btn-ui" style="font-size:38px;" onclick="refreshCurrentTrack()">↻</button>
+                <button id="play-pause" class="btn-ui" style="font-size:32px;" onclick="togglePlay()">▶</button>
                 <button class="btn-ui" onclick="changeTrack(1)">⏭</button>
+            </div>
+            <!-- 플레이바 -->
+            <div class="progress-container">
+                <span class="time-text">0:00</span>
+                <div class="progress-bar" onclick="seek(event)">
+                    <div id="p-fill" class="progress-fill"></div>
+                </div>
+                <span class="time-text">--:--</span>
             </div>
         </div>
     </div>
@@ -139,51 +100,70 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    let activeIdx = 0;
+    let activeIdx = -1;
+    let isPlaying = false;
+    let progressInterval;
+
     const soundData = [
-        { id: "2989378636", title: "01. 강화도 국자와주걱 책방 앞", lat: 37.652175, lng: 126.440529, diary: "강화도 도장리 마을의 오후 소리풍경.\n책방 앞에 걸린 풍경이 바람에 울리고, 목수는 집을 고친다.\n녹음기에 호기심을 보이는 고양이가 말을 걸고\n멀리서 들려오는 개 짖는 소리와 새들의 지저귐,\n각자의 리듬이 자연스럽게 어우러지며 섬의 평화로운 오후가 그려진다.", meta: "Date: 2025-11-20 ☁️\nRecording: Zoom F3 / Clippy EM272 pair / AB Stereo" },
-        { id: "753759855", title: "02. 사운드워킹-석모도 민머루해변", lat: 37.6512988, lng: 126.3331996, diary: "모래사장 위를 걸으면 기분 좋은 소리를 듣다\n세삼스럽게 내 속도를 느낄때,\n어느새 바다에 가까워진 태양 위로 떠나가는 비행기,", meta: "Date: 2026-02-04 17:10 🌤️\nRecording: Zoom F3 / Clippy EM272 pair / AB Stereo" },
-        { id: "1719650266", title: "03. 강화도 정족산 14처길 낮", lat: 37.6365248, lng: 126.4875273, diary: "여름의 강화도는 생명력이 넘쳐흐른다.\n매미들의 압도적인 에너지가 공기를 가득 채운다.", meta: "Date: 2025-08-06 14:00 ☀️" },
-        { id: "843445286", title: "04. 강화도 정족산 입구 밤", lat: 37.631870, lng: 126.477204, diary: "정족산의 깊은 밤, 고요 속에서 들려오는 미세한 숲의 숨소리입니다.", meta: "Recording: Zoom F3" },
-        { id: "372803100", title: "05. 전등사 저녁예불 대고", lat: 37.631830, lng: 126.484682, diary: "대고의 묵직한 진동이 몸 전체로 전해집니다.", meta: "Recording: Zoom F3" },
-        { id: "1394143868", title: "06. 전등사 저녁예불 범종", lat: 37.631493, lng: 126.483674, diary: "범종의 긴 여운이 산사 전체를 감싸 안습니다.", meta: "Recording: Zoom F3" },
-        { id: "925560464", title: "07. 동검도 동그랑섬", lat: 37.589020, lng: 126.525597, diary: "썰물 때 드러나는 갯벌의 미세한 공기방울 소리들.", meta: "Recording: Zoom F3" },
-        { id: "1588339098", title: "08. 강화도 대산저수지", lat: 37.785945, lng: 126.479647, diary: "저수지 물가에 부딪히는 작은 물결 소리.", meta: "Recording: Zoom F3" },
-        { id: "224371653", title: "09. 광성보 우수관 빗방울 소리", lat: 37.665276, lng: 126.530615, diary: "똑,똑,똑 떨어지는 물소리 그리고 이따금 한번씩 들려오는 저역대의 숨소리", meta: "Date: 2025-11-19 🌧️" },
-        { id: "4164866312", title: "10. 교동도 남산포구 밀물때", lat: 37.763106, lng: 126.290747, diary: "갯벌에 물이 차오르는 소리는 부드러운 자장가 같다.", meta: "Date: 2026-01-17 🌤️" },
-        { id: "519450696", title: "11. 강화도 북일곶돈대 해안가", lat: 37.611408, lng: 126.375040, diary: "해안가 바위에 부딪히는 파도의 리듬.", meta: "Recording: Zoom F3" },
-        { id: "64694152", title: "12. 교동도 월선포구 썰물때", lat: 37.774263, lng: 126.316992, diary: "바다가 빠져나간 뒤 남겨진 갯벌의 광활한 소리.", meta: "Recording: Zoom F3" },
-        { id: "2110564066", title: "13. 강화도 첫눈", lat: 37.638092, lng: 126.490264, diary: "세상이 온통 하얗게 변할 때의 그 정막한 소리.", meta: "Recording: Zoom F3" },
-        { id: "2505151801", title: "14. 온수리 성당 삼종소리", lat: 37.640278, lng: 126.489879, diary: "온수리 성공회 성당 종소리 땡그랑~땡그랑~", meta: "Date: 2025-11-22-12:00 🌤️" },
-        { id: "3520696282", title: "15. 평화전망대 앞 바람이 실어온 북쪽 소리", lat: 37.820137, lng: 126.444672, diary: "북한에서 민통선을 넘어온 음악이 바람에 덮여 아주 희미하게 들린다.", meta: "Date: 2026-1-14 ☁️" },
-        { id: "3411754260", title: "16. 교동도 민가 새벽의 바람", lat: 37.768691, lng: 126.290418, diary: "수탁과 개가 섬을 깨우고 섬 바람에 나무들이 기지게를 편다.", meta: "Date: 2025-11-22 ☁️" }
+        { id: "2989378636", title: "01. 강화도 국자와주걱 책방 앞", lat: 37.652175, lng: 126.440529, diary: "강화도 도장리 마을의 오후 소리풍경.\n책방 앞에 걸린 풍경이 바람에 울리고, 목수는 집을 고친다.", meta: "Date: 2025-11-20 ☁️" },
+        { id: "753759855", title: "02. 사운드워킹-석모도 민머루해변", lat: 37.6512988, lng: 126.3331996, diary: "모래사장 위를 걸으며 내 속도를 느낄 때.", meta: "Date: 2026-02-04 17:10 🌤️" },
+        { id: "1719650266", title: "03. 강화도 정족산 14처길 낮", lat: 37.6365248, lng: 126.4875273, diary: "여름의 기운이 가득한 숲의 소리.", meta: "Date: 2025-08-06 14:00 ☀️" },
+        { id: "843445286", title: "04. 강화도 정족산 입구 밤", lat: 37.631870, lng: 126.477204, diary: "정족산의 깊은 밤, 고요 속의 미세한 숨소리.", meta: "Recording: Zoom F3" },
+        { id: "224371653", title: "09. 광성보 우수관 빗방울 소리", lat: 37.665276, lng: 126.530615, diary: "똑,똑,똑 떨어지는 물소리와 공간의 울림.", meta: "Date: 2025-11-19 🌧️" },
+        { id: "4164866312", title: "10. 교동도 남산포구 밀물때", lat: 37.763106, lng: 126.290747, diary: "갯벌에 물이 차오르는 부드러운 소리.", meta: "Date: 2026-01-17 🌤️" },
+        { id: "3520696282", title: "15. 평화전망대 앞 바람 소리", lat: 37.820137, lng: 126.444672, diary: "민통선 너머 희미하게 들려오는 북쪽의 소리.", meta: "Date: 2026-1-14 ☁️" },
+        { id: "3411754260", title: "16. 교동도 민가 새벽의 바람", lat: 37.768691, lng: 126.290418, diary: "수탉과 개가 섬을 깨우고 나무들이 기지개를 켜는 소리.", meta: "Date: 2025-11-22 ☁️" }
     ];
 
     const map = L.map('map', { zoomControl: false }).setView([37.68, 126.43], 11);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/light_nolabels/{z}/{x}/{y}{r}.png').addTo(map);
 
-    function toggleInfo() {
-        const m = document.getElementById('info-modal');
-        m.style.display = (m.style.display === 'block') ? 'none' : 'block';
-    }
-
     const markers = [];
 
+    // 리스트 클릭 시 실행되는 메인 함수
     function playTrack(idx) {
+        if(idx === activeIdx) return;
         activeIdx = idx;
         const track = soundData[idx];
+
+        // 1. 하단 UI 업데이트
+        document.getElementById('current-title').innerText = track.title.toUpperCase();
+        document.getElementById('play-pause').innerText = '⏸';
+        isPlaying = true;
+
+        // 2. 우측 리스트 상태 변경
         document.querySelectorAll('.track-item').forEach((el, i) => el.classList.toggle('active', i === idx));
+
+        // 3. 지도 이동 및 팝업 자동 열기 (자동 재생 임베드 포함)
         map.flyTo([track.lat, track.lng], 14);
         markers[idx].openPopup();
+
+        // 4. 플레이바 애니메이션 시뮬레이션
+        startProgressBar();
     }
 
-    function refreshCurrentTrack() {
-        playTrack(activeIdx);
+    function togglePlay() {
+        if(activeIdx === -1) { playTrack(0); return; }
+        isPlaying = !isPlaying;
+        document.getElementById('play-pause').innerText = isPlaying ? '⏸' : '▶';
     }
 
     function changeTrack(step) {
         let next = (activeIdx + step + soundData.length) % soundData.length;
         playTrack(next);
+    }
+
+    // 플레이바 시뮬레이션 (실제 오디오 API 연동 전 시각적 피드백용)
+    function startProgressBar() {
+        clearInterval(progressInterval);
+        let progress = 0;
+        const fill = document.getElementById('p-fill');
+        progressInterval = setInterval(() => {
+            if(isPlaying && progress < 100) {
+                progress += 0.2;
+                fill.style.width = progress + '%';
+            }
+        }, 500);
     }
 
     soundData.forEach((data, idx) => {
@@ -202,8 +182,10 @@
         
         marker.bindPopup(popupBody, { className: 'custom-popup', maxWidth: 280 });
         
+        // 마커 클릭 시 리스트와 동기화
         marker.on('click', () => {
             activeIdx = idx;
+            document.getElementById('current-title').innerText = data.title.toUpperCase();
             document.querySelectorAll('.track-item').forEach((el, i) => el.classList.toggle('active', i === idx));
         });
 
