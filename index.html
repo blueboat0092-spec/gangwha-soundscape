@@ -56,9 +56,25 @@
 
         .ear-icon { background: var(--accent-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.4); border: 2px solid white; cursor: pointer; }
         
-        /* 팝업 스타일 수정: 폭을 넓히고 여백 조정 */
-        .custom-popup .leaflet-popup-content-wrapper { border-radius: 0; padding: 20px; background: var(--beige-bg); }
-        .diary-box { white-space: pre-wrap; word-break: keep-all; line-height: 1.7; font-size: 14.5px; color: #333; }
+        /* 팝업 스타일 수정: 폭을 강제로 고정 */
+.custom-popup .leaflet-popup-content-wrapper { 
+    border-radius: 0; 
+    background: var(--beige-bg);
+}
+
+/* 실제 컨텐츠 영역의 너비를 300px로 고정합니다 */
+.custom-popup .leaflet-popup-content {
+    width: 300px !important; 
+    margin: 20px !important; 
+}
+
+.diary-box { 
+    white-space: pre-wrap; 
+    word-break: keep-all; /* 단어 단위로 줄바꿈하여 가독성 향상 */
+    line-height: 1.7; 
+    font-size: 14.5px; 
+    color: #333; 
+}
     </style>
 </head>
 <body>
@@ -191,7 +207,7 @@
             </div>`;
             
         // 팝업 maxWidth를 350으로 확장
-        marker.bindPopup(popupContent, { className: 'custom-popup', maxWidth: 350 });
+        marker.bindPopup(popupContent, { className: 'custom-popup', maxWidth: 350, minWidth: 300 });
         
         marker.on('click', () => selectTrack(idx));
 
