@@ -41,10 +41,45 @@
 
         .ear-icon { background: var(--accent-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.4); border: 2px solid white; cursor: pointer; }
         
-        /* 팝업 스타일 유지 */
-        .custom-popup .leaflet-popup-content-wrapper { border-radius: 0; background: var(--beige-bg); padding: 0; }
-        .custom-popup .leaflet-popup-content { width: 320px !important; margin: 25px !important; }
-        .diary-box { white-space: pre-wrap; word-break: keep-all; line-height: 1.8; font-size: 14.5px; color: #333; text-align: center; }
+        /* 팝업 스타일 수정: 좌측 정렬 및 디자인 정밀 조정 */
+        .custom-popup .leaflet-popup-content-wrapper { 
+            border-radius: 0; 
+            background: var(--beige-bg); 
+            padding: 0; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .custom-popup .leaflet-popup-content { 
+            width: 320px !important; 
+            margin: 0 !important;   
+            padding: 35px 30px; /* 내부 여백 확보 */
+        }
+        .diary-box { 
+            width: 100%;
+            text-align: left; /* 좌측 정렬 적용 */
+            white-space: pre-wrap; 
+            word-break: keep-all; 
+            line-height: 1.7; 
+            color: #333;
+        }
+        .diary-box h2 {
+            color: var(--accent-red);
+            font-size: 17px;
+            margin: 0 0 12px 0;
+            font-family: 'Noto Serif KR', serif;
+            border-bottom: 1px solid rgba(142, 29, 50, 0.2); /* 제목 하단 구분선 */
+            padding-bottom: 8px;
+        }
+        .diary-box p {
+            font-size: 14px;
+            margin: 0 0 15px 0;
+            color: #444;
+        }
+        .diary-box .meta-text {
+            display: block;
+            color: #888;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
     </style>
 </head>
 <body>
@@ -76,7 +111,6 @@
             그 과정은 못난 마음을 바라봐 주는 시간이 되기도 했습니다. <br>
             그렇게 다시 마주한 강화도는 제가 예전에 알던 것보다 훨씬 깊고 신비로운 소리의 층위를 품고 있었습니다.<br>
             소리들이 당신의 공간을 채울 때, 제가 강화도의 일상에서 발견한 위로와 아름다운 순간들이 듣는 분들에게도 잘 전달되었으면 좋겠습니다.<br>
-
         </div>
         <div class="info-sec">
             <h3>CREDITS</h3>
@@ -110,7 +144,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     const soundData = [
-        { id: "2989378636", title: "강화도 국자와주걱 책방 앞_251120", lat: 37.652175, lng: 126.440529, desc: "강화도 도장리 마을의 오후, 책방 앞에 걸린 풍경이 바람에 울리고, 목수는 집을 고친다.녹음기에 호기심을 보이는 고양이가 말을 걸고멀리서 들려오는 개 짖는 소리와 새들의 지저귐,각자의 리듬이 자연스럽게 어우러지며 섬의 평화로운 오후가 그려진다.Date: 2025-11-20 ☁️Recording: Zoom F3 / Clippy EM272 pair / AB Stereo", meta: "Date: 2025-11-20 ☁️" },
+        { id: "2989378636", title: "강화도 국자와주걱 책방 앞_251120", lat: 37.652175, lng: 126.440529, desc: "강화도 도장리 마을의 오후, 책방 앞에 걸린 풍경이 바람에 울리고, 목수는 집을 고친다. 녹음기에 호기심을 보이는 고양이가 말을 걸고 멀리서 들려오는 개 짖는 소리와 새들의 지저귐, 각자의 리듬이 자연스럽게 어우러지며 섬의 평화로운 오후가 그려진다.\n\nRecording: Zoom F3 / Clippy EM272 pair / AB Stereo", meta: "Date: 2025-11-20 ☁️" },
         { id: "753759855", title: "사운드워킹-석모도 민머루해변_260204", lat: 37.651298, lng: 126.333199, desc: "모래사장 위를 걸으며 내 속도를 느낄 때.", meta: "Date: 2026-02-04 🌤️" },
         { id: "1719650266", title: "강화도 정족산 14처길 낮_250806", lat: 37.636524, lng: 126.487527, desc: "여름 강화도의 생명력 넘치는 매미 소리.", meta: "Date: 2025-08-06 ☀️" },
         { id: "843445286", title: "강화도 정족산 입구 밤_250820", lat: 37.631870, lng: 126.477204, desc: "정족산성 입구 밤의 소리풍경.", meta: "Recording: Zoom F3" },
@@ -138,27 +172,29 @@
         modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
     }
 
-    // 핵심 로직: 지점 선택 시 재생 + 팝업 노출 통합
     function selectTrack(idx) {
         if(idx < 0) return;
         const track = soundData[idx];
 
-        // 1. 리스트 강조
         document.querySelectorAll('.track-item').forEach((item, i) => item.classList.toggle('active', i === idx));
         
-        // 2. 지도 이동 및 팝업 강제 열기
         map.flyTo([track.lat, track.lng], 14);
         
+        // 팝업 내용 좌측 정렬 구조 적용
         const popupContent = `
             <div class="diary-box">
-                <b style="color:var(--accent-red); font-size:17px; display:block; margin-bottom:10px;">${track.title}</b>
-                ${track.desc}<br><br>
-                <small style="color:#888; font-size:12px;">${track.meta}</small>
+                <h2>${track.title}</h2>
+                <p>${track.desc}</p>
+                <span class="meta-text">${track.meta}</span>
             </div>`;
 
-        markers[idx].bindPopup(popupContent, { className: 'custom-popup', maxWidth: 350, minWidth: 320 }).openPopup();
+        markers[idx].bindPopup(popupContent, { 
+            className: 'custom-popup', 
+            maxWidth: 350, 
+            minWidth: 300,
+            offset: [0, -5] 
+        }).openPopup();
 
-        // 3. 사운드 재생
         const player = document.getElementById('main-player');
         player.src = `https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=large/bgcol=ffffff/linkcol=8e1d32/tracklist=false/artwork=small/track=${track.id}/transparent=true/autoplay=true/`;
     }
@@ -173,9 +209,8 @@
         const marker = L.marker([data.lat, data.lng], { icon }).addTo(map);
         markers.push(marker);
 
-        // 마커 클릭 시 통합 함수 실행
         marker.on('click', (e) => {
-            L.DomEvent.stopPropagation(e); // 이벤트 전파 방지
+            L.DomEvent.stopPropagation(e);
             selectTrack(idx);
         });
 
