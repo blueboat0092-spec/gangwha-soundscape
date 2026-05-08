@@ -3,149 +3,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>강화도 사운드스케이프 아카이브</title>
+    <title>강화도 사운드스케이프 | Yi Cheolmin</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         
         :root {
             --primary-color: #8e1d32;
-            --bg-soft: #f4e9e9;
+            --bg-soft: #f4f1ea;
+            --accent-blue: #0687f5;
         }
 
         body, html { margin: 0; padding: 0; height: 100%; font-family: 'Pretendard', sans-serif; background: var(--bg-soft); overflow: hidden; }
-        #container { display: flex; height: 100vh; }
+        #app { display: flex; width: 100vw; height: 100vh; position: relative; }
 
-        /* 왼쪽 재생목록 사이드바 */
-        #sidebar {
-            width: 400px; background: #fff; height: 100%; display: flex; flex-direction: column;
-            z-index: 2000; box-shadow: 5px 0 15px rgba(0,0,0,0.05);
+        /* 왼쪽 메뉴 버튼 & 슬라이드 메뉴 */
+        #menu-btn {
+            position: absolute; top: 20px; left: 20px; z-index: 3000;
+            background: var(--primary-color); color: white; border: none;
+            width: 45px; height: 45px; border-radius: 8px; cursor: pointer; font-size: 24px;
         }
-        
-        #sidebar-header { padding: 30px 25px 20px; border-bottom: 1px solid #eee; }
-        #sidebar-header h1 { font-size: 20px; color: var(--primary-color); margin: 0; font-weight: 800; letter-spacing: -0.5px; }
-        #sidebar-header p { font-size: 13px; color: #888; margin: 8px 0 0; line-height: 1.5; }
 
-        /* 현재 재생 중인 플레이어 고정 영역 (Large 임베드에 최적화) */
-        #now-playing {
-            padding: 15px; background: #fafafa; border-bottom: 1px solid #eee;
-            min-height: 120px; display: none;
+        #left-sidebar {
+            position: absolute; top: 0; left: -400px; width: 350px; height: 100%;
+            background: white; z-index: 2500; transition: 0.4s; padding: 80px 30px 40px;
+            box-shadow: 5px 0 20px rgba(0,0,0,0.1); overflow-y: auto;
         }
-        #now-playing .current-label { font-size: 11px; font-weight: 800; color: var(--primary-color); margin-bottom: 8px; margin-left: 10px; text-transform: uppercase; }
-
-        #track-list { flex: 1; overflow-y: auto; padding: 10px 0; }
-        .track-item { 
-            padding: 18px 25px; border-bottom: 1px solid #f9f9f9; cursor: pointer; 
-            transition: all 0.3s ease; display: flex; flex-direction: column;
-        }
-        .track-item:hover { background: #fff5f5; }
-        .track-item.active { background: #fceeee; border-left: 4px solid var(--primary-color); }
-        .track-item b { font-size: 14px; color: #333; margin-bottom: 5px; line-height: 1.4; }
-        .track-item span { font-size: 11px; color: #aaa; font-family: monospace; }
+        #left-sidebar.active { left: 0; }
+        .info-section { margin-bottom: 40px; }
+        .info-section h3 { color: var(--primary-color); border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; margin-bottom: 15px; }
+        .info-content { font-size: 14px; line-height: 1.8; color: #444; white-space: pre-wrap; }
 
         /* 지도 영역 */
-        #map { flex: 1; background: var(--bg-soft); }
+        #map { flex: 1; height: 100%; }
 
-        /* 팝업 디자인 (라운드형) */
-        .leaflet-popup-content-wrapper {
-            background: #fff !important; color: #333 !important;
-            border-radius: 18px !important; padding: 5px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+        /* 오른쪽 재생목록 사이드바 */
+        #right-sidebar {
+            width: 320px; background: white; border-left: 1px solid #ddd;
+            display: flex; flex-direction: column; z-index: 2000;
         }
-        .leaflet-popup-content { margin: 15px !important; line-height: 1.6; }
-        .leaflet-popup-content b { font-size: 15px; color: var(--primary-color); display: block; margin-bottom: 8px; }
-        .leaflet-popup-content p { font-size: 12px; color: #666; white-space: pre-wrap; margin: 0; }
-        .leaflet-popup-tip { background: #fff !important; }
+        #playlist-header { padding: 25px; border-bottom: 1px solid #eee; background: #fafafa; }
+        #playlist-header h2 { font-size: 18px; margin: 0; color: #333; }
+        
+        #track-list { flex: 1; overflow-y: auto; }
+        .track-item { 
+            padding: 15px 20px; border-bottom: 1px solid #f5f5f5; cursor: pointer;
+            font-size: 13px; color: #666; transition: 0.2s;
+        }
+        .track-item:hover { background: #fef1f1; }
+        .track-item.active { background: #fceeee; color: var(--primary-color); font-weight: 700; border-left: 4px solid var(--primary-color); }
+
+        /* 하단 고정 컨트롤러 */
+        #player-controls {
+            padding: 20px; background: #fff; border-top: 1px solid #eee;
+            display: flex; justify-content: center; align-items: center; gap: 15px;
+        }
+        .control-btn {
+            background: none; border: 1px solid #ddd; border-radius: 50%; width: 40px; height: 40px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;
+        }
+        .control-btn:hover { background: #f0f0f0; border-color: var(--primary-color); color: var(--primary-color); }
+        .control-btn.play-pause { width: 50px; height: 50px; background: var(--primary-color); color: white; border: none; }
+
+        /* 지도 팝업 */
+        .leaflet-popup-content-wrapper { border-radius: 20px !important; width: 370px; }
+        .leaflet-popup-content { margin: 10px !important; }
         
         .ear-icon {
             background: var(--primary-color); border: 2px solid #fff; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 8px rgba(142, 29, 50, 0.3);
+            display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
     </style>
 </head>
 <body>
 
-<div id="container">
-    <div id="sidebar">
-        <div id="sidebar-header">
-            <h1>강화도 사운드스케이프</h1>
-            <p>Cartography of Memories: Yi Cheolmin</p>
-        </div>
-        
-        <!-- 고정 플레이어 영역 (수정됨) -->
-        <div id="now-playing">
-            <div class="current-label">Now Listening</div>
-            <div id="player-container"></div>
-        </div>
+<div id="app">
+    <button id="menu-btn" onclick="toggleMenu()">☰</button>
 
-        <div id="track-list"></div>
+    <!-- 왼쪽 앨범 정보 슬라이드 -->
+    <div id="left-sidebar">
+        <div class="info-section">
+            <h3>앨범 소개</h3>
+            <div class="info-content">강화도와 그 주변 섬들을 유영하며 기록한 사계절의 사운드스케이프 앨범입니다.
+소리를 단순히 음악의 재료로 사용하기보다, 사운드의 레이어와 리듬이 선명하게 드러나는 찰나를 포착하여 그 공간이 품은 본연의 질감을 온전히 담아내는 데 집중했습니다.
+
+음악가로서의 리듬을 잃어버렸을 때쯤, 모든 것을 내려놓고 마치 고려 시대의 왕이 피란을 떠나듯 이곳 강화도로 도망쳤습니다. 다시 돌아온 섬에서 전등사 대고 소리, 온수리 성당의 삼종 소리, 그리고 밀물과 썰물의 얼굴들을 기록하며 위로를 얻었습니다.</div>
+        </div>
+        <div class="info-section">
+            <h3>Credits</h3>
+            <div class="info-content">released March 25, 2026
+Produced by 이철민
+Recorded, edited and mastered by 이철민
+Illustrations by 이철민
+Cover photo by 이철민
+Designed by 이재수
+℗© 2026 RIVERMAN MUSIC</div>
+        </div>
+        <div class="info-section">
+            <h3>Equipment</h3>
+            <div class="info-content">Audio-Technica AT8022 mic, Earsight The One mic, Clippy EM272 mic, Zoom F3 recorder, Zoom H6 recorder, Mogami mic cable, Folding stereo bar, Ulanzi carbon light stand</div>
+        </div>
     </div>
-    
+
+    <!-- 중앙 지도 -->
     <div id="map"></div>
+
+    <!-- 오른쪽 재생목록 및 컨트롤러 -->
+    <div id="right-sidebar">
+        <div id="playlist-header">
+            <h2>Gangwha Soundscape</h2>
+        </div>
+        <div id="track-list"></div>
+        <div id="player-controls">
+            <button class="control-btn" onclick="prevTrack()">⏮</button>
+            <button class="control-btn play-pause" id="master-play" onclick="togglePlay()">▶</button>
+            <button class="control-btn" onclick="nextTrack()">⏭</button>
+        </div>
+    </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+    let currentTrackIdx = -1;
+    const markers = [];
     const map = L.map('map', { zoomControl: false }).setView([37.68, 126.43], 11);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', { opacity: 0.9 }).addTo(map);
-
-    const earIcon = L.divIcon({
-        className: 'ear-icon',
-        html: `<svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M12 2C8.69 2 6 4.69 6 8v3.29c-1.13.43-2 1.54-2 2.86 0 1.66 1.34 3 3 3h.5c.83 0 1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5H7c0-2.76 2.24-5 5-5s5 2.24 5 5h-.5c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5h.5c1.66 0 3-1.34 3-3 0-1.32-.87-2.43-2-2.86V8c0-3.31-2.69-6-6-6z"/></svg>`,
-        iconSize: [28, 28]
-    });
-
-    // 요청하신 Large 임베드 형식에 맞춰 베이스 URL 생성 함수
-    function getEmbedUrl(trackId) {
-        return `https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=large/bgcol=ffffff/linkcol=8e1d32/tracklist=false/artwork=small/track=${trackId}/transparent=true/`;
-    }
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png').addTo(map);
 
     const soundData = [
-        { id: "2989378636", title: "01. 강화도 국자와주걱 책방 앞", lat: 37.652175, lng: 126.440529, desc: "도장리 마을의 오후. 풍경 소리와 고양이 소리." },
-        { id: "753759855", title: "02. 사운드워킹-석모도 민머루해변", lat: 37.6512988, lng: 126.3331996, desc: "모래사장을 걷는 발소리와 비행기 소리." },
-        { id: "1719650266", title: "03. 강화도 정족산 14처길 낮", lat: 37.6365248, lng: 126.4875273, desc: "매미 소리와 멀리서 들리는 개 짖는 소리." },
-        { id: "843445286", title: "04. 강화도 정족산 입구 밤", lat: 37.631870, lng: 126.477204, desc: "고요한 산 입구의 밤 공기 소리." },
-        { id: "372803100", title: "05. 전등사 저녁예불 대고", lat: 37.631830, lng: 126.484682, desc: "전등사 대고의 웅장한 울림." },
-        { id: "1394143868", title: "06. 전등사 저녁예불 범종", lat: 37.631493, lng: 126.483674, desc: "저녁 공기를 가르는 범종 소리." },
-        { id: "925560464", title: "07. 동검도 동그랑섬", lat: 37.589020, lng: 126.525597, desc: "동검도 갯벌 인근의 파도 소리." },
-        { id: "1588339098", title: "08. 강화도 대산저수지", lat: 37.785945, lng: 126.479647, desc: "저수지의 잔잔한 물소리와 환경 소리." },
-        { id: "224371653", title: "09. 광성보 우수관 빗방울 소리", lat: 37.665276, lng: 126.530615, desc: "우수관 내부의 독특한 울림과 물소리." },
-        { id: "4164866312", title: "10. 교동도 남산포구 밀물때", lat: 37.763106, lng: 126.290747, desc: "갯벌로 물이 차오르는 부드러운 소리." },
-        { id: "519450696", title: "11. 강화도 북일곶돈대 해안가", lat: 37.611408, lng: 126.375040, desc: "해안가의 강한 바람과 파도." },
-        { id: "64694152", title: "12. 교동도 월선포구 썰물때", lat: 37.774263, lng: 126.316992, desc: "물이 빠진 갯벌의 생생한 소리." },
-        { id: "2110564066", title: "13. 강화도 첫눈", lat: 37.638092, lng: 126.490264, desc: "첫눈이 내리는 고요한 강화도의 정경." },
-        { id: "2505151801", title: "14. 온수리 성당 삼종소리", lat: 37.640278, lng: 126.489879, desc: "성공회 성당의 기도 종소리." },
-        { id: "3411754260", title: "15. 평화전망대 앞 바람 소리", lat: 37.820137, lng: 126.444672, desc: "바람에 실려온 북쪽의 희미한 소리." },
-        { id: "3411754260", title: "16. 교동도 민가 새벽의 바람", lat: 37.768691, lng: 126.290418, desc: "섬을 깨우는 새벽의 수탉과 바람 소리." }
+        { id: "2989378636", title: "01. 강화도 국자와주걱 책방 앞", lat: 37.652175, lng: 126.440529 },
+        { id: "753759855", title: "02. 사운드워킹-석모도 민머루해변", lat: 37.6512988, lng: 126.3331996 },
+        { id: "1719650266", title: "03. 강화도 정족산 14처길 낮", lat: 37.6365248, lng: 126.4875273 },
+        { id: "843445286", title: "04. 강화도 정족산 입구 밤", lat: 37.631870, lng: 126.477204 },
+        { id: "372803100", title: "05. 전등사 저녁예불 대고", lat: 37.631830, lng: 126.484682 },
+        { id: "1394143868", title: "06. 전등사 저녁예불 범종", lat: 37.631493, lng: 126.483674 },
+        { id: "925560464", title: "07. 동검도 동그랑섬", lat: 37.589020, lng: 126.525597 },
+        { id: "1588339098", title: "08. 강화도 대산저수지", lat: 37.785945, lng: 126.479647 },
+        { id: "224371653", title: "09. 광성보 우수관 빗방울 소리", lat: 37.665276, lng: 126.530615 },
+        { id: "4164866312", title: "10. 교동도 남산포구 밀물때", lat: 37.763106, lng: 126.290747 },
+        { id: "519450696", title: "11. 강화도 북일곶돈대 해안가", lat: 37.611408, lng: 126.375040 },
+        { id: "64694152", title: "12. 교동도 월선포구 썰물때", lat: 37.774263, lng: 126.316992 },
+        { id: "2110564066", title: "13. 강화도 첫눈", lat: 37.638092, lng: 126.490264 },
+        { id: "2505151801", title: "14. 온수리 성당 삼종소리", lat: 37.640278, lng: 126.489879 },
+        { id: "3520696282", title: "15. 평화전망대 앞 바람 소리", lat: 37.820137, lng: 126.444672 },
+        { id: "3411754260", title: "16. 교동도 민가 새벽의 바람", lat: 37.768691, lng: 126.290418 }
     ];
 
-    const listContainer = document.getElementById('track-list');
-    const playerContainer = document.getElementById('player-container');
-    const nowPlayingArea = document.getElementById('now-playing');
+    const trackListEl = document.getElementById('track-list');
 
-    soundData.forEach((data) => {
-        const marker = L.marker([data.lat, data.lng], { icon: earIcon }).addTo(map);
-        marker.bindPopup(`<b>${data.title}</b><p>${data.desc}</p>`);
+    function toggleMenu() {
+        document.getElementById('left-sidebar').classList.toggle('active');
+        const btn = document.getElementById('menu-btn');
+        btn.innerHTML = btn.innerHTML === '☰' ? '✕' : '☰';
+    }
 
-        const trackItem = document.createElement('div');
-        trackItem.className = 'track-item';
-        trackItem.innerHTML = `<b>${data.title}</b><span>${data.lat.toFixed(4)}, ${data.lng.toFixed(4)}</span>`;
+    function selectTrack(idx) {
+        currentTrackIdx = idx;
+        const data = soundData[idx];
         
-        trackItem.onclick = () => {
-            map.flyTo([data.lat, data.lng], 14, { duration: 1.5 });
-            setTimeout(() => marker.openPopup(), 1600);
-
-            // Large 임베드로 교체 (높이 120px)
-            nowPlayingArea.style.display = 'block';
-            playerContainer.innerHTML = `<iframe style="border: 0; width: 100%; height: 120px;" src="${getEmbedUrl(data.id)}" seamless></iframe>`;
-
-            document.querySelectorAll('.track-item').forEach(el => el.classList.remove('active'));
-            trackItem.classList.add('active');
-        };
+        // 지도 이동 및 팝업 열기
+        map.flyTo([data.lat, data.lng], 14);
         
-        listContainer.appendChild(trackItem);
+        // 팝업 생성 및 자동 재생 옵션(autoplay=1) 추가
+        const embedHtml = `<iframe style="border: 0; width: 350px; height: 470px; border-radius:12px;" src="https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=large/bgcol=ffffff/linkcol=0687f5/tracklist=false/track=${data.id}/transparent=true/autoplay=1/" seamless></iframe>`;
+        
+        markers[idx].bindPopup(`<b>${data.title}</b><br>${embedHtml}`).openPopup();
+
+        // 리스트 UI 업데이트
+        document.querySelectorAll('.track-item').forEach((el, i) => {
+            el.classList.toggle('active', i === idx);
+        });
+        document.getElementById('master-play').innerHTML = '⏸';
+    }
+
+    // 마커 및 리스트 생성
+    soundData.forEach((data, idx) => {
+        const marker = L.marker([data.lat, data.lng], {
+            icon: L.divIcon({
+                className: 'ear-icon',
+                html: `<svg viewBox="0 0 24 24" width="16" height="16" fill="white"><path d="M12 2C8.69 2 6 4.69 6 8v3.29c-1.13.43-2 1.54-2 2.86 0 1.66 1.34 3 3 3h.5c.83 0 1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5H7c0-2.76 2.24-5 5-5s5 2.24 5 5h-.5c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5h.5c1.66 0 3-1.34 3-3 0-1.32-.87-2.43-2-2.86V8c0-3.31-2.69-6-6-6z"/></svg>`,
+                iconSize: [32, 32]
+            })
+        }).addTo(map);
+        
+        marker.on('click', () => selectTrack(idx));
+        markers.push(marker);
+
+        const item = document.createElement('div');
+        item.className = 'track-item';
+        item.innerText = data.title;
+        item.onclick = () => selectTrack(idx);
+        trackListEl.appendChild(item);
     });
+
+    // 컨트롤러 기능
+    function nextTrack() {
+        let next = currentTrackIdx + 1;
+        if (next >= soundData.length) next = 0;
+        selectTrack(next);
+    }
+
+    function prevTrack() {
+        let prev = currentTrackIdx - 1;
+        if (prev < 0) prev = soundData.length - 1;
+        selectTrack(prev);
+    }
+
+    function togglePlay() {
+        if (currentTrackIdx === -1) selectTrack(0);
+        else {
+            // 실제 iframe 제어는 보안 정책상 제한적이지만, UI상 대응
+            const btn = document.getElementById('master-play');
+            btn.innerHTML = btn.innerHTML === '▶' ? '⏸' : '▶';
+        }
+    }
 </script>
 
 </body>
