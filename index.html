@@ -55,24 +55,25 @@
 
         .ear-icon { background: var(--accent-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.4); border: 2px solid white; cursor: pointer; }
         
-        /* 팝업 레이아웃 수정 */
+        /* 팝업 레이아웃 및 텍스트 정렬 수정 */
         .custom-popup .leaflet-popup-content-wrapper { 
             border-radius: 0; 
             background: var(--beige-bg);
-            padding: 0; /* 내부 여백 초기화 */
+            padding: 0; 
         }
 
         .custom-popup .leaflet-popup-content {
-            width: 300px !important; /* 팝업 너비 강제 고정 */
-            margin: 20px !important; /* 내부 텍스트 여백 */
+            width: 320px !important; 
+            margin: 25px !important; 
         }
 
         .diary-box { 
             white-space: pre-wrap; 
             word-break: keep-all; 
-            line-height: 1.7; 
+            line-height: 1.8; 
             font-size: 14.5px; 
             color: #333; 
+            text-align: center; /* 텍스트 중앙 정렬로 부자연스러움 해결 */
         }
     </style>
 </head>
@@ -180,9 +181,9 @@
         document.querySelectorAll('.track-item').forEach((item, i) => item.classList.toggle('active', i === idx));
         
         map.flyTo([track.lat, track.lng], 14);
-        setTimeout(() => { markers[idx].openPopup(); }, 400);
 
         const player = document.getElementById('main-player');
+        // 강제 자동 재생 파라미터 추가
         player.src = `https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=large/bgcol=ffffff/linkcol=8e1d32/tracklist=false/artwork=small/track=${track.id}/transparent=true/autoplay=true/`;
     }
 
@@ -197,7 +198,7 @@
 
         const popupContent = `
             <div class="diary-box">
-                <b style="color:var(--accent-red); font-size:16px;">${data.title}</b><br><br>
+                <b style="color:var(--accent-red); font-size:17px; display:block; margin-bottom:10px;">${data.title}</b>
                 ${data.desc}<br><br>
                 <small style="color:#888; font-size:12px;">${data.meta}</small>
             </div>`;
@@ -205,10 +206,13 @@
         marker.bindPopup(popupContent, { 
             className: 'custom-popup', 
             maxWidth: 350, 
-            minWidth: 300 
+            minWidth: 320 
         });
         
-        marker.on('click', () => selectTrack(idx));
+        // 마커 클릭 시 소리 재생과 연동
+        marker.on('click', () => {
+            selectTrack(idx);
+        });
 
         const item = document.createElement('div');
         item.className = 'track-item';
