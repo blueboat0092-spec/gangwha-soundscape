@@ -3,152 +3,784 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>GANGHWA ISLAND SOUNDSCAPE</title>
+    <title>Pocket dream's soundmap</title>
+    
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@700&display=swap');
 
         :root {
-            --accent-red: #8e1d32;
-            --beige-bg: #f9f7f2;
-            --text-main: #222;
-            --text-sub: #666;
-            --sidebar-width: 350px;
+            --font-mono: ui-monospace, 'SFMono-Regular', Consolas, Menlo, Monaco, 'Courier New', monospace;
+            --bg-main: #ffffff;
+            --bg-panel: #fafafa;
+            --bg-popup: #ffffff;
+            --bg-hover: #f3f4f6;
+            --bg-active: #ffeef8;
+            --text-main: #1f2937;
+            --text-sub: #8c92ac;
+            --text-accent: #ff33aa;  /* Hot Pink */
+            --border-color: #d1d5db;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+            --btn-bg: #ffffff;
+            --btn-border: #d1d5db;
+            --btn-text: #1f2937;
+            --marker-bg: #ff33aa;    /* Pink pin */
+            --marker-text: #ffffff;
+            --map-filter: grayscale(0.8) contrast(1.05) brightness(1.02); /* Bright, clean, gray-toned map */
         }
 
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Pretendard', sans-serif; background: #f0f0f0; overflow: hidden; color: var(--text-main); }
-        #app { display: flex; width: 100vw; height: 100vh; position: relative; overflow: hidden; flex-direction: row; }
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: var(--font-mono);
+            background-color: var(--bg-main);
+            color: var(--text-main);
+        }
 
-        /* 지도 */
-        #map { flex: 1; height: 100%; z-index: 1; filter: sepia(0.05) contrast(0.95); }
+        #app {
+            display: flex;
+            flex-direction: column;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* Top Header Status Bar */
+        .bbs-header {
+            height: 38px;
+            background-color: var(--bg-panel);
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            box-sizing: border-box;
+            font-size: 12px;
+            z-index: 3000;
+            box-shadow: 0 1px 3px var(--shadow-color);
+        }
+
+        .bbs-title {
+            font-weight: bold;
+            color: var(--text-accent);
+            letter-spacing: 0.5px;
+        }
+
+        .bbs-nav {
+            display: flex;
+            gap: 6px;
+        }
+
+        .bbs-btn {
+            background: var(--btn-bg);
+            color: var(--btn-text);
+            border: 1px solid var(--btn-border);
+            padding: 3px 8px;
+            cursor: pointer;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            transition: all 0.1s;
+            box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.05);
+        }
+
+        .bbs-btn:active {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px rgba(0, 0, 0, 0.05);
+        }
+
+        .bbs-btn:hover {
+            background-color: var(--bg-hover);
+            color: var(--text-accent);
+            border-color: var(--text-accent);
+        }
+
+        #app-body {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 38px);
+            position: relative;
+            flex-direction: row;
+        }
+
+        /* Leaflet Map */
+        #map {
+            flex: 1;
+            height: 100%;
+            z-index: 1;
+            filter: var(--map-filter);
+            background-color: #fafafa;
+        }
+
+        /* Sidebar container */
+        #sidebar-right {
+            width: 320px;
+            background-color: var(--bg-panel);
+            border-left: 2px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+            box-sizing: border-box;
+            position: relative;
+            transition: width 0.3s ease;
+        }
+
+        /* Sidebar Toggle Tab */
+        #sidebar-toggle-tab {
+            position: absolute;
+            left: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 50px;
+            background-color: var(--bg-panel);
+            border: 2px solid var(--border-color);
+            border-right: none;
+            cursor: pointer;
+            z-index: 1005;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            box-shadow: -2px 2px 4px rgba(0,0,0,0.05);
+            outline: none;
+        }
+
+        #sidebar-toggle-tab:hover {
+            color: var(--text-accent);
+            background-color: var(--bg-hover);
+        }
+
+        #sidebar-right.collapsed {
+            width: 0px;
+            border-left: none;
+        }
+
+        #sidebar-right.collapsed * {
+            display: none !important;
+        }
+
+        /* Keep toggle tab visible when collapsed */
+        #sidebar-right.collapsed #sidebar-toggle-tab {
+            display: flex !important;
+        }
+
+        .sidebar-title {
+            padding: 12px;
+            font-weight: bold;
+            border-bottom: 2px solid var(--border-color);
+            font-size: 12px;
+            color: var(--text-accent);
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.02);
+            letter-spacing: 1px;
+        }
+
+        .track-list-container {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .track-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .track-item {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            cursor: pointer;
+            font-size: 12.5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--text-main);
+            transition: background-color 0.1s;
+        }
+
+        .track-item:hover {
+            background-color: var(--bg-hover);
+        }
+
+        .track-item.active {
+            background-color: var(--bg-active);
+            font-weight: bold;
+            color: var(--text-accent);
+            border-left: 3px solid var(--text-accent);
+        }
+
+        .track-item-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .track-item-num {
+            opacity: 0.6;
+            font-size: 11px;
+        }
+
+        .track-item-title {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .track-item-actions {
+            display: flex;
+            gap: 4px;
+            margin-left: 8px;
+        }
+
+        .track-item-btn {
+            font-size: 10px;
+            padding: 1px 4px;
+            border: 1px solid var(--border-color);
+            background: #ffffff;
+            color: var(--text-main);
+            cursor: pointer;
+            font-family: var(--font-mono);
+            box-shadow: 1px 1px 0px rgba(0,0,0,0.05);
+        }
+
+        .track-item-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-accent) !important;
+            border-color: var(--text-accent);
+        }
+
+        /* Admin Control Panel inside Sidebar */
+        #admin-actions-panel {
+            padding: 12px;
+            border-bottom: 2px solid var(--border-color);
+            background-color: rgba(255, 51, 170, 0.03);
+            box-sizing: border-box;
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f3f4f6;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ff33aa;
+        }
+
+        /* Album Info and Edit Modal Dialogs */
+        #info-modal, #edit-modal {
+            position: fixed;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 95%;
+            max-width: 480px;
+            max-height: calc(100vh - 80px);
+            background: var(--bg-popup);
+            border: 2px solid var(--text-accent); /* Bold pink border */
+            box-shadow: 6px 6px 0px var(--shadow-color);
+            z-index: 4000;
+            display: none;
+            flex-direction: column;
+            color: var(--text-main);
+            box-sizing: border-box;
+        }
         
-        /* 좌측 메뉴 바 */
-        .left-interface {
-            position: absolute; left: 0; top: 0; bottom: 0; width: 60px;
-            background: var(--beige-bg); border-right: 1px solid rgba(0,0,0,0.05);
-            z-index: 3000; display: flex; flex-direction: column; align-items: center; padding-top: 20px;
+        #edit-modal {
+            z-index: 4100; /* Layer on top of info-modal */
         }
-        .menu-btn { width: 44px; height: 44px; background: var(--accent-red); color: white; border: none; cursor: pointer; font-size: 20px; margin-bottom: 10px; border-radius: 8px; transition: 0.3s; }
-        .branding { position: absolute; bottom: 40px; writing-mode: vertical-rl; transform: rotate(180deg); color: var(--accent-red); font-weight: 800; font-size: 15px; letter-spacing: 2px; white-space: nowrap; opacity: 0.8; }
 
-        /* 앨범 정보 모달 */
-        #info-modal {
-            position: fixed; top: 0; left: 60px; bottom: 0; width: 380px;
-            background: white; z-index: 4000; display: none; box-shadow: 15px 0 35px rgba(0,0,0,0.08);
-            padding: 40px; overflow-y: auto;
+        .modal-header {
+            padding: 10px 14px;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(0, 0, 0, 0.02);
         }
-        .close-x { position: absolute; top: 25px; right: 25px; font-size: 30px; cursor: pointer; line-height: 1; color: #999; }
 
-        /* 데스크탑 우측 사이드바 */
-        #sidebar-right { width: var(--sidebar-width); background: white; z-index: 2000; display: flex; flex-direction: column; border-left: 1px solid #eee; }
-        .track-list-container { flex: 1; overflow-y: auto; }
-        .track-item { padding: 16px 25px; border-bottom: 1px solid #f9f9f9; cursor: pointer; font-size: 13.5px; color: var(--text-sub); transition: 0.2s; display: flex; align-items: center; }
-        .track-item b { margin-right: 15px; font-weight: 600; opacity: 0.4; font-size: 11px; }
-        .track-item:hover { background: #fcfcfc; color: var(--accent-red); }
-        .track-item.active { background: #fff8f8; color: var(--accent-red); font-weight: 700; border-left: 4px solid var(--accent-red); }
+        .modal-title {
+            font-weight: bold;
+            color: var(--text-accent);
+            font-size: 13px;
+        }
 
-        /* 팝업 디자인 개편 (심플 모던) */
-        .ear-icon { background: var(--accent-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(142,29,50,0.3); border: 2px solid white; cursor: pointer; }
-        .custom-popup .leaflet-popup-content-wrapper { border-radius: 12px; background: white; padding: 0; overflow: hidden; box-shadow: 0 15px 30px rgba(0,0,0,0.15); }
-        .custom-popup .leaflet-popup-content { width: 300px !important; margin: 0 !important; }
+        .modal-close {
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 16px;
+            font-family: var(--font-mono);
+            font-weight: bold;
+        }
+
+        .modal-close:hover {
+            color: var(--text-accent);
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            font-size: 12.5px;
+            line-height: 1.6;
+        }
+
+        /* Custom Leaflet Popup */
+        .custom-popup .leaflet-popup-content-wrapper {
+            background: var(--bg-popup) !important;
+            color: var(--text-main) !important;
+            border: 2px solid var(--text-accent) !important; /* Pink accent border */
+            border-radius: 0px !important;
+            box-shadow: 4px 4px 0px var(--shadow-color) !important;
+            padding: 0 !important;
+            font-family: var(--font-mono) !important;
+        }
+
+        .custom-popup .leaflet-popup-content {
+            margin: 0 !important;
+            width: 320px !important;
+        }
+
+        .custom-popup .leaflet-popup-tip-container {
+            display: none;
+        }
+
+        /* Custom Marker Icons (Circular note drawing) */
+        .custom-marker-icon {
+            background: #ffffff;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+            box-sizing: border-box;
+            transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .custom-marker-icon img {
+            border-radius: 50%;
+        }
+
+        .custom-marker-icon:hover {
+            transform: scale(1.15);
+            border-color: var(--text-accent);
+        }
+
+        /* Active selected marker icon styling */
+        .custom-marker-icon.active {
+            border: 3px solid var(--text-accent) !important;
+            transform: scale(1.2);
+            box-shadow: 0 4px 8px rgba(255, 51, 170, 0.3) !important;
+        }
+
+        /* Popup content box */
+        .diary-box {
+            padding: 16px;
+            font-size: 12px;
+            line-height: 1.6;
+            box-sizing: border-box;
+        }
+
+        .diary-box h2 {
+            font-size: 13.5px;
+            font-weight: bold;
+            color: var(--text-accent);
+            margin: 0 0 8px 0;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 6px;
+            word-break: keep-all;
+        }
+
+        .diary-box p {
+            margin: 0 0 12px 0;
+            color: var(--text-main);
+            word-break: keep-all;
+        }
+
+        .diary-box .meta-text {
+            font-size: 11px;
+            color: var(--text-sub);
+            display: block;
+            margin-bottom: 8px;
+            border-top: 1px dotted rgba(0, 0, 0, 0.08);
+            padding-top: 6px;
+        }
+
+        .popup-player {
+            width: 100%;
+            height: 80px;
+            border: none;
+            border-bottom: 1px solid var(--border-color); /* Bottom border dividing from content below */
+            display: block;
+            background: #ffffff;
+        }
         
-        .diary-box { padding: 24px 24px 16px; text-align: left; }
-        .diary-box .track-num { font-size: 10px; font-weight: 800; color: var(--accent-red); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; display: block; }
-        .diary-box h2 { font-family: 'Noto Serif KR', serif; color: var(--text-main); font-size: 17px; margin: 0 0 12px 0; line-height: 1.4; word-break: keep-all; }
-        .diary-box p { font-family: 'Pretendard', sans-serif; font-size: 13px; margin: 0 0 16px 0; color: #444; line-height: 1.7; word-break: keep-all; letter-spacing: -0.2px; }
-        .meta-text { display: block; color: #aaa; font-size: 11px; font-family: 'Pretendard', sans-serif; line-height: 1.5; border-top: 1px solid #f0f0f0; padding-top: 12px; }
-        .popup-player { width: 100%; height: 42px; border: 0; display: block; border-top: 1px solid #f0f0f0; }
+        .popup-audio-player {
+            width: 100%;
+            display: block;
+            border: none;
+            border-bottom: 1px solid var(--border-color); /* Bottom border dividing from content below */
+            background: #ffffff;
+            box-sizing: border-box;
+            padding: 8px 6px;
+        }
 
-        /* 모바일 대응 수정 */
+        /* Popup Media Image styling - full size contain without cutting/cropping */
+        .popup-media-image {
+            width: 100%;
+            height: auto;
+            max-height: 220px;
+            object-fit: contain;
+            background-color: #fafafa;
+            display: block;
+            border-bottom: 1px solid var(--border-color);
+            box-sizing: border-box;
+        }
+
+        .popup-admin-actions {
+            padding: 0 16px 12px;
+            display: flex;
+            gap: 6px;
+        }
+
+        /* Forms inside Edit Modal */
+        .edit-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .form-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-row label {
+            font-size: 11px;
+            color: var(--text-accent);
+            font-weight: bold;
+        }
+
+        .bbs-input, .bbs-textarea {
+            background-color: #ffffff;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 8px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .bbs-input:focus, .bbs-textarea:focus {
+            outline: none;
+            border-color: var(--text-accent);
+        }
+
+        .coords-inputs {
+            display: flex;
+            gap: 6px;
+        }
+
+        .coords-inputs input {
+            flex: 1;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            justify-content: flex-end;
+        }
+
+        #img-preview-container {
+            margin-top: 8px;
+            border: 1px solid var(--border-color);
+            padding: 6px;
+            background: #fafafa;
+            text-align: center;
+        }
+
+        /* Zoom Controls */
+        .leaflet-control-zoom {
+            border: 1px solid var(--border-color) !important;
+            border-radius: 4px !important;
+            box-shadow: 0 2px 4px var(--shadow-color) !important;
+            margin: 12px !important;
+            overflow: hidden;
+        }
+
+        .leaflet-control-zoom-in, .leaflet-control-zoom-out {
+            background-color: #ffffff !important;
+            color: var(--text-main) !important;
+            border: none !important;
+            font-family: var(--font-mono) !important;
+            font-weight: bold !important;
+        }
+
+        .leaflet-control-zoom-in {
+            border-bottom: 1px solid var(--border-color) !important;
+        }
+
+        .leaflet-control-zoom-in:hover, .leaflet-control-zoom-out:hover {
+            background-color: var(--bg-hover) !important;
+            color: var(--text-accent) !important;
+        }
+
+        /* Mobile View Response */
         @media (max-width: 768px) {
-            #app { flex-direction: column; }
-            .left-interface { width: 100%; height: 50px; flex-direction: row; padding: 0 15px; border-right: none; border-bottom: 1px solid rgba(0,0,0,0.05); }
-            .menu-btn { margin-bottom: 0; width: 36px; height: 36px; font-size: 18px; }
-            .branding { position: static; transform: none; writing-mode: horizontal-tb; margin-left: 15px; font-size: 13px; }
-            
-            /* 지도를 채우고 하단에 리스트 배치 */
-            #map { height: calc(100% - 130px); }
-            
-            /* 모바일 하단 가로 스크롤 트랙리스트 */
-            #sidebar-right { 
-                width: 100%; 
-                height: 80px; 
-                border-left: none; 
-                border-top: 1px solid #eee; 
-                flex-direction: row;
-                overflow-x: auto;
-                background: white;
-                position: absolute;
-                bottom: 0;
+            #app-body {
+                flex-direction: column;
             }
-            .track-list-container { display: flex; flex-direction: row; width: auto; overflow-y: hidden; }
-            .track-list-container > div:first-child { display: none; } /* "TRACKLIST" 라벨 숨김 */
-            #track-list { display: flex; flex-direction: row; white-space: nowrap; padding: 10px; }
-            .track-item { 
-                border-bottom: none; 
-                border-right: 1px solid #f0f0f0; 
-                padding: 0 20px; 
-                height: 60px;
-                min-width: 180px;
-                font-size: 12px;
+
+            #map {
+                height: calc(100% - 90px);
+            }
+
+            #sidebar-right {
+                width: 100%;
+                height: 90px;
+                border-left: none;
+                border-top: 2px solid var(--border-color);
+                flex-direction: row;
+                transition: height 0.3s ease;
+            }
+
+            #sidebar-right.collapsed {
+                height: 0px;
+                border-top: none;
+            }
+
+            #sidebar-toggle-tab {
+                left: 50%;
+                top: -20px;
+                transform: translateX(-50%);
+                width: 50px;
+                height: 20px;
+                border-left: 2px solid var(--border-color);
+                border-right: 2px solid var(--border-color);
+                border-top: 2px solid var(--border-color);
+                border-bottom: none;
+            }
+
+            .track-list-container {
+                flex-direction: row;
+                width: 100%;
+                overflow-x: auto;
+                overflow-y: hidden;
+            }
+
+            .sidebar-title {
+                display: none;
+            }
+
+            #track-list {
+                display: flex;
+                flex-direction: row;
+                white-space: nowrap;
+                padding: 8px;
+            }
+
+            .track-item {
+                border-bottom: none;
+                border-right: 1px solid rgba(0, 0, 0, 0.08);
+                padding: 0 16px;
+                height: 100%;
+                min-width: 170px;
+                box-sizing: border-box;
                 justify-content: center;
                 text-align: center;
             }
-            .track-item.active { border-left: none; border-bottom: 3px solid var(--accent-red); }
 
-            #info-modal { left: 0; width: 100%; height: 100%; padding: 60px 25px; box-sizing: border-box; z-index: 5000; }
+            .track-item.active {
+                border-left: none;
+                border-bottom: 4px solid var(--text-accent);
+            }
+
+            .track-item-actions {
+                display: none;
+            }
+
+            #admin-actions-panel {
+                display: none !important;
+            }
+
+            #info-modal, #edit-modal {
+                width: 95%;
+                height: calc(100vh - 60px);
+                top: 40px;
+            }
         }
     </style>
 </head>
 <body>
 
 <div id="app">
-    <div class="left-interface">
-        <button class="menu-btn" onclick="toggleInfo()">☰</button>
-        <div class="branding">GANGHWA ISLAND SOUNDSCAPE</div>
-    </div>
-
-    <div id="info-modal">
-        <span class="close-x" onclick="toggleInfo()">×</span>
-        <h1 style="font-family: 'Noto Serif KR', serif; color: var(--accent-red); border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 25px; font-size: 20px; letter-spacing: -0.5px;">Album Information</h1>
-        
-        <div style="width: 100%; margin-bottom: 25px;">
-            <img src="https://f4.bcbits.com/img/a2885868170_1x1_700.avif" alt="Cover" style="width: 100%; height: auto; border-radius: 8px; shadow: 0 10px 20px rgba(0,0,0,0.1);">
-        </div>
-
-        <div style="font-size: 14px; line-height: 1.8; color: #444; word-break: keep-all;">
-            <h3 style="font-size: 11px; letter-spacing: 1px; color: #999; margin-bottom: 10px;">ABOUT</h3>
-            강화도는 제 유년 시절의 가장 중요한 시기를 보낸 장소입니다. <br><br>
-            당시 기숙 생활을 하던 제게 강화는 그저 지루한 시골 섬일 뿐이었고, 주말이면 시끌벅적한 서울로 탈출하고 싶은 마음뿐이었습니다. <br>
-            이후 20대 시절, 음악을 하겠다며 상경해 밴드 활동을 하며 보냈고, 모든 것이 빠르게 변하는 도시의 속도 속에서 저만의 리듬을 잃어버렸습니다. <br>
-            더는 견딜 수 없다고 느껴질 때쯤, 모든 것을 내려놓고 이곳 강화도로 도망쳤습니다. <br><br>
-            다시 돌아온 섬에서 전등사에서 들려오는 저녁 예불의 낮은 종소리와 풀벌레의 하모니, 온수리 성당의 삼종 소리, 그리고 밀물과 썰물이 만들어내는 바다의 다양한 얼굴들을 만났고 기록했습니다. <br>
-            그 과정은 못난 마음을 바라봐 주는 시간이 되기도 했습니다.
-        </div>
-
-        <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 25px;">
-            <h3 style="font-size: 11px; letter-spacing: 1px; color: #999; margin-bottom: 10px;">CREDITS</h3>
-            <p style="margin: 5px 0; color: #666; font-size: 12px;">Produced by 이철민</p>
-            <p style="margin: 5px 0; color: #666; font-size: 12px;">Recorded, edited and mastered by 이철민</p>
-            <p style="margin: 5px 0; color: #666; font-size: 12px;">Illustrations & Cover photo by 이철민</p>
-            <p style="margin: 5px 0; color: #666; font-size: 12px;">Designed by 이재수</p>
+    <!-- Top Header Status Bar -->
+    <div class="bbs-header">
+        <div class="bbs-title">■ Pocket dream's soundmap</div>
+        <div class="bbs-nav">
+            <button class="bbs-btn" onclick="toggleInfo()">[H] Info</button>
+            <button class="bbs-btn" id="admin-toggle" onclick="toggleAdminMode()">[A] Admin: OFF</button>
+            <button class="bbs-btn admin-only" id="download-btn" onclick="downloadHtml()" style="display: none; color: var(--text-accent);">[S] Export HTML</button>
+            <button class="bbs-btn admin-only" id="reset-btn" onclick="resetData()" style="display: none;">[R] Reset</button>
         </div>
     </div>
 
-    <div id="map"></div>
+    <div id="app-body">
+        <!-- Leaflet Map Container -->
+        <div id="map"></div>
 
-    <div id="sidebar-right">
-        <div class="track-list-container">
-            <div style="padding: 25px 25px 10px; font-weight: 800; color: #bbb; font-size: 10px; letter-spacing: 2px;">TRACKLIST</div>
-            <div id="track-list"></div>
+        <!-- Sidebar Right Container -->
+        <div id="sidebar-right">
+            <!-- Sidebar Toggle Tab -->
+            <button id="sidebar-toggle-tab" onclick="toggleSidebar()">▸</button>
+
+            <!-- Admin Controls panel -->
+            <div id="admin-actions-panel" style="display: none;">
+                <div style="font-weight: bold; font-size: 11px; margin-bottom: 6px; color: var(--text-accent);">[ADMIN ACTIONS]</div>
+                <button class="bbs-btn" onclick="addNewTrackAtCenter()" style="width: 100%;">[+] Add Record at Map Center</button>
+                <div style="font-size: 9.5px; color: var(--text-sub); text-align: center; margin-top: 6px; line-height: 1.4;">
+                    * 지도를 더블클릭하면 핀을 새로 꽂을 수 있으며, 핀을 드래그하여 정확한 위치로 이동시킬 수 있습니다.
+                </div>
+            </div>
+
+            <div class="track-list-container">
+                <div class="sidebar-title">┌─── [ SOUND TRACKLIST ] ───┐</div>
+                <div id="track-list" class="track-list"></div>
+            </div>
         </div>
     </div>
 </div>
 
+<!-- Album Info modal -->
+<div id="info-modal">
+    <div class="modal-header">
+        <span class="modal-title">[ALBUM INFORMATION]</span>
+        <button class="modal-close" onclick="toggleInfo()">[X]</button>
+    </div>
+    
+    <div class="modal-body">
+        <div style="width: 100%; margin-bottom: 20px; border: 1px solid var(--border-color); box-shadow: 3px 3px 0 var(--shadow-color); box-sizing: border-box; overflow: hidden; background-color: #fafafa;">
+            <img src="https://f4.bcbits.com/img/a2885868170_1x1_700.avif" alt="Cover" style="width: 100%; height: auto; display: block;">
+        </div>
+
+        <div style="font-size: 12.5px; line-height: 1.7; word-break: keep-all;">
+            <div style="font-weight: bold; border-bottom: 1px dashed var(--border-color); padding-bottom: 4px; margin-bottom: 10px; color: var(--text-accent);">ABOUT</div>
+            강화도는 제 유년 시절의 가장 중요한 시기를 보낸 장소입니다. <br><br>
+            당시 기숙 생활을 하던 제게 강화는 그저 지루한 시골 섬일 뿐이었고, 주말이면 시끌벅적한 서울로 탈출하고 싶은 마음뿐이었습니다. <br><br>
+            이후 20대 시절, 음악을 하겠다며 상경해 밴드 활동을 하며 보냈고, 모든 것이 빠르게 변하는 도시의 속도 속에서 저만의 리듬을 잃어버렸습니다. <br><br>
+            더는 견딜 수 없다고 느껴질 때쯤, 모든 것을 내려놓고 이곳 강화도로 도망쳤습니다. <br><br>
+            다시 돌아온 섬에서 전등사에서 들려오는 저녁 예불의 낮은 종소리와 풀벌레의 하모니, 온수리 성당의 삼종 소리, 그리고 밀물과 썰물이 만들어내는 바다의 다양한 얼굴들을 만났고 기록했습니다. <br><br>
+            그 과정은 못난 마음을 바라봐 주는 시간이 되기도 했습니다.
+        </div>
+
+        <div style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+            <div style="font-weight: bold; border-bottom: 1px dashed var(--border-color); padding-bottom: 4px; margin-bottom: 10px; color: var(--text-accent);">CREDITS</div>
+            <p style="margin: 4px 0; font-size: 11.5px;">Produced by 이철민</p>
+            <p style="margin: 4px 0; font-size: 11.5px;">Recorded, edited and mastered by 이철민</p>
+            <p style="margin: 4px 0; font-size: 11.5px;">Illustrations & Cover photo by 이철민</p>
+            <p style="margin: 4px 0; font-size: 11.5px;">Designed by 이재수</p>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Recording Modal (새창/다이얼로그) -->
+<div id="edit-modal">
+    <div class="modal-header">
+        <span class="modal-title">[EDIT RECORDING DETAILS]</span>
+        <button class="modal-close" onclick="closeEditModal()">[X]</button>
+    </div>
+    
+    <div class="modal-body">
+        <form id="edit-form" class="edit-form" onsubmit="submitEditForm(event)">
+            <input type="hidden" id="edit-idx" />
+            
+            <div style="font-size: 10.5px; color: var(--text-sub); border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; margin-bottom: 6px; line-height: 1.4;">
+                * 핑크색 핀을 마우스로 드래그하면 원하는 위치로 핀을 직접 정교하게 옮길 수 있으며 아래 좌표값에 실시간 자동 입력됩니다.
+            </div>
+
+            <div class="form-row">
+                <label>TITLE :</label>
+                <input type="text" id="modal-edit-title" required class="bbs-input" placeholder="녹음 장소/이름" />
+            </div>
+
+            <div class="form-row">
+                <label>DESCRIPTION :</label>
+                <textarea id="modal-edit-desc" class="bbs-textarea" rows="3" placeholder="소리에 대한 분위기, 기분, 날씨 등을 기록해 보세요."></textarea>
+            </div>
+
+            <div class="form-row">
+                <label>METADATA (DATE / GEAR) :</label>
+                <input type="text" id="modal-edit-meta" class="bbs-input" placeholder="예: 2026-07-03 / Zoom F3" />
+            </div>
+
+            <div class="form-row">
+                <label>BANDCAMP TRACK ID (OPTIONAL) :</label>
+                <input type="text" id="modal-edit-id" class="bbs-input" placeholder="밴드캠프 트랙 ID 입력 (있을 경우만)" />
+            </div>
+
+            <!-- Custom Photo Upload/Link -->
+            <div class="form-row">
+                <label>IMAGE SOURCE (UPLOAD OR URL) :</label>
+                <input type="file" id="modal-edit-img-file" accept="image/*" class="bbs-input" onchange="handleImageUpload(this)" />
+                <div style="font-size: 9.5px; color: var(--text-sub); margin-top: 1px;">Or paste external Image URL:</div>
+                <input type="text" id="modal-edit-img-url" class="bbs-input" placeholder="https://example.com/photo.jpg" />
+                <div id="img-preview-container" style="display: none;">
+                    <img id="img-preview" src="" style="max-width: 100%; max-height: 90px; object-fit: contain;" />
+                </div>
+            </div>
+
+            <!-- Custom Audio Upload/Link -->
+            <div class="form-row">
+                <label>AUDIO SOURCE (UPLOAD OR URL) :</label>
+                <input type="file" id="modal-edit-audio-file" accept="audio/*" class="bbs-input" onchange="handleAudioUpload(this)" />
+                <div style="font-size: 9.5px; color: var(--text-sub); margin-top: 1px;">Or paste external Audio URL:</div>
+                <input type="text" id="modal-edit-audio-url" class="bbs-input" placeholder="https://example.com/sound.mp3" />
+            </div>
+
+            <div class="form-row">
+                <label>COORDINATES (LAT, LNG) :</label>
+                <div class="coords-inputs">
+                    <input type="number" step="any" id="modal-edit-lat" required class="bbs-input" placeholder="LAT" />
+                    <input type="number" step="any" id="modal-edit-lng" required class="bbs-input" placeholder="LNG" />
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="bbs-btn" style="background-color: var(--text-accent); color: #ffffff; border-color: var(--text-accent);">[S] SAVE</button>
+                <button type="button" class="bbs-btn" onclick="closeEditModal()">[C] CANCEL</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Leaflet Library -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    const soundData = [
+    // Hardcoded initial data source
+    const DEFAULT_SOUND_DATA = [
         { id: "2989378636", title: "국자와주걱 책방 앞", lat: 37.652175, lng: 126.440529, desc: "책방 툇마루에 앉아 바람이 연주하는 풍경소리를 녹음하던 중, 고양이가 다가와 말을 겁니다. 일하는 목수의 리듬과 우편배달부의 오토바이 소리가 강화도 오후의 평화를 그립니다.", meta: "2025-11-20 / Zoom F3 / Clippy EM272" },
         { id: "753759855", title: "석모도 민머루해변", lat: 37.651298, lng: 126.333199, desc: "사운드워킹. 모래사장 위를 걸으며 내 발소리와 파도 소리에 집중하며 내 속도를 느끼는 시간입니다.", meta: "2026-02-04" },
         { id: "1719650266", title: "정족산 14처길 낮", lat: 37.636524, lng: 126.487527, desc: "여름 강화도의 뜨거운 열기와 이를 뚫고 나오는 생명력 넘치는 매미 소리의 하모니.", meta: "2025-08-06" },
@@ -167,71 +799,640 @@
         { id: "3411754260", title: "교동도 민가의 새벽", lat: 37.768691, lng: 126.290418, desc: "섬의 새벽을 깨우는 거친 바람과 멀리서 들려오는 수탉의 울음소리.", meta: "2025-11-22" }
     ];
 
+    // Data array that changes in memory
+    const soundData = [];
+    
+    // Load from localStorage or fallback
+    const localData = localStorage.getItem('gangwha_sound_data');
+    if (localData) {
+        try {
+            const parsed = JSON.parse(localData);
+            if (Array.isArray(parsed)) {
+                soundData.push(...parsed);
+            } else {
+                soundData.push(...DEFAULT_SOUND_DATA);
+            }
+        } catch(e) {
+            console.error("Local data parse error. Falling back to default", e);
+            soundData.push(...DEFAULT_SOUND_DATA);
+        }
+    } else {
+        soundData.push(...DEFAULT_SOUND_DATA);
+    }
+
+    // Leaflet map setup
     const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([37.68, 126.43], 11);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/light_nolabels/{z}/{x}/{y}{r}.png').addTo(map);
+    
+    // Clean bright light gray map tiles
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+    L.control.zoom({ position: 'topleft' }).addTo(map);
 
     const markers = [];
     let currentTrackIndex = -1;
+    let isAdminMode = false;
+    
+    // File upload local variables (stores base64 data)
+    let uploadedImageBase64 = "";
+    let uploadedAudioBase64 = "";
 
-    function toggleInfo() {
-        const modal = document.getElementById('info-modal');
-        modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
+    // Toggle Sidebar Panel (Fold / Unfold)
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar-right');
+        const tab = document.getElementById('sidebar-toggle-tab');
+        sidebar.classList.toggle('collapsed');
+        
+        const isCollapsed = sidebar.classList.contains('collapsed');
+        const isMobile = window.innerWidth <= 768;
+        
+        if (isMobile) {
+            tab.innerText = isCollapsed ? '▴' : '▾';
+        } else {
+            tab.innerText = isCollapsed ? '◂' : '▸';
+        }
+        
+        // Notify leaflet map to update sizing after sliding transition ends
+        setTimeout(() => {
+            map.invalidateSize({ animate: true });
+        }, 300);
     }
 
+    // Toggle Modal dialogs
+    function toggleInfo() {
+        const modal = document.getElementById('info-modal');
+        modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+    }
+
+    // Toggle admin mode
+    function toggleAdminMode() {
+        isAdminMode = !isAdminMode;
+        
+        const adminToggleBtn = document.getElementById('admin-toggle');
+        adminToggleBtn.innerText = isAdminMode ? "[A] Admin: ON" : "[A] Admin: OFF";
+        
+        // Show/hide admin panels
+        document.querySelectorAll('.admin-only').forEach(el => {
+            el.style.display = isAdminMode ? 'inline-flex' : 'none';
+        });
+        document.getElementById('admin-actions-panel').style.display = isAdminMode ? 'block' : 'none';
+
+        // Toggle map double-click zoom
+        if (isAdminMode) {
+            map.doubleClickZoom.disable();
+        } else {
+            map.doubleClickZoom.enable();
+        }
+
+        renderMarkers();
+        renderTracklist();
+    }
+
+    // Render Markers on Map with Custom Note Image Icon
+    function renderMarkers() {
+        // Clear previous markers
+        markers.forEach(m => m.remove());
+        markers.length = 0;
+
+        soundData.forEach((data, idx) => {
+            // Leaflet Custom Icon utilizing marker-icon.jpg inside HTML wrapper
+            const icon = L.divIcon({ 
+                className: 'custom-marker-icon' + (idx === currentTrackIndex ? ' active' : ''), 
+                html: `<img src="marker-icon.jpg" style="width: 100%; height: 100%; border-radius: 50%; display: block;" onerror="this.src='https://f4.bcbits.com/img/a2885868170_1x1_700.avif';" />`, 
+                iconSize: [36, 36],
+                iconAnchor: [18, 18],
+                popupAnchor: [0, -18]
+            });
+            
+            const marker = L.marker([data.lat, data.lng], { icon }).addTo(map);
+            markers.push(marker);
+            
+            marker.on('click', () => selectTrack(idx));
+            
+            // Clean up dragging state if popup closes naturally
+            marker.on('popupclose', () => {
+                marker.dragging.disable();
+                marker.off('drag');
+                
+                // If it was an unsaved temporary track, remove it
+                if (soundData[idx] && soundData[idx].isTemporary) {
+                    soundData.splice(idx, 1);
+                    renderMarkers();
+                    renderTracklist();
+                    currentTrackIndex = -1;
+                }
+            });
+        });
+    }
+
+    // Render tracklist to sidebar
+    function renderTracklist() {
+        const listEl = document.getElementById('track-list');
+        listEl.innerHTML = '';
+
+        soundData.forEach((data, idx) => {
+            const item = document.createElement('div');
+            item.className = 'track-item';
+            if (idx === currentTrackIndex) item.classList.add('active');
+            
+            let actionsHtml = '';
+            if (isAdminMode) {
+                actionsHtml = `
+                    <div class="track-item-actions">
+                        <button class="track-item-btn" onclick="event.stopPropagation(); openEditModal(${idx})">Edit</button>
+                        <button class="track-item-btn" onclick="event.stopPropagation(); deleteTrack(${idx})" style="color: var(--text-accent);">Del</button>
+                    </div>
+                `;
+            }
+
+            item.innerHTML = `
+                <div class="track-item-content">
+                    <b class="track-item-num">${String(idx+1).padStart(2,'0')}</b>
+                    <span class="track-item-title">${data.title}</span>
+                </div>
+                ${actionsHtml}
+            `;
+            item.onclick = () => selectTrack(idx);
+            listEl.appendChild(item);
+        });
+    }
+
+    // Select track and fly to view - Ordered: Player -> Image -> Text Content
     function selectTrack(idx) {
         if (idx < 0 || idx >= soundData.length) return;
         const track = soundData[idx];
         currentTrackIndex = idx;
 
-        markers.forEach(m => m.closePopup());
+        // Close active popups and set active status on DOM markers
+        markers.forEach((m, i) => {
+            m.closePopup();
+            const el = m.getElement();
+            if (el) {
+                el.classList.toggle('active', i === idx);
+            }
+        });
 
         const isMobile = window.innerWidth <= 768;
-        map.flyTo([track.lat, track.lng], isMobile ? 13 : 14, { animate: true, duration: 1.5 });
+        const targetZoom = isMobile ? 12 : 13;
 
-        const popupContent = `
+        // Build popup HTML
+        const bgCol = "ffffff";
+        const linkCol = "ff33aa";
+        
+        // Render Image: prioritize imageBase64, then imageUrl (scales fully without cropping)
+        // onerror handles hidden display of broken HEIC image files
+        let imageHtml = '';
+        if (track.imageBase64) {
+            imageHtml = `<img src="${track.imageBase64}" class="popup-media-image" onerror="this.style.display='none';" />`;
+        } else if (track.imageUrl) {
+            imageHtml = `<img src="${track.imageUrl}" class="popup-media-image" onerror="this.style.display='none';" />`;
+        }
+
+        // Render Audio: prioritize audioBase64, then audioUrl, then Bandcamp ID
+        let audioPlayerHtml = '';
+        if (track.audioBase64) {
+            audioPlayerHtml = `<audio controls class="popup-audio-player" src="${track.audioBase64}"></audio>`;
+        } else if (track.audioUrl) {
+            audioPlayerHtml = `<audio controls class="popup-audio-player" src="${track.audioUrl}"></audio>`;
+        } else if (track.id) {
+            audioPlayerHtml = `
+                <iframe class="popup-player" 
+                    src="https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=${bgCol}/linkcol=${linkCol}/track=${track.id}/transparent=true/autoplay=true/" 
+                    seamless>
+                </iframe>
+            `;
+        } else {
+            audioPlayerHtml = `
+                <div style="padding: 15px; text-align: center; border-bottom: 1px solid var(--border-color); font-size: 11px; color: var(--text-sub); background: #ffffff;">
+                    [NO PLAYER OR AUDIO SOURCE CONNECTED]
+                </div>
+            `;
+        }
+
+        // Sequential Popup Content: Audio Player (Top) -> Photo (Middle) -> Text Info (Bottom)
+        let popupContent = `
+            ${audioPlayerHtml}
+            ${imageHtml}
             <div class="diary-box">
-                <span class="track-num">Track ${String(idx+1).padStart(2,'0')}</span>
+                <span class="track-num" style="color: var(--text-accent); font-size: 10px; font-weight: bold; display: block; margin-bottom: 4px;">Track ${String(idx+1).padStart(2,'0')}</span>
                 <h2>${track.title}</h2>
                 <p>${track.desc}</p>
                 <span class="meta-text">${track.meta}</span>
             </div>
-            <iframe class="popup-player" 
-                src="https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=ffffff/linkcol=8e1d32/track=${track.id}/transparent=true/autoplay=true/" 
-                seamless>
-            </iframe>`;
+        `;
 
-        map.once('moveend', () => {
-            markers[idx].bindPopup(popupContent, { 
-                className: 'custom-popup', 
-                closeButton: false,
-                offset: [0, -8]
-            }).openPopup();
+        if (isAdminMode) {
+            popupContent += `
+                <div class="popup-admin-actions">
+                    <button class="bbs-btn" onclick="openEditModal(${idx})">[E] EDIT</button>
+                    <button class="bbs-btn" onclick="deleteTrack(${idx})" style="color: var(--text-accent);">[D] DELETE</button>
+                </div>
+            `;
+        }
+
+        // Bind popup to marker IMMEDIATELY to prevent Leaflet registration bypass
+        markers[idx].bindPopup(popupContent, { 
+            className: 'custom-popup', 
+            closeButton: false,
+            offset: [0, -6]
         });
 
+        // Determine if map fly-to transition is necessary (bypass fly-to if already centered)
+        const currentCenter = map.getCenter();
+        const dist = currentCenter.distanceTo([track.lat, track.lng]);
+
+        if (dist < 10 && map.getZoom() === targetZoom) {
+            markers[idx].openPopup();
+        } else {
+            map.flyTo([track.lat, track.lng], targetZoom, { animate: true, duration: 1.2 });
+            map.once('moveend', () => {
+                markers[idx].openPopup();
+            });
+        }
+
+        // Set active in tracklist
         const items = document.querySelectorAll('.track-item');
         items.forEach((item, i) => {
             item.classList.toggle('active', i === idx);
-            if(i === idx) item.scrollIntoView({ behavior: 'smooth', block: isMobile ? 'center' : 'nearest', inline: 'center' });
+            if (i === idx) {
+                item.scrollIntoView({ behavior: 'smooth', block: isMobile ? 'center' : 'nearest', inline: 'center' });
+            }
         });
     }
 
-    soundData.forEach((data, idx) => {
-        const icon = L.divIcon({ 
-            className: 'ear-icon', 
-            html: `<svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M12 2C8.69 2 6 4.69 6 8v3.29c-1.13.43-2 1.54-2 2.86 0 1.66 1.34 3 3 3h.5c.83 0 1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5H7c0-2.76 2.24-5 5-5s5 2.24 5 5h-.5c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5h.5c1.66 0 3-1.34 3-3 0-1.32-.87-2.43-2-2.86V8c0-3.31-2.69-6-6-6z"/></svg>`, 
-            iconSize: [30, 30] 
-        });
-        
-        const marker = L.marker([data.lat, data.lng], { icon }).addTo(map);
-        markers.push(marker);
-        marker.on('click', () => selectTrack(idx));
+    // Open dedicated Edit Modal Dialog (새창)
+    function openEditModal(idx) {
+        const track = soundData[idx];
+        currentTrackIndex = idx;
 
-        const item = document.createElement('div');
-        item.className = 'track-item';
-        item.innerHTML = `<b>${String(idx+1).padStart(2,'0')}</b> <span>${data.title}</span>`;
-        item.onclick = () => selectTrack(idx);
-        document.getElementById('track-list').appendChild(item);
+        // Set form fields in modal
+        document.getElementById('edit-idx').value = idx;
+        document.getElementById('modal-edit-title').value = track.title || '';
+        document.getElementById('modal-edit-desc').value = track.desc || '';
+        document.getElementById('modal-edit-meta').value = track.meta || '';
+        document.getElementById('modal-edit-id').value = track.id || '';
+        document.getElementById('modal-edit-img-url').value = track.imageUrl || '';
+        document.getElementById('modal-edit-audio-url').value = track.audioUrl || '';
+        document.getElementById('modal-edit-lat').value = track.lat;
+        document.getElementById('modal-edit-lng').value = track.lng;
+
+        // Clear file inputs
+        document.getElementById('modal-edit-img-file').value = '';
+        document.getElementById('modal-edit-audio-file').value = '';
+
+        uploadedImageBase64 = track.imageBase64 || "";
+        uploadedAudioBase64 = track.audioBase64 || "";
+
+        // Image Preview configuration
+        const previewImg = document.getElementById('img-preview');
+        const container = document.getElementById('img-preview-container');
+        if (previewImg && container) {
+            if (uploadedImageBase64) {
+                previewImg.src = uploadedImageBase64;
+                container.style.display = 'block';
+            } else if (track.imageUrl) {
+                previewImg.src = track.imageUrl;
+                container.style.display = 'block';
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        // Enable Leaflet marker dragging for geographical selection
+        const marker = markers[idx];
+        if (marker) {
+            marker.dragging.enable();
+            marker.on('drag', (e) => {
+                document.getElementById('modal-edit-lat').value = e.latlng.lat.toFixed(6);
+                document.getElementById('modal-edit-lng').value = e.latlng.lng.toFixed(6);
+            });
+        }
+
+        // Close any active popups
+        markers.forEach(m => m.closePopup());
+
+        // Show Modal Window
+        document.getElementById('edit-modal').style.display = 'flex';
+    }
+
+    // Close Edit Modal and disable marker dragging
+    function closeEditModal() {
+        const idx = parseInt(document.getElementById('edit-idx').value);
+        const marker = markers[idx];
+        if (marker) {
+            marker.dragging.disable();
+            marker.off('drag');
+        }
+
+        document.getElementById('edit-modal').style.display = 'none';
+
+        // If it was an unsaved temporary track, clean it up
+        if (soundData[idx] && soundData[idx].isTemporary) {
+            soundData.splice(idx, 1);
+            renderMarkers();
+            renderTracklist();
+            currentTrackIndex = -1;
+        }
+    }
+
+    // Handle Image file uploading converting it to Base64 with canvas-based size compression (Max 800px width/height, 70% JPEG quality)
+    // Cautions users uploading unsupported iOS HEIC / HEIF file formats.
+    function handleImageUpload(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        // Verify image formats compatible with web browsers (Reject HEIC/HEIF)
+        const fileName = file.name.toLowerCase();
+        if (fileName.endsWith('.heic') || fileName.endsWith('.heif')) {
+            alert("⚠️ 아이폰 전용 사진 형식(HEIC)은 웹 브라우저에서 직접 읽을 수 없습니다!\n\n해결하려면:\n1. 아이폰의 '설정 > 카메라 > 포맷'에서 '가장 호환성 높음'으로 지정하거나,\n2. 카카오톡 등으로 사진을 한 번 전송한 뒤 받아 저장된 JPG 사진을 업로드해 주세요!");
+            input.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                // Initialize canvas compressor
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                const maxDim = 800; // Limit image dimensions to maintain quota
+
+                if (width > maxDim || height > maxDim) {
+                    if (width > height) {
+                        height = Math.round((height * maxDim) / width);
+                        width = maxDim;
+                    } else {
+                        width = Math.round((width * maxDim) / height);
+                        height = maxDim;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Compress to compact JPEG Base64
+                uploadedImageBase64 = canvas.toDataURL('image/jpeg', 0.7);
+
+                const previewImg = document.getElementById('img-preview');
+                const container = document.getElementById('img-preview-container');
+                if (previewImg && container) {
+                    previewImg.src = uploadedImageBase64;
+                    container.style.display = 'block';
+                }
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Handle Audio file uploading converting it to Base64 with file size ceiling checks (Max 2.5MB)
+    function handleAudioUpload(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const maxAudioSize = 2.5 * 1024 * 1024; // 2.5MB ceiling to avoid QuotaExceededError
+        if (file.size > maxAudioSize) {
+            alert("⚠️ 선택한 소리 파일의 크기(" + (file.size / 1024 / 1024).toFixed(1) + "MB)가 너무 큽니다!\n\n브라우저 저장소 제한(5MB) 때문에 2.5MB 이하의 오디오 파일만 업로드하여 보관할 수 있습니다. 더 큰 파일은 외부 링크(Audio URL)로 등록하시거나 파일을 잘라내 축소해서 올려주세요.");
+            input.value = '';
+            uploadedAudioBase64 = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            uploadedAudioBase64 = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Submit Edit Form and save modifications
+    function submitEditForm(event) {
+        event.preventDefault();
+
+        const idx = parseInt(document.getElementById('edit-idx').value);
+        const title = document.getElementById('modal-edit-title').value.trim();
+        const desc = document.getElementById('modal-edit-desc').value.trim();
+        const meta = document.getElementById('modal-edit-meta').value.trim();
+        const id = document.getElementById('modal-edit-id').value.trim();
+        const imageUrl = document.getElementById('modal-edit-img-url').value.trim();
+        const audioUrl = document.getElementById('modal-edit-audio-url').value.trim();
+        const lat = parseFloat(document.getElementById('modal-edit-lat').value);
+        const lng = parseFloat(document.getElementById('modal-edit-lng').value);
+
+        if (isNaN(lat) || isNaN(lng)) {
+            alert("Valid latitude and longitude coordinates are required!");
+            return;
+        }
+
+        // Lock marker coordinate & disable dragging
+        const marker = markers[idx];
+        if (marker) {
+            marker.dragging.disable();
+            marker.off('drag');
+            marker.setLatLng([lat, lng]);
+        }
+
+        delete soundData[idx].isTemporary;
+
+        soundData[idx] = {
+            id,
+            title,
+            desc,
+            meta,
+            lat,
+            lng,
+            imageUrl,
+            audioUrl,
+            imageBase64: uploadedImageBase64,
+            audioBase64: uploadedAudioBase64
+        };
+
+        saveToLocalStorage();
+        renderMarkers();
+        renderTracklist();
+
+        document.getElementById('edit-modal').style.display = 'none';
+
+        // Select the saved pin to display updated popup
+        selectTrack(idx);
+    }
+
+    // Delete track
+    function deleteTrack(idx) {
+        if (confirm(`Are you sure you want to delete track "${soundData[idx].title}"?`)) {
+            const marker = markers[idx];
+            if (marker) {
+                marker.dragging.disable();
+                marker.off('drag');
+            }
+
+            soundData.splice(idx, 1);
+            saveToLocalStorage();
+            renderMarkers();
+            renderTracklist();
+            currentTrackIndex = -1;
+            map.closePopup();
+        }
+    }
+
+    // Add a record at map center
+    function addNewTrackAtCenter() {
+        if (!isAdminMode) return;
+        const center = map.getCenter();
+        const newIdx = soundData.length;
+        
+        soundData.push({
+            id: "",
+            title: "New Recording Spot",
+            desc: "Add your recording description here.",
+            meta: new Date().toISOString().split('T')[0] + " / New Gear",
+            lat: center.lat,
+            lng: center.lng,
+            isTemporary: true
+        });
+
+        renderMarkers();
+        renderTracklist();
+        map.panTo(center);
+        setTimeout(() => {
+            openEditModal(newIdx);
+        }, 100);
+    }
+
+    // Double-click on map to insert marker (in Admin Mode)
+    map.on('dblclick', (e) => {
+        if (!isAdminMode) return;
+        const newIdx = soundData.length;
+
+        soundData.push({
+            id: "",
+            title: "New Recording Spot",
+            desc: "Add your recording description here.",
+            meta: new Date().toISOString().split('T')[0],
+            lat: e.latlng.lat,
+            lng: e.latlng.lng,
+            isTemporary: true
+        });
+
+        renderMarkers();
+        renderTracklist();
+        
+        // Center view on click coordinate
+        map.panTo(e.latlng);
+        setTimeout(() => {
+            openEditModal(newIdx);
+        }, 100);
     });
+
+    // Save to browser localStorage with error handling for quota ceiling issues
+    function saveToLocalStorage() {
+        try {
+            localStorage.setItem('gangwha_sound_data', JSON.stringify(soundData));
+        } catch (e) {
+            console.error("Local storage save failed:", e);
+            if (e.name === 'QuotaExceededError' || e.code === 22) {
+                alert("⚠️ 업로드한 이미지/오디오 파일 크기가 너무 커서 브라우저 로컬 저장소 한도(5MB)를 초과했습니다!\n\n현재 변경사항은 메모리에 보관되었으나 브라우저를 새로고침하면 유실됩니다. 해결하려면:\n1. 더 작고 압축된 이미지 또는 오디오 파일로 다시 시도해 주세요.\n2. 혹은 우측 상단의 [S] Export HTML 버튼을 눌러 소스코드를 저장해 깃허브에 덮어씌워 배포해 주세요.");
+            } else {
+                alert("저장 중 오류가 발생했습니다: " + e.message);
+            }
+        }
+    }
+
+    // Reset modifications back to default list
+    function resetData() {
+        if (confirm("Are you sure you want to reset all modifications back to the default tracklist? This deletes all additions and edits.")) {
+            localStorage.removeItem('gangwha_sound_data');
+            soundData.length = 0;
+            soundData.push(...DEFAULT_SOUND_DATA);
+            renderMarkers();
+            renderTracklist();
+            currentTrackIndex = -1;
+            map.closePopup();
+            alert("Data reset successfully.");
+        }
+    }
+
+    // Build the dynamic updated index.html for download
+    async function downloadHtml() {
+        try {
+            const resp = await fetch(window.location.href);
+            if (!resp.ok) throw new Error("Fetch failed");
+            let html = await resp.text();
+
+            // Clear temporary draft tracks that weren't saved
+            const cleanSoundData = soundData.filter(t => !t.isTemporary).map(t => {
+                const { isTemporary, ...rest } = t;
+                return rest;
+            });
+
+            // Replace soundData array definition
+            const dataRegex = /const\s+DEFAULT_SOUND_DATA\s*=\s*\[[\s\S]*?\]\s*;/;
+            const newBlock = `const DEFAULT_SOUND_DATA = ${JSON.stringify(cleanSoundData, null, 8)};`;
+            html = html.replace(dataRegex, newBlock);
+
+            // Create blob and trigger browser download
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'index.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (e) {
+            console.error("Local download failed. Offering copy-paste option.", e);
+            
+            const cleanSoundData = soundData.filter(t => !t.isTemporary).map(t => {
+                const { isTemporary, ...rest } = t;
+                return rest;
+            });
+            const jsonStr = JSON.stringify(cleanSoundData, null, 8);
+
+            // Show a simple copy dialog overlay
+            const copyModal = document.createElement('div');
+            copyModal.id = "fallback-copy-modal";
+            copyModal.style = `
+                position: fixed; top: 12%; left: 50%; transform: translateX(-50%);
+                width: 90%; max-width: 500px; max-height: 80vh; background: var(--bg-panel);
+                border: 2px solid var(--border-color); box-shadow: 6px 6px 0px var(--shadow-color);
+                padding: 16px; z-index: 5000; color: var(--text-main); font-family: var(--font-mono);
+                box-sizing: border-box; display: flex; flex-direction: column;
+            `;
+            copyModal.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 10px; color: var(--text-accent);">[CORS PROTOCOL RESTRICTION]</div>
+                <div style="font-size: 11.5px; line-height: 1.5; margin-bottom: 12px;">
+                    Local <code>file://</code> files cannot be downloaded automatically due to browser sandbox security.<br><br>
+                    Please copy the updated track data block below and overwrite the <code>const DEFAULT_SOUND_DATA = [...]</code> block inside your local <code>index.html</code> code:
+                </div>
+                <textarea style="width: 100%; height: 250px; font-family: var(--font-mono); font-size: 10px; background: rgba(0,0,0,0.05); color: var(--text-main); border: 1px solid var(--border-color); box-sizing: border-box; margin-bottom: 12px; padding: 8px;" readonly onclick="this.select()">${jsonStr}</textarea>
+                <div style="text-align: right;">
+                    <button class="bbs-btn" onclick="document.getElementById('fallback-copy-modal').remove()">[C] CLOSE</button>
+                </div>
+            `;
+            document.body.appendChild(copyModal);
+        }
+    }
+
+    // Helper functions
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    // Initialization
+    const initIsMobile = window.innerWidth <= 768;
+    document.getElementById('sidebar-toggle-tab').innerText = initIsMobile ? '▾' : '▸';
+    
+    renderTracklist();
+    renderMarkers();
 </script>
 </body>
 </html>
