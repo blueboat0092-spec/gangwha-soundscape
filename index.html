@@ -632,6 +632,70 @@
                 top: 40px;
             }
         }
+
+        /* 📁 CATEGORY CARDS PANELS */
+        .category-card {
+            border: 2px solid var(--border-color);
+            background-color: #ffffff;
+            padding: 14px;
+            cursor: pointer;
+            box-sizing: border-box;
+            box-shadow: 3px 3px 0px var(--shadow-color);
+            transition: transform 0.1s, box-shadow 0.1s, border-color 0.1s;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .category-card:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0px var(--shadow-color);
+        }
+        .category-card:active {
+            transform: translate(1px, 1px);
+            box-shadow: 2px 2px 0px var(--shadow-color);
+        }
+        .category-card-name {
+            font-size: 12px;
+            font-weight: bold;
+            word-break: keep-all;
+        }
+        .category-card-count {
+            font-size: 10.5px;
+            color: var(--text-sub);
+        }
+
+        /* 📍 CIRCLE PIN MARKERS */
+        .circle-pin {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-sizing: border-box;
+        }
+        .custom-marker-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.25s ease;
+        }
+        .custom-marker-icon.active .circle-pin {
+            width: 26px;
+            height: 26px;
+            border: 3px solid #ffffff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            animation: pin-pulse 1.2s infinite alternate;
+        }
+        @keyframes pin-pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.15); }
+        }
+
+        /* 🎯 CROSSHAIR FOR ADD PIN MODE */
+        .add-spot-cursor {
+            cursor: crosshair !important;
+        }
     </style>
 </head>
 <body>
@@ -660,15 +724,34 @@
             <!-- Admin Controls panel -->
             <div id="admin-actions-panel" style="display: none;">
                 <div style="font-weight: bold; font-size: 11px; margin-bottom: 6px; color: var(--text-accent);">[ADMIN ACTIONS]</div>
-                <button class="bbs-btn" onclick="addNewTrackAtCenter()" style="width: 100%;">[+] Add Record at Map Center</button>
-                <div style="font-size: 9.5px; color: var(--text-sub); text-align: center; margin-top: 6px; line-height: 1.4;">
-                    * 지도를 더블클릭하면 핀을 새로 꽂을 수 있으며, 핀을 드래그하여 정확한 위치로 이동시킬 수 있습니다.
-                </div>
+                <button id="add-spot-btn" class="bbs-btn" onclick="toggleAddSpotMode()" style="width: 100%;">[+] Add Spot (Click on Map)</button>
             </div>
 
-            <div class="track-list-container">
-                <div class="sidebar-title">┌─── [ SOUND TRACKLIST ] ───┐</div>
-                <div id="track-list" class="track-list"></div>
+            <!-- Sliding Views Wrapper Container -->
+            <div class="sidebar-views-container" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+                <div class="sidebar-views-wrapper" id="sidebar-views-wrapper" style="display: flex; width: 200%; height: 100%; transition: transform 0.3s ease-in-out;">
+                    
+                    <!-- View 1: Categories Panel -->
+                    <div class="sidebar-view" id="view-categories" style="width: 50%; height: 100%; display: flex; flex-direction: column; overflow-y: auto; padding: 0 10px 10px; box-sizing: border-box;">
+                        <div class="sidebar-title" style="margin-top: 10px;">┌─── [ ARCHIVE CATEGORIES ] ───┐</div>
+                        <div id="category-admin-actions" style="padding: 10px 0px 5px; display: block;">
+                            <button class="bbs-btn" onclick="promptCreateCategory()" style="width: 100%;">[+] Create New Category</button>
+                        </div>
+                        <div class="categories-container" id="categories-container" style="display: flex; flex-direction: column; gap: 10px; margin-top: 5px;"></div>
+                    </div>
+
+                    <!-- View 2: Tracklist Panel -->
+                    <div class="sidebar-view" id="view-tracks" style="width: 50%; height: 100%; display: flex; flex-direction: column; overflow-y: auto; padding: 0 10px 10px; box-sizing: border-box;">
+                        <div class="sidebar-title" style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between; font-size: 11px;">
+                            <button class="back-btn" onclick="slideBackToCategories()" style="cursor: pointer; background: var(--bg-panel); border: 1px solid var(--border-color); color: var(--text-accent); font-family: var(--font-mono); font-size: 10px; padding: 2px 6px;">◂ BACK</button>
+                            <span id="active-category-title" style="font-weight: bold;">[TRACKLIST]</span>
+                        </div>
+                        <div class="track-list-container" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; margin-top: 10px;">
+                            <div id="track-list" class="track-list"></div>
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
     </div>
@@ -719,6 +802,16 @@
             
             <div style="font-size: 10.5px; color: var(--text-sub); border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; margin-bottom: 6px; line-height: 1.4;">
                 * 핑크색 핀을 마우스로 드래그하면 원하는 위치로 핀을 직접 정교하게 옮길 수 있으며 아래 좌표값에 실시간 자동 입력됩니다.
+            </div>
+
+            <div class="form-row">
+                <label>CATEGORY :</label>
+                <select id="modal-edit-category" class="bbs-input" onchange="handleCategorySelectChange(this)" style="width: 100%; height: 32px; background: #ffffff; cursor: pointer; border: 1px solid var(--border-color); font-family: var(--font-mono); font-size: 12px;"></select>
+                <div id="edit-category-color-wrapper" style="display: none; align-items: center; gap: 8px; margin-top: 6px;">
+                    <label style="font-size: 10px;">THEME COLOR :</label>
+                    <input type="color" id="modal-edit-category-color" value="#ff33aa" class="bbs-input" style="width: 40px; height: 28px; padding: 0; cursor: pointer; border: 1px solid var(--border-color);" />
+                    <div id="edit-color-swatches" style="display: flex; gap: 4px;"></div>
+                </div>
             </div>
 
             <div class="form-row">
@@ -776,28 +869,60 @@
     </div>
 </div>
 
+<!-- Dedicated Create Category Modal Dialog (새창) -->
+<div id="category-modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 400px; background: var(--bg-panel); border: 2px solid var(--border-color); box-shadow: 6px 6px 0 var(--shadow-color); z-index: 6000; padding: 16px; box-sizing: border-box; flex-direction: column;">
+    <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 12px;">
+        <span class="modal-title" style="font-weight: bold; font-size: 12px; color: var(--text-accent);">[CREATE NEW CATEGORY]</span>
+        <button class="modal-close" onclick="closeCategoryModal()" style="cursor: pointer; background: none; border: none; font-family: var(--font-mono); font-size: 12px; color: var(--text-main);">[X]</button>
+    </div>
+    <div class="modal-body">
+        <div class="edit-form" style="display: flex; flex-direction: column; gap: 10px;">
+            <div class="form-row" style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-weight: bold; font-size: 11px;">CATEGORY NAME :</label>
+                <input type="text" id="modal-cat-name" required class="bbs-input" placeholder="New Category Name" />
+            </div>
+            <div class="form-row" style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-weight: bold; font-size: 11px;">CHOOSE THEME COLOR :</label>
+                <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
+                    <input type="color" id="modal-cat-color" value="#ff33aa" class="bbs-input" style="width: 50px; height: 32px; padding: 0; cursor: pointer; border: 1px solid var(--border-color);" />
+                    <div id="color-swatches" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
+                </div>
+            </div>
+            <div class="form-actions" style="margin-top: 12px; display: flex; gap: 6px; justify-content: flex-end;">
+                <button type="button" class="bbs-btn" onclick="saveNewCategory()" style="background-color: var(--text-accent); color: #ffffff; border-color: var(--text-accent);">[S] CREATE</button>
+                <button type="button" class="bbs-btn" onclick="closeCategoryModal()">[C] CANCEL</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Leaflet Library -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     // Hardcoded initial data source
     const DEFAULT_SOUND_DATA = [
-        { id: "2989378636", title: "국자와주걱 책방 앞", lat: 37.652175, lng: 126.440529, desc: "책방 툇마루에 앉아 바람이 연주하는 풍경소리를 녹음하던 중, 고양이가 다가와 말을 겁니다. 일하는 목수의 리듬과 우편배달부의 오토바이 소리가 강화도 오후의 평화를 그립니다.", meta: "2025-11-20 / Zoom F3 / Clippy EM272" },
-        { id: "753759855", title: "석모도 민머루해변", lat: 37.651298, lng: 126.333199, desc: "사운드워킹. 모래사장 위를 걸으며 내 발소리와 파도 소리에 집중하며 내 속도를 느끼는 시간입니다.", meta: "2026-02-04" },
-        { id: "1719650266", title: "정족산 14처길 낮", lat: 37.636524, lng: 126.487527, desc: "여름 강화도의 뜨거운 열기와 이를 뚫고 나오는 생명력 넘치는 매미 소리의 하모니.", meta: "2025-08-06" },
-        { id: "843445286", title: "정족산성 입구 밤", lat: 37.631870, lng: 126.477204, desc: "정족산성 입구, 어둠이 내린 뒤 시작되는 풀벌레들의 오케스트라.", meta: "2025-08-20" },
-        { id: "372803100", title: "전등사 저녁예불 대고", lat: 37.631830, lng: 126.484682, desc: "전등사의 법고 소리. 심장을 울리는 낮은 진동이 산사에 퍼집니다.", meta: "2025-09-22" },
-        { id: "1394143868", title: "전등사 저녁예불 범종", lat: 37.631493, lng: 126.483674, desc: "범종의 깊은 울림. 소리가 사라진 뒤의 여운이 강화의 밤을 채웁니다.", meta: "2025-09-22" },
-        { id: "925560464", title: "동검도 동그랑섬", lat: 37.589020, lng: 126.525597, desc: "갯벌의 미세한 숨소리. 물이 빠져나간 뒤 드러나는 생명들의 움직임.", meta: "2025-10-08" },
-        { id: "1588339098", title: "대산저수지 갈대바람", lat: 37.785945, lng: 126.479647, desc: "겨울 대산저수지. 마른 갈대 사이를 스치는 바람이 내는 쓸쓸하고도 포근한 소리.", meta: "2025-12-08" },
-        { id: "224371653", title: "광성보 빗방울 소리", lat: 37.665276, lng: 126.530615, desc: "우수관을 타고 흐르는 빗방울 소리. 공간의 울림이 빗소리를 악기로 만듭니다.", meta: "2025-11-19" },
-        { id: "4164866312", title: "교동도 남산포구 밀물", lat: 37.763106, lng: 126.290747, desc: "남산포구에 물이 차오르는 소리. 서서히 밀려드는 바다의 무게감이 전해집니다.", meta: "2025-11-21" },
-        { id: "519450696", title: "북일곶돈대 해안가", lat: 37.611408, lng: 126.375040, desc: "돈대 아래 바위에 부딪히는 거친 파도 소리. 강화 바다의 힘이 느껴집니다.", meta: "2025-11-20" },
-        { id: "64694152", title: "교동도 월선포구 썰물", lat: 37.774263, lng: 126.316992, desc: "물이 빠져나가는 포구의 정적과 그 사이를 채우는 갯벌의 소리.", meta: "2026-02-12" },
-        { id: "2110564066", title: "강화의 첫눈", lat: 37.638092, lng: 126.490264, desc: "눈 내리는 소리. 모든 소음을 흡수하는 정적 속에서 강화의 겨울이 깊어집니다.", meta: "2026-01-24" },
-        { id: "2505151801", title: "온수리 성당 삼종소리", lat: 37.640278, lng: 126.489879, desc: "온수리 성공회 성당에서 울려 퍼지는 삼종 소리. 마을의 일상을 축복하는 소리입니다.", meta: "2025-11-22" },
-        { id: "3520696282", title: "평화전망대 북쪽 소리", lat: 37.820137, lng: 126.444672, desc: "북쪽에서 바람을 타고 들려오는 희미한 소리들. 가깝고도 먼 긴장감이 흐릅니다.", meta: "2026-01-14" },
-        { id: "3411754260", title: "교동도 민가의 새벽", lat: 37.768691, lng: 126.290418, desc: "섬의 새벽을 깨우는 거친 바람과 멀리서 들려오는 수탉의 울음소리.", meta: "2025-11-22" }
+        { id: "2989378636", title: "국자와주걱 책방 앞", lat: 37.652175, lng: 126.440529, desc: "책방 툇마루에 앉아 바람이 연주하는 풍경소리를 녹음하던 중, 고양이가 다가와 말을 겁니다. 일하는 목수의 리듬과 우편배달부의 오토바이 소리가 강화도 오후의 평화를 그립니다.", meta: "2025-11-20 / Zoom F3 / Clippy EM272", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "753759855", title: "석모도 민머루해변", lat: 37.651298, lng: 126.333199, desc: "사운드워킹. 모래사장 위를 걸으며 내 발소리와 파도 소리에 집중하며 내 속도를 느끼는 시간입니다.", meta: "2026-02-04", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "1719650266", title: "정족산 14처길 낮", lat: 37.636524, lng: 126.487527, desc: "여름 강화도의 뜨거운 열기와 이를 뚫고 나오는 생명력 넘치는 매미 소리의 하모니.", meta: "2025-08-06", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "843445286", title: "정족산성 입구 밤", lat: 37.631870, lng: 126.477204, desc: "정족산성 입구, 어둠이 내린 뒤 시작되는 풀벌레들의 오케스트라.", meta: "2025-08-20", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "372803100", title: "전등사 저녁예불 대고", lat: 37.631830, lng: 126.484682, desc: "전등사의 법고 소리. 심장을 울리는 낮은 진동이 산사에 퍼집니다.", meta: "2025-09-22", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "1394143868", title: "전등사 저녁예불 범종", lat: 37.631493, lng: 126.483674, desc: "범종의 깊은 울림. 소리가 사라진 뒤의 여운이 강화의 밤을 채웁니다.", meta: "2025-09-22", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "925560464", title: "동검도 동그랑섬", lat: 37.589020, lng: 126.525597, desc: "갯벌의 미세한 숨소리. 물이 빠져나간 뒤 드러나는 생명들의 움직임.", meta: "2025-10-08", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "1588339098", title: "대산저수지 갈대바람", lat: 37.785945, lng: 126.479647, desc: "겨울 대산저수지. 마른 갈대 사이를 스치는 바람이 내는 쓸쓸하고도 포근한 소리.", meta: "2025-12-08", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "224371653", title: "광성보 빗방울 소리", lat: 37.665276, lng: 126.530615, desc: "우수관을 타고 흐르는 빗방울 소리. 공간의 울림이 빗소리를 악기로 만듭니다.", meta: "2025-11-19", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "4164866312", title: "교동도 남산포구 밀물", lat: 37.763106, lng: 126.290747, desc: "남산포구에 물이 차오르는 소리. 서서히 밀려드는 바다의 무게감이 전해집니다.", meta: "2025-11-21", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "519450696", title: "북일곶돈대 해안가", lat: 37.611408, lng: 126.375040, desc: "돈대 아래 바위에 부딪히는 거친 파도 소리. 강화 바다의 힘이 느껴집니다.", meta: "2025-11-20", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "64694152", title: "교동도 월선포구 썰물", lat: 37.774263, lng: 126.316992, desc: "물이 빠져나가는 포구의 정적과 그 사이를 채우는 갯벌의 소리.", meta: "2026-02-12", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "2110564066", title: "강화의 첫눈", lat: 37.638092, lng: 126.490264, desc: "눈 내리는 소리. 모든 소음을 흡수하는 정적 속에서 강화의 겨울이 깊어집니다.", meta: "2026-01-24", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "2505151801", title: "온수리 성당 삼종소리", lat: 37.640278, lng: 126.489879, desc: "온수리 성공회 성당에서 울려 퍼지는 삼종 소리. 마을의 일상을 축복하는 소리입니다.", meta: "2025-11-22", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "3520696282", title: "평화전망대 북쪽 소리", lat: 37.820137, lng: 126.444672, desc: "북쪽에서 바람을 타고 들려오는 희미한 소리들. 가깝고도 먼 긴장감이 흐릅니다.", meta: "2026-01-14", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "3411754260", title: "교동도 민가의 새벽", lat: 37.768691, lng: 126.290418, desc: "섬의 새벽을 깨우는 거친 바람과 멀리서 들려오는 수탉의 울음소리.", meta: "2025-11-22", category: "Soundscape in ganghwa island 2025-2026" }
     ];
+
+    // Hardcoded default categories configuration (Populated dynamically on HTML export)
+    const DEFAULT_CATEGORY_COLORS = {};
+    const DEFAULT_CUSTOM_CATEGORIES = [];
+    const DEFAULT_DELETED_DEFAULTS = [];
 
     // Data array that changes in memory
     const soundData = [];
@@ -806,7 +931,21 @@
     const APP_VERSION = "2026-07-09-v3";
     if (localStorage.getItem('gangwha_app_version') !== APP_VERSION) {
         localStorage.removeItem('gangwha_sound_data');
+        localStorage.removeItem('gangwha_deleted_defaults');
+        localStorage.removeItem('gangwha_custom_categories');
+        localStorage.removeItem('gangwha_category_colors');
         localStorage.setItem('gangwha_app_version', APP_VERSION);
+    }
+
+    // Initialize category fallback defaults in localStorage if missing
+    if (!localStorage.getItem('gangwha_custom_categories')) {
+        localStorage.setItem('gangwha_custom_categories', JSON.stringify(DEFAULT_CUSTOM_CATEGORIES));
+    }
+    if (!localStorage.getItem('gangwha_category_colors')) {
+        localStorage.setItem('gangwha_category_colors', JSON.stringify(DEFAULT_CATEGORY_COLORS));
+    }
+    if (!localStorage.getItem('gangwha_deleted_defaults')) {
+        localStorage.setItem('gangwha_deleted_defaults', JSON.stringify(DEFAULT_DELETED_DEFAULTS));
     }
 
     // Load from localStorage or fallback
@@ -840,6 +979,33 @@
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
     L.control.zoom({ position: 'topleft' }).addTo(map);
 
+    // Apply dynamic category colors to leaflet popups on opening
+    map.on('popupopen', (e) => {
+        if (currentTrackIndex !== -1) {
+            const track = soundData[currentTrackIndex];
+            const color = getCategoryColor(track.category || "Soundscape in ganghwa island 2025-2026");
+            const popupContainer = e.popup.getElement();
+            if (popupContainer) {
+                const wrapper = popupContainer.querySelector('.leaflet-popup-content-wrapper');
+                const tip = popupContainer.querySelector('.leaflet-popup-tip');
+                if (wrapper) {
+                    wrapper.style.border = `3px solid ${color}`;
+                    wrapper.style.borderRadius = `8px`;
+                }
+                if (tip) {
+                    tip.style.backgroundColor = color;
+                }
+            }
+        }
+    });
+
+    // Handle map click for Add Spot Placement Mode
+    map.on('click', (e) => {
+        if (isAddSpotMode) {
+            handleMapAddSpot(e.latlng);
+        }
+    });
+
     const markers = [];
     let currentTrackIndex = -1;
     let isAdminMode = true; // Enabled by default for easy adding and editing
@@ -847,6 +1013,22 @@
     // File upload local variables (stores base64 data)
     let uploadedImageBase64 = "";
     let uploadedAudioBase64 = "";
+
+    // Category management states
+    let selectedCategoryName = "";
+    let isAddSpotMode = false;
+
+    // Harmonious, curated preset colors for category tags
+    const PRESET_COLORS = [
+        "#ff33aa", // Magenta (Default)
+        "#3388ff", // Soft Blue
+        "#22cc88", // Mint Green
+        "#ffaa00", // Warm Orange
+        "#9966ff", // Pastel Purple
+        "#ff5555", // Red Accent
+        "#448888", // Slate Gray
+        "#cc6699"  // Coral Rose
+    ];
 
     // Toggle Sidebar Panel (Fold / Unfold)
     function toggleSidebar() {
@@ -867,6 +1049,321 @@
         setTimeout(() => {
             map.invalidateSize({ animate: true });
         }, 300);
+    }
+
+    // 📁 CATEGORY UTILITY FUNCTIONS
+    function getCategoryColor(catName) {
+        if (!catName) return "#ff33aa";
+        const cleanName = catName.trim();
+        const savedColors = JSON.parse(localStorage.getItem('gangwha_category_colors') || '{}');
+        if (savedColors[cleanName]) return savedColors[cleanName];
+
+        if (cleanName === "Soundscape in ganghwa island 2025-2026") return "#ff33aa";
+        if (cleanName === "Field Recordings / Live Notes") return "#3388ff";
+        if (cleanName === "Drafts & Miscellaneous") return "#9966ff";
+
+        let hash = 0;
+        for (let i = 0; i < cleanName.length; i++) {
+            hash = cleanName.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const idx = Math.abs(hash) % PRESET_COLORS.length;
+        return PRESET_COLORS[idx];
+    }
+
+    function getCategories() {
+        const uniqueNames = new Set();
+        const deletedDefaults = JSON.parse(localStorage.getItem('gangwha_deleted_defaults') || '[]');
+        const customCats = JSON.parse(localStorage.getItem('gangwha_custom_categories') || '[]');
+
+        if (Array.isArray(customCats)) {
+            customCats.forEach(cat => {
+                if (cat && typeof cat === 'string') uniqueNames.add(cat.trim());
+            });
+        }
+        
+        soundData.forEach(track => {
+            if (track.category && typeof track.category === 'string') {
+                uniqueNames.add(track.category.trim());
+            }
+        });
+        
+        if (!deletedDefaults.includes("Soundscape in ganghwa island 2025-2026")) uniqueNames.add("Soundscape in ganghwa island 2025-2026");
+        if (!deletedDefaults.includes("Field Recordings / Live Notes")) uniqueNames.add("Field Recordings / Live Notes");
+        if (!deletedDefaults.includes("Drafts & Miscellaneous")) uniqueNames.add("Drafts & Miscellaneous");
+        
+        const list = Array.from(uniqueNames);
+        return list.map(name => {
+            return {
+                name,
+                color: getCategoryColor(name),
+                isDefault: ["Soundscape in ganghwa island 2025-2026", "Field Recordings / Live Notes", "Drafts & Miscellaneous"].includes(name)
+            };
+        });
+    }
+
+    function renderSwatches(containerId, colorInputId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = '';
+        PRESET_COLORS.forEach(color => {
+            const sw = document.createElement('div');
+            sw.style.cssText = `
+                width: 18px; height: 18px; border-radius: 50%; background-color: ${color};
+                cursor: pointer; border: 1px solid rgba(0,0,0,0.2); box-sizing: border-box;
+                transition: transform 0.1s;
+            `;
+            sw.onmouseenter = () => sw.style.transform = 'scale(1.15)';
+            sw.onmouseleave = () => sw.style.transform = 'none';
+            sw.onclick = () => {
+                document.getElementById(colorInputId).value = color;
+            };
+            container.appendChild(sw);
+        });
+    }
+
+    function promptCreateCategory() {
+        if (!isAdminMode) return;
+        document.getElementById('modal-cat-name').value = '';
+        document.getElementById('modal-cat-color').value = '#ff33aa';
+        renderSwatches('color-swatches', 'modal-cat-color');
+        document.getElementById('category-modal').style.display = 'flex';
+    }
+
+    function closeCategoryModal() {
+        document.getElementById('category-modal').style.display = 'none';
+    }
+
+    function saveNewCategory() {
+        const name = document.getElementById('modal-cat-name').value.trim();
+        const color = document.getElementById('modal-cat-color').value;
+        if (!name) {
+            alert("Category name is required.");
+            return;
+        }
+
+        const customCats = JSON.parse(localStorage.getItem('gangwha_custom_categories') || '[]');
+        if (!customCats.includes(name)) {
+            customCats.push(name);
+            localStorage.setItem('gangwha_custom_categories', JSON.stringify(customCats));
+        }
+
+        const savedColors = JSON.parse(localStorage.getItem('gangwha_category_colors') || '{}');
+        savedColors[name] = color;
+        localStorage.setItem('gangwha_category_colors', JSON.stringify(savedColors));
+
+        closeCategoryModal();
+        renderCategories();
+
+        // If in edit modal, refresh choices
+        if (document.getElementById('edit-modal').style.display === 'block') {
+            const select = document.getElementById('modal-edit-category');
+            bindCategorySelect();
+            select.value = name;
+            handleCategorySelectChange(select);
+        }
+    }
+
+    function deleteCategory(catName) {
+        if (["Soundscape in ganghwa island 2025-2026", "Field Recordings / Live Notes", "Drafts & Miscellaneous"].includes(catName)) {
+            // Delete default category (hide it)
+            if (confirm(`Are you sure you want to delete default category "${catName}"? This will not delete its items but hide the group.`)) {
+                const deletedDefaults = JSON.parse(localStorage.getItem('gangwha_deleted_defaults') || '[]');
+                if (!deletedDefaults.includes(catName)) {
+                    deletedDefaults.push(catName);
+                    localStorage.setItem('gangwha_deleted_defaults', JSON.stringify(deletedDefaults));
+                }
+                renderCategories();
+            }
+        } else {
+            if (confirm(`Are you sure you want to delete custom category "${catName}"? This does not delete any sound tracks.`)) {
+                const customCats = JSON.parse(localStorage.getItem('gangwha_custom_categories') || '[]');
+                const filtered = customCats.filter(c => c !== catName);
+                localStorage.setItem('gangwha_custom_categories', JSON.stringify(filtered));
+
+                const savedColors = JSON.parse(localStorage.getItem('gangwha_category_colors') || '{}');
+                delete savedColors[catName];
+                localStorage.setItem('gangwha_category_colors', JSON.stringify(savedColors));
+
+                renderCategories();
+            }
+        }
+    }
+
+    // Render category cards inside the Category View Panel
+    function renderCategories() {
+        const container = document.getElementById('categories-container');
+        if (!container) return;
+        container.innerHTML = '';
+        
+        const categories = getCategories();
+
+        categories.forEach(cat => {
+            const catTracks = soundData.filter(t => {
+                const trackCat = t.category || "Soundscape in ganghwa island 2025-2026";
+                return trackCat === cat.name;
+            });
+
+            if (catTracks.length === 0 && !isAdminMode) {
+                return;
+            }
+
+            const card = document.createElement('div');
+            card.className = 'category-card';
+            card.style.borderLeft = `4px solid ${cat.color}`;
+            
+            card.onmouseenter = () => { card.style.borderColor = cat.color; };
+            card.onmouseleave = () => { card.style.borderColor = 'var(--border-color)'; };
+
+            card.onclick = () => selectCategory(cat.name);
+
+            let actionHtml = '';
+            if (isAdminMode) {
+                actionHtml = `
+                    <div style="align-self: flex-end; margin-top: -18px; font-size: 10px;">
+                        <span onclick="event.stopPropagation(); deleteCategory('${cat.name.replace(/'/g, "\\'")}')" style="color: var(--text-accent); cursor: pointer; padding: 2px 4px; border: 1px solid var(--border-color); font-family: var(--font-mono); background: #ffffff;">[D]</span>
+                    </div>
+                `;
+            }
+
+            card.innerHTML = `
+                <div style="display: flex; flex-direction: column;">
+                    <div class="category-card-name" style="color: ${cat.color};">${cat.name}</div>
+                    <div class="category-card-count">${catTracks.length} recordings</div>
+                </div>
+                ${actionHtml}
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function slideBackToCategories() {
+        selectedCategoryName = "";
+        const wrapper = document.getElementById('sidebar-views-wrapper');
+        if (wrapper) wrapper.style.transform = 'translateX(0%)';
+        renderCategories();
+    }
+
+    function selectCategory(catName) {
+        selectedCategoryName = catName;
+        document.getElementById('active-category-title').innerText = catName;
+        const wrapper = document.getElementById('sidebar-views-wrapper');
+        if (wrapper) wrapper.style.transform = 'translateX(-50%)';
+        renderTracklist();
+    }
+
+    function bindCategorySelect() {
+        const select = document.getElementById('modal-edit-category');
+        if (!select) return;
+        select.innerHTML = '';
+        const categories = getCategories();
+        categories.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat.name;
+            opt.innerText = cat.name;
+            select.appendChild(opt);
+        });
+        const addOpt = document.createElement('option');
+        addOpt.value = "__new__";
+        addOpt.innerText = "➕ Create New Category...";
+        select.appendChild(addOpt);
+    }
+
+    function handleCategorySelectChange(select) {
+        const wrapper = document.getElementById('edit-category-color-wrapper');
+        if (select.value === "__new__") {
+            wrapper.style.display = 'flex';
+            renderSwatches('edit-color-swatches', 'modal-edit-category-color');
+        } else {
+            wrapper.style.display = 'none';
+        }
+    }
+
+    function updateEditCategoryColorPicker() {
+        const select = document.getElementById('modal-edit-category');
+        const wrapper = document.getElementById('edit-category-color-wrapper');
+        if (select && select.value === "__new__") {
+            wrapper.style.display = 'flex';
+        } else {
+            if (wrapper) wrapper.style.display = 'none';
+        }
+    }
+
+    // 🎯 INTERACTIVE ADD SPOT MODE UTILS
+    function toggleAddSpotMode() {
+        if (!isAdminMode) return;
+        isAddSpotMode = !isAddSpotMode;
+        
+        const btn = document.getElementById('add-spot-btn');
+        const mapEl = document.getElementById('map');
+
+        if (isAddSpotMode) {
+            btn.innerText = "[ESC] Cancel Pin Placement";
+            btn.style.backgroundColor = "var(--text-accent)";
+            btn.style.color = "#ffffff";
+            mapEl.classList.add('add-spot-cursor');
+            
+            map.doubleClickZoom.disable();
+            window.addEventListener('keydown', handleEscKey);
+        } else {
+            cancelAddSpotMode();
+        }
+    }
+
+    function cancelAddSpotMode() {
+        isAddSpotMode = false;
+        const btn = document.getElementById('add-spot-btn');
+        const mapEl = document.getElementById('map');
+        if (btn) {
+            btn.innerText = "[+] Add Spot (Click on Map)";
+            btn.style.backgroundColor = "";
+            btn.style.color = "";
+        }
+        if (mapEl) {
+            mapEl.classList.remove('add-spot-cursor');
+        }
+
+        if (isAdminMode) {
+            map.doubleClickZoom.disable();
+        } else {
+            map.doubleClickZoom.enable();
+        }
+        window.removeEventListener('keydown', handleEscKey);
+    }
+
+    function handleEscKey(e) {
+        if (e.key === 'Escape') {
+            cancelAddSpotMode();
+        }
+    }
+
+    function handleMapAddSpot(latlng) {
+        if (!isAdminMode) return;
+        const lat = latlng.lat;
+        const lng = latlng.lng;
+        const newIdx = soundData.length;
+
+        soundData.push({
+            id: "",
+            title: "New Sound Spot",
+            desc: "Describe the sound note here.",
+            meta: new Date().toISOString().split('T')[0] + " / Atelier",
+            lat: lat,
+            lng: lng,
+            category: selectedCategoryName || "Soundscape in ganghwa island 2025-2026",
+            isTemporary: true
+        });
+
+        renderMarkers();
+        renderCategories();
+        if (selectedCategoryName) {
+            renderTracklist();
+        }
+
+        setTimeout(() => {
+            openEditModal(newIdx);
+        }, 100);
+
+        cancelAddSpotMode();
     }
 
     // Toggle Modal dialogs
@@ -899,7 +1396,7 @@
         renderTracklist();
     }
 
-    // Render Markers on Map with Custom Note Image Icon
+    // Render Markers on Map with curating Category theme colors
     function renderMarkers() {
         // Clear previous markers
         markers.forEach(m => m.remove());
@@ -912,13 +1409,15 @@
                 return;
             }
 
-            // Leaflet Custom Icon utilizing marker-icon.jpg inside HTML wrapper
+            const color = getCategoryColor(data.category || "Soundscape in ganghwa island 2025-2026");
+
+            // Simple styled color circle pin
             const icon = L.divIcon({ 
                 className: 'custom-marker-icon' + (idx === currentTrackIndex ? ' active' : ''), 
-                html: `<img src="marker-icon.jpg" style="width: 100%; height: 100%; border-radius: 50%; display: block;" onerror="this.src='https://f4.bcbits.com/img/a2885868170_1x1_700.avif';" />`, 
-                iconSize: [36, 36],
-                iconAnchor: [18, 18],
-                popupAnchor: [0, -18]
+                html: `<div class="circle-pin" style="background-color: ${color};"></div>`, 
+                iconSize: [30, 30],
+                iconAnchor: [15, 15],
+                popupAnchor: [0, -15]
             });
             
             const marker = L.marker([data.lat, data.lng], { icon }).addTo(map);
@@ -935,6 +1434,7 @@
                 if (soundData[idx] && soundData[idx].isTemporary) {
                     soundData.splice(idx, 1);
                     renderMarkers();
+                    renderCategories();
                     renderTracklist();
                     currentTrackIndex = -1;
                 }
@@ -948,6 +1448,11 @@
         listEl.innerHTML = '';
 
         soundData.forEach((data, idx) => {
+            const trackCat = data.category || "Soundscape in ganghwa island 2025-2026";
+            if (selectedCategoryName && trackCat !== selectedCategoryName) {
+                return;
+            }
+
             const item = document.createElement('div');
             item.className = 'track-item';
             if (idx === currentTrackIndex) item.classList.add('active');
@@ -1084,6 +1589,11 @@
 
         // Set form fields in modal
         document.getElementById('edit-idx').value = idx;
+        
+        bindCategorySelect();
+        const select = document.getElementById('modal-edit-category');
+        select.value = track.category || 'Soundscape in ganghwa island 2025-2026';
+        updateEditCategoryColorPicker();
         document.getElementById('modal-edit-title').value = track.title || '';
         document.getElementById('modal-edit-desc').value = track.desc || '';
         document.getElementById('modal-edit-meta').value = track.meta || '';
@@ -1241,6 +1751,27 @@
         const lat = parseFloat(document.getElementById('modal-edit-lat').value);
         const lng = parseFloat(document.getElementById('modal-edit-lng').value);
 
+        let category = document.getElementById('modal-edit-category').value;
+        if (category === "__new__") {
+            const newCatName = prompt("새로운 카테고리 이름을 입력해 주세요:").trim();
+            if (!newCatName) {
+                alert("카테고리 이름은 비워둘 수 없습니다.");
+                return;
+            }
+            const newCatColor = document.getElementById('modal-edit-category-color').value;
+            // Save custom category
+            const customCats = JSON.parse(localStorage.getItem('gangwha_custom_categories') || '[]');
+            if (!customCats.includes(newCatName)) {
+                customCats.push(newCatName);
+                localStorage.setItem('gangwha_custom_categories', JSON.stringify(customCats));
+            }
+            const savedColors = JSON.parse(localStorage.getItem('gangwha_category_colors') || '{}');
+            savedColors[newCatName] = newCatColor;
+            localStorage.setItem('gangwha_category_colors', JSON.stringify(savedColors));
+            
+            category = newCatName;
+        }
+
         if (isNaN(lat) || isNaN(lng)) {
             alert("Valid latitude and longitude coordinates are required!");
             return;
@@ -1269,6 +1800,7 @@
             lng,
             imageUrl,
             audioUrl,
+            category: category,
             imageBase64: uploadedImageBase64 || previousImageBase64 || "",
             audioBase64: uploadedAudioBase64 || previousAudioBase64 || ""
         };
@@ -1279,6 +1811,7 @@
 
         saveToLocalStorage();
         renderMarkers();
+        renderCategories();
         renderTracklist();
 
         document.getElementById('edit-modal').style.display = 'none';
@@ -1299,6 +1832,7 @@
             soundData.splice(idx, 1);
             saveToLocalStorage();
             renderMarkers();
+            renderCategories();
             renderTracklist();
             currentTrackIndex = -1;
             map.closePopup();
@@ -1372,9 +1906,13 @@
     function resetData() {
         if (confirm("Are you sure you want to reset all modifications back to the default tracklist? This deletes all additions and edits.")) {
             localStorage.removeItem('gangwha_sound_data');
+            localStorage.removeItem('gangwha_deleted_defaults');
+            localStorage.removeItem('gangwha_custom_categories');
+            localStorage.removeItem('gangwha_category_colors');
             soundData.length = 0;
             soundData.push(...DEFAULT_SOUND_DATA);
             renderMarkers();
+            renderCategories();
             renderTracklist();
             currentTrackIndex = -1;
             map.closePopup();
@@ -1399,6 +1937,15 @@
             const dataRegex = /const\s+DEFAULT_SOUND_DATA\s*=\s*\[[\s\S]*?\]\s*;/;
             const newBlock = `const DEFAULT_SOUND_DATA = ${JSON.stringify(cleanSoundData, null, 8)};`;
             html = html.replace(dataRegex, newBlock);
+
+            // Replace category settings definitions
+            const customCats = JSON.parse(localStorage.getItem('gangwha_custom_categories') || '[]');
+            const catColors = JSON.parse(localStorage.getItem('gangwha_category_colors') || '{}');
+            const deletedDefs = JSON.parse(localStorage.getItem('gangwha_deleted_defaults') || '[]');
+
+            html = html.replace(/const\s+DEFAULT_CUSTOM_CATEGORIES\s*=\s*\[[\s\S]*?\]\s*;/, `const DEFAULT_CUSTOM_CATEGORIES = ${JSON.stringify(customCats)};`);
+            html = html.replace(/const\s+DEFAULT_CATEGORY_COLORS\s*=\s*\{[\s\S]*?\}\s*;/, `const DEFAULT_CATEGORY_COLORS = ${JSON.stringify(catColors)};`);
+            html = html.replace(/const\s+DEFAULT_DELETED_DEFAULTS\s*=\s*\[[\s\S]*?\]\s*;/, `const DEFAULT_DELETED_DEFAULTS = ${JSON.stringify(deletedDefs)};`);
 
             // Create blob and trigger browser download
             const blob = new Blob([html], { type: 'text/html' });
@@ -1478,6 +2025,7 @@
         map.doubleClickZoom.enable();
     }
 
+    renderCategories();
     renderTracklist();
     renderMarkers();
 </script>
