@@ -671,14 +671,13 @@
             border-radius: 50%;
             border: 2px solid #ffffff;
             box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: width 0.2s, height 0.2s, border-width 0.2s, box-shadow 0.2s;
             box-sizing: border-box;
         }
         .custom-marker-icon {
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.25s ease;
         }
         .custom-marker-icon.active .circle-pin {
             width: 26px;
@@ -872,11 +871,12 @@
 <!-- Dedicated Create Category Modal Dialog (새창) -->
 <div id="category-modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 400px; background: var(--bg-panel); border: 2px solid var(--border-color); box-shadow: 6px 6px 0 var(--shadow-color); z-index: 6000; padding: 16px; box-sizing: border-box; flex-direction: column;">
     <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 12px;">
-        <span class="modal-title" style="font-weight: bold; font-size: 12px; color: var(--text-accent);">[CREATE NEW CATEGORY]</span>
+        <span class="modal-title" id="category-modal-title" style="font-weight: bold; font-size: 12px; color: var(--text-accent);">[CREATE NEW CATEGORY]</span>
         <button class="modal-close" onclick="closeCategoryModal()" style="cursor: pointer; background: none; border: none; font-family: var(--font-mono); font-size: 12px; color: var(--text-main);">[X]</button>
     </div>
     <div class="modal-body">
         <div class="edit-form" style="display: flex; flex-direction: column; gap: 10px;">
+            <input type="hidden" id="modal-cat-original-name" />
             <div class="form-row" style="display: flex; flex-direction: column; gap: 4px;">
                 <label style="font-weight: bold; font-size: 11px;">CATEGORY NAME :</label>
                 <input type="text" id="modal-cat-name" required class="bbs-input" placeholder="New Category Name" />
@@ -889,7 +889,7 @@
                 </div>
             </div>
             <div class="form-actions" style="margin-top: 12px; display: flex; gap: 6px; justify-content: flex-end;">
-                <button type="button" class="bbs-btn" onclick="saveNewCategory()" style="background-color: var(--text-accent); color: #ffffff; border-color: var(--text-accent);">[S] CREATE</button>
+                <button type="button" id="category-modal-submit-btn" class="bbs-btn" onclick="saveNewCategory()" style="background-color: var(--text-accent); color: #ffffff; border-color: var(--text-accent);">[S] CREATE</button>
                 <button type="button" class="bbs-btn" onclick="closeCategoryModal()">[C] CANCEL</button>
             </div>
         </div>
@@ -1123,8 +1123,24 @@
 
     function promptCreateCategory() {
         if (!isAdminMode) return;
+        document.getElementById('category-modal-title').innerText = '[CREATE NEW CATEGORY]';
+        document.getElementById('category-modal-submit-btn').innerText = '[S] CREATE';
+        document.getElementById('modal-cat-original-name').value = '';
+        
         document.getElementById('modal-cat-name').value = '';
         document.getElementById('modal-cat-color').value = '#ff33aa';
+        renderSwatches('color-swatches', 'modal-cat-color');
+        document.getElementById('category-modal').style.display = 'flex';
+    }
+
+    function promptEditCategory(catName) {
+        if (!isAdminMode) return;
+        document.getElementById('category-modal-title').innerText = '[EDIT CATEGORY DETAILS]';
+        document.getElementById('category-modal-submit-btn').innerText = '[S] SAVE';
+        document.getElementById('modal-cat-original-name').value = catName;
+        
+        document.getElementById('modal-cat-name').value = catName;
+        document.getElementById('modal-cat-color').value = getCategoryColor(catName);
         renderSwatches('color-swatches', 'modal-cat-color');
         document.getElementById('category-modal').style.display = 'flex';
     }
@@ -1136,23 +1152,71 @@
     function saveNewCategory() {
         const name = document.getElementById('modal-cat-name').value.trim();
         const color = document.getElementById('modal-cat-color').value;
+        const originalName = document.getElementById('modal-cat-original-name').value.trim();
+        
         if (!name) {
             alert("Category name is required.");
             return;
         }
 
-        const customCats = JSON.parse(localStorage.getItem('gangwha_custom_categories') || '[]');
-        if (!customCats.includes(name)) {
-            customCats.push(name);
-            localStorage.setItem('gangwha_custom_categories', JSON.stringify(customCats));
+        if (originalName) {
+            // EDIT MODE
+            if (originalName !== name) {
+                // Update all tracks that had this category
+                soundData.forEach(track => {
+                    if ((track.category || "Soundscape in ganghwa island 2025-2026") === originalName) {
+                        track.category = name;
+                    }
+                });
+
+                // Update custom category list
+                const customCats = JSON.parse(localStorage.getItem('gangwha_custom_categories') || '[]');
+                const idx = customCats.indexOf(originalName);
+                if (idx !== -1) {
+                    customCats[idx] = name;
+                } else if (!["Soundscape in ganghwa island 2025-2026", "Field Recordings / Live Notes", "Drafts & Miscellaneous"].includes(originalName)) {
+                    customCats.push(name);
+                }
+                localStorage.setItem('gangwha_custom_categories', JSON.stringify(customCats));
+
+                // Move color key
+                const savedColors = JSON.parse(localStorage.getItem('gangwha_category_colors') || '{}');
+                delete savedColors[originalName];
+                savedColors[name] = color;
+                localStorage.setItem('gangwha_category_colors', JSON.stringify(savedColors));
+
+                // Handle deleted defaults mapping
+                const deletedDefaults = JSON.parse(localStorage.getItem('gangwha_deleted_defaults') || '[]');
+                if (deletedDefaults.includes(originalName)) {
+                    const dIdx = deletedDefaults.indexOf(originalName);
+                    deletedDefaults.splice(dIdx, 1);
+                    deletedDefaults.push(name);
+                    localStorage.setItem('gangwha_deleted_defaults', JSON.stringify(deletedDefaults));
+                }
+            } else {
+                // Just color changed
+                const savedColors = JSON.parse(localStorage.getItem('gangwha_category_colors') || '{}');
+                savedColors[name] = color;
+                localStorage.setItem('gangwha_category_colors', JSON.stringify(savedColors));
+            }
+        } else {
+            // CREATE MODE
+            const customCats = JSON.parse(localStorage.getItem('gangwha_custom_categories') || '[]');
+            if (!customCats.includes(name)) {
+                customCats.push(name);
+                localStorage.setItem('gangwha_custom_categories', JSON.stringify(customCats));
+            }
+
+            const savedColors = JSON.parse(localStorage.getItem('gangwha_category_colors') || '{}');
+            savedColors[name] = color;
+            localStorage.setItem('gangwha_category_colors', JSON.stringify(savedColors));
         }
 
-        const savedColors = JSON.parse(localStorage.getItem('gangwha_category_colors') || '{}');
-        savedColors[name] = color;
-        localStorage.setItem('gangwha_category_colors', JSON.stringify(savedColors));
-
+        saveToLocalStorage();
         closeCategoryModal();
         renderCategories();
+        renderMarkers();
+        renderTracklist();
 
         // If in edit modal, refresh choices
         if (document.getElementById('edit-modal').style.display === 'block') {
@@ -1165,7 +1229,6 @@
 
     function deleteCategory(catName) {
         if (["Soundscape in ganghwa island 2025-2026", "Field Recordings / Live Notes", "Drafts & Miscellaneous"].includes(catName)) {
-            // Delete default category (hide it)
             if (confirm(`Are you sure you want to delete default category "${catName}"? This will not delete its items but hide the group.`)) {
                 const deletedDefaults = JSON.parse(localStorage.getItem('gangwha_deleted_defaults') || '[]');
                 if (!deletedDefaults.includes(catName)) {
@@ -1173,6 +1236,7 @@
                     localStorage.setItem('gangwha_deleted_defaults', JSON.stringify(deletedDefaults));
                 }
                 renderCategories();
+                renderMarkers();
             }
         } else {
             if (confirm(`Are you sure you want to delete custom category "${catName}"? This does not delete any sound tracks.`)) {
@@ -1185,6 +1249,7 @@
                 localStorage.setItem('gangwha_category_colors', JSON.stringify(savedColors));
 
                 renderCategories();
+                renderMarkers();
             }
         }
     }
@@ -1220,6 +1285,7 @@
             if (isAdminMode) {
                 actionHtml = `
                     <div style="align-self: flex-end; margin-top: -18px; font-size: 10px;">
+                        <span onclick="event.stopPropagation(); promptEditCategory('${cat.name.replace(/'/g, "\\'")}')" style="cursor: pointer; padding: 2px 4px; border: 1px solid var(--border-color); font-family: var(--font-mono); background: #ffffff; margin-right: 4px;">[E]</span>
                         <span onclick="event.stopPropagation(); deleteCategory('${cat.name.replace(/'/g, "\\'")}')" style="color: var(--text-accent); cursor: pointer; padding: 2px 4px; border: 1px solid var(--border-color); font-family: var(--font-mono); background: #ffffff;">[D]</span>
                     </div>
                 `;
@@ -1563,13 +1629,25 @@
         const currentCenter = map.getCenter();
         const dist = currentCenter.distanceTo([track.lat, track.lng]);
 
-        if (dist < 10 && map.getZoom() === targetZoom) {
+        // Fly to and open popup using robust fallback trigger mechanism
+        if (dist < 50 && map.getZoom() === targetZoom) {
+            map.panTo([track.lat, track.lng]);
             markers[idx].openPopup();
         } else {
-            map.flyTo([track.lat, track.lng], targetZoom, { animate: true, duration: 1.2 });
-            map.once('moveend', () => {
-                markers[idx].openPopup();
-            });
+            map.flyTo([track.lat, track.lng], targetZoom, { animate: true, duration: 1.0 });
+            
+            let triggerPopupCalled = false;
+            const triggerPopup = () => {
+                if (triggerPopupCalled) return;
+                triggerPopupCalled = true;
+                if (markers[idx]) {
+                    markers[idx].openPopup();
+                }
+                map.off('moveend', triggerPopup);
+            };
+            
+            map.once('moveend', triggerPopup);
+            setTimeout(triggerPopup, 1200); // Fail-safe trigger if moveend does not fire
         }
 
         // Set active in tracklist
