@@ -802,13 +802,26 @@
     // Data array that changes in memory
     const soundData = [];
     
+    // Force reset local database if caching version has changed (cleans corrupted structures)
+    const APP_VERSION = "2026-07-09-v3";
+    if (localStorage.getItem('gangwha_app_version') !== APP_VERSION) {
+        localStorage.removeItem('gangwha_sound_data');
+        localStorage.setItem('gangwha_app_version', APP_VERSION);
+    }
+
     // Load from localStorage or fallback
     const localData = localStorage.getItem('gangwha_sound_data');
     if (localData) {
         try {
             const parsed = JSON.parse(localData);
             if (Array.isArray(parsed)) {
-                soundData.push(...parsed);
+                // Filter out corrupted items without title or coordinates to prevent crashes
+                const validated = parsed.filter(t => t && t.title && !isNaN(parseFloat(t.lat)) && !isNaN(parseFloat(t.lng)));
+                if (validated.length > 0) {
+                    soundData.push(...validated);
+                } else {
+                    soundData.push(...DEFAULT_SOUND_DATA);
+                }
             } else {
                 soundData.push(...DEFAULT_SOUND_DATA);
             }
@@ -829,7 +842,7 @@
 
     const markers = [];
     let currentTrackIndex = -1;
-    let isAdminMode = false;
+    let isAdminMode = true; // Enabled by default for easy adding and editing
     
     // File upload local variables (stores base64 data)
     let uploadedImageBase64 = "";
@@ -893,6 +906,12 @@
         markers.length = 0;
 
         soundData.forEach((data, idx) => {
+            // Defensive verification of coordinates to prevent leaflet crash
+            if (!data || isNaN(parseFloat(data.lat)) || isNaN(parseFloat(data.lng))) {
+                console.warn(`Skipping invalid marker data at index ${idx}:`, data);
+                return;
+            }
+
             // Leaflet Custom Icon utilizing marker-icon.jpg inside HTML wrapper
             const icon = L.divIcon({ 
                 className: 'custom-marker-icon' + (idx === currentTrackIndex ? ' active' : ''), 
@@ -1085,6 +1104,7 @@
         const previewImg = document.getElementById('img-preview');
         const container = document.getElementById('img-preview-container');
         if (previewImg && container) {
+            previewImg.src = ''; // Clear preview buffer first
             if (uploadedImageBase64) {
                 previewImg.src = uploadedImageBase64;
                 container.style.display = 'block';
@@ -1236,6 +1256,10 @@
 
         delete soundData[idx].isTemporary;
 
+        // Maintain previous assets if no new file is uploaded
+        const previousImageBase64 = soundData[idx] ? soundData[idx].imageBase64 : "";
+        const previousAudioBase64 = soundData[idx] ? soundData[idx].audioBase64 : "";
+
         soundData[idx] = {
             id,
             title,
@@ -1245,9 +1269,13 @@
             lng,
             imageUrl,
             audioUrl,
-            imageBase64: uploadedImageBase64,
-            audioBase64: uploadedAudioBase64
+            imageBase64: uploadedImageBase64 || previousImageBase64 || "",
+            audioBase64: uploadedAudioBase64 || previousAudioBase64 || ""
         };
+
+        // Clear temporal variables to prevent pollution
+        uploadedImageBase64 = "";
+        uploadedAudioBase64 = "";
 
         saveToLocalStorage();
         renderMarkers();
@@ -1431,6 +1459,25 @@
     const initIsMobile = window.innerWidth <= 768;
     document.getElementById('sidebar-toggle-tab').innerText = initIsMobile ? '▾' : '▸';
     
+    // Set initial Admin Mode state dynamically
+    if (isAdminMode) {
+        document.getElementById('admin-toggle').innerText = "[A] Admin: ON";
+        document.querySelectorAll('.admin-only').forEach(el => {
+            el.style.display = 'inline-flex';
+        });
+        const adminActionsPanel = document.getElementById('admin-actions-panel');
+        if (adminActionsPanel) adminActionsPanel.style.display = 'block';
+        map.doubleClickZoom.disable();
+    } else {
+        document.getElementById('admin-toggle').innerText = "[A] Admin: OFF";
+        document.querySelectorAll('.admin-only').forEach(el => {
+            el.style.display = 'none';
+        });
+        const adminActionsPanel = document.getElementById('admin-actions-panel');
+        if (adminActionsPanel) adminActionsPanel.style.display = 'none';
+        map.doubleClickZoom.enable();
+    }
+
     renderTracklist();
     renderMarkers();
 </script>
