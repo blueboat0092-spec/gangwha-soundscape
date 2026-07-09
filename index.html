@@ -441,7 +441,7 @@
 
         .popup-player-sc {
             width: 100%;
-            height: 60px;
+            height: 80px;
             border: none;
             border-bottom: 1px solid var(--border-color);
             display: block;
@@ -466,7 +466,7 @@
             object-fit: contain;
             background-color: #fafafa;
             display: block;
-            border-bottom: 1px solid var(--border-color);
+            border-top: 1px solid var(--border-color);
             box-sizing: border-box;
         }
 
@@ -1611,7 +1611,7 @@
                     cleanSrc += '&show_artwork=false&show_user=false&sharing=false&download=false&buying=false&show_playcount=false';
                 }
                 const isSc = cleanSrc.includes('soundcloud.com');
-                audioPlayerHtml = `<iframe class="${isSc ? 'popup-player-sc' : 'popup-player'}" src="${cleanSrc}" style="width: 100%; border: none; height: ${isSc ? '60px' : '42px'};" seamless></iframe>`;
+                audioPlayerHtml = `<iframe class="${isSc ? 'popup-player-sc' : 'popup-player'}" src="${cleanSrc}" style="width: 100%; border: none; height: ${isSc ? '80px' : '42px'};" seamless></iframe>`;
             }
         } else if (rawAudio.includes('bandcamp.com/EmbeddedPlayer')) {
             // 2. Direct Bandcamp embedded player link
@@ -1623,7 +1623,7 @@
         } else if (rawAudio.includes('soundcloud.com')) {
             // 3. SoundCloud direct sharing link
             const scUrl = `https://w.soundcloud.com/player/?url=${encodeURIComponent(rawAudio)}&color=%23ff33aa&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false&show_artwork=false&sharing=false&download=false&buying=false&show_playcount=false`;
-            audioPlayerHtml = `<iframe class="popup-player-sc" src="${scUrl}" style="width: 100%; border: none; height: 60px;" scrolling="no" frameborder="no" allow="autoplay" seamless></iframe>`;
+            audioPlayerHtml = `<iframe class="popup-player-sc" src="${scUrl}" style="width: 100%; border: none; height: 80px;" scrolling="no" frameborder="no" allow="autoplay" seamless></iframe>`;
         } else if (trackId) {
             // 4. Fallback to bandcamp trackId
             audioPlayerHtml = `
@@ -1644,16 +1644,16 @@
             `;
         }
 
-        // Sequential Popup Content: Audio Player (Top) -> Photo (Middle) -> Text Info (Bottom)
+        // Sequential Popup Content: Audio Player (Top) -> Text Info (Middle) -> Photo (Bottom)
         let popupContent = `
             ${audioPlayerHtml}
-            ${imageHtml}
             <div class="diary-box">
                 <span class="track-num" style="color: var(--text-accent); font-size: 10px; font-weight: bold; display: block; margin-bottom: 4px;">Track ${String(localTrackNum).padStart(2,'0')}</span>
                 <h2>${track.title}</h2>
                 <p>${track.desc}</p>
                 <span class="meta-text">${track.meta}</span>
             </div>
+            ${imageHtml}
         `;
 
         if (isAdminMode) {
