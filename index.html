@@ -363,7 +363,7 @@
 
         .custom-popup .leaflet-popup-content {
             margin: 0 !important;
-            width: 320px !important;
+            width: 380px !important;
         }
 
         .custom-popup .leaflet-popup-tip-container {
@@ -399,40 +399,40 @@
 
         /* Popup content box */
         .diary-box {
-            padding: 16px;
-            font-size: 12px;
-            line-height: 1.6;
+            padding: 10px 12px;
+            font-size: 11px;
+            line-height: 1.5;
             box-sizing: border-box;
         }
 
         .diary-box h2 {
-            font-size: 13.5px;
+            font-size: 12.5px;
             font-weight: bold;
             color: var(--text-accent);
-            margin: 0 0 8px 0;
+            margin: 0 0 6px 0;
             border-bottom: 1px dashed var(--border-color);
-            padding-bottom: 6px;
+            padding-bottom: 4px;
             word-break: keep-all;
         }
 
         .diary-box p {
-            margin: 0 0 12px 0;
+            margin: 0 0 8px 0;
             color: var(--text-main);
             word-break: keep-all;
         }
 
         .diary-box .meta-text {
-            font-size: 11px;
+            font-size: 10px;
             color: var(--text-sub);
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
             border-top: 1px dotted rgba(0, 0, 0, 0.08);
-            padding-top: 6px;
+            padding-top: 4px;
         }
 
         .popup-player {
             width: 100%;
-            height: 80px;
+            height: 42px;
             border: none;
             border-bottom: 1px solid var(--border-color); /* Bottom border dividing from content below */
             display: block;
@@ -446,14 +446,14 @@
             border-bottom: 1px solid var(--border-color); /* Bottom border dividing from content below */
             background: #ffffff;
             box-sizing: border-box;
-            padding: 8px 6px;
+            padding: 6px 4px;
         }
 
         /* Popup Media Image styling - full size contain without cutting/cropping */
         .popup-media-image {
             width: 100%;
             height: auto;
-            max-height: 220px;
+            max-height: 130px;
             object-fit: contain;
             background-color: #fafafa;
             display: block;
@@ -848,12 +848,10 @@
                 </div>
             </div>
 
-            <!-- Custom Audio Upload/Link -->
+            <!-- Custom Audio Link -->
             <div class="form-row">
-                <label>AUDIO SOURCE (UPLOAD OR URL) :</label>
-                <input type="file" id="modal-edit-audio-file" accept="audio/*" class="bbs-input" onchange="handleAudioUpload(this)" />
-                <div style="font-size: 9.5px; color: var(--text-sub); margin-top: 1px;">Or paste external Audio URL:</div>
-                <input type="text" id="modal-edit-audio-url" class="bbs-input" placeholder="https://example.com/sound.mp3" />
+                <label>AUDIO URL (EXTERNAL LINK OR EMBED CODE) :</label>
+                <input type="text" id="modal-edit-audio-url" class="bbs-input" placeholder="https://example.com/sound.mp3 또는 밴드캠프 아이프레임 임베드 코드" />
             </div>
 
             <div class="form-row">
@@ -1016,7 +1014,6 @@
     
     // File upload local variables (stores base64 data)
     let uploadedImageBase64 = "";
-    let uploadedAudioBase64 = "";
 
     // Category management states
     let selectedCategoryName = "";
@@ -1581,22 +1578,35 @@
             imageHtml = `<img src="${track.imageUrl}" class="popup-media-image" onerror="this.style.display='none';" />`;
         }
 
-        // Render Audio: prioritize audioBase64, then audioUrl, then Bandcamp ID
+        // Render Audio: parse raw iframes, bandcamp direct embedded URLs, trackIds, and standard file streams
         let audioPlayerHtml = '';
-        if (track.audioBase64) {
-            audioPlayerHtml = `<audio controls class="popup-audio-player" src="${track.audioBase64}"></audio>`;
-        } else if (track.audioUrl) {
-            audioPlayerHtml = `<audio controls class="popup-audio-player" src="${track.audioUrl}"></audio>`;
-        } else if (track.id) {
+        const rawAudio = track.audioUrl ? track.audioUrl.trim() : "";
+        const trackId = track.id ? track.id.trim() : "";
+
+        if (rawAudio.includes('<iframe') || rawAudio.includes('iframe>')) {
+            // 1. Raw iframe code snippet pasted
+            const match = rawAudio.match(/src=["']([^"']+)["']/);
+            if (match && match[1]) {
+                audioPlayerHtml = `<iframe class="popup-player" src="${match[1]}" style="width: 100%; border: none; height: 42px;" seamless></iframe>`;
+            }
+        } else if (rawAudio.includes('bandcamp.com/EmbeddedPlayer')) {
+            // 2. Direct Bandcamp embedded player link
+            audioPlayerHtml = `<iframe class="popup-player" src="${rawAudio}" style="width: 100%; border: none; height: 42px;" seamless></iframe>`;
+        } else if (trackId) {
+            // 3. Fallback to bandcamp trackId
             audioPlayerHtml = `
                 <iframe class="popup-player" 
-                    src="https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=${bgCol}/linkcol=${linkCol}/track=${track.id}/transparent=true/autoplay=true/" 
+                    src="https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=${bgCol}/linkcol=${linkCol}/track=${trackId}/transparent=true/autoplay=true/" 
+                    style="width: 100%; border: none; height: 42px;"
                     seamless>
                 </iframe>
             `;
+        } else if (rawAudio) {
+            // 4. Standard stream link (.mp3, .wav) or generic site links
+            audioPlayerHtml = `<audio controls class="popup-audio-player" src="${rawAudio}" style="width: 100%;"></audio>`;
         } else {
             audioPlayerHtml = `
-                <div style="padding: 15px; text-align: center; border-bottom: 1px solid var(--border-color); font-size: 11px; color: var(--text-sub); background: #ffffff;">
+                <div style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color); font-size: 10px; color: var(--text-sub); background: #ffffff;">
                     [NO PLAYER OR AUDIO SOURCE CONNECTED]
                 </div>
             `;
@@ -1688,10 +1698,8 @@
 
         // Clear file inputs
         document.getElementById('modal-edit-img-file').value = '';
-        document.getElementById('modal-edit-audio-file').value = '';
 
         uploadedImageBase64 = track.imageBase64 || "";
-        uploadedAudioBase64 = track.audioBase64 || "";
 
         // Image Preview configuration
         const previewImg = document.getElementById('img-preview');
@@ -1800,25 +1808,7 @@
         reader.readAsDataURL(file);
     }
 
-    // Handle Audio file uploading converting it to Base64 with file size ceiling checks (Max 2.5MB)
-    function handleAudioUpload(input) {
-        const file = input.files[0];
-        if (!file) return;
 
-        const maxAudioSize = 2.5 * 1024 * 1024; // 2.5MB ceiling to avoid QuotaExceededError
-        if (file.size > maxAudioSize) {
-            alert("⚠️ 선택한 소리 파일의 크기(" + (file.size / 1024 / 1024).toFixed(1) + "MB)가 너무 큽니다!\n\n브라우저 저장소 제한(5MB) 때문에 2.5MB 이하의 오디오 파일만 업로드하여 보관할 수 있습니다. 더 큰 파일은 외부 링크(Audio URL)로 등록하시거나 파일을 잘라내 축소해서 올려주세요.");
-            input.value = '';
-            uploadedAudioBase64 = '';
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            uploadedAudioBase64 = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    }
 
     // Submit Edit Form and save modifications
     function submitEditForm(event) {
@@ -1872,7 +1862,6 @@
 
         // Maintain previous assets if no new file is uploaded
         const previousImageBase64 = soundData[idx] ? soundData[idx].imageBase64 : "";
-        const previousAudioBase64 = soundData[idx] ? soundData[idx].audioBase64 : "";
 
         soundData[idx] = {
             id,
@@ -1884,13 +1873,11 @@
             imageUrl,
             audioUrl,
             category: category,
-            imageBase64: uploadedImageBase64 || previousImageBase64 || "",
-            audioBase64: uploadedAudioBase64 || previousAudioBase64 || ""
+            imageBase64: uploadedImageBase64 || previousImageBase64 || ""
         };
 
         // Clear temporal variables to prevent pollution
         uploadedImageBase64 = "";
-        uploadedAudioBase64 = "";
 
         saveToLocalStorage();
         renderMarkers();
