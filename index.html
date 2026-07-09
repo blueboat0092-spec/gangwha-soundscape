@@ -441,7 +441,7 @@
 
         .popup-player-sc {
             width: 100%;
-            height: 120px;
+            height: 60px;
             border: none;
             border-bottom: 1px solid var(--border-color);
             display: block;
@@ -1604,20 +1604,31 @@
             // 1. Raw iframe code snippet pasted
             const match = rawAudio.match(/src=["']([^"']+)["']/);
             if (match && match[1]) {
-                audioPlayerHtml = `<iframe class="popup-player" src="${match[1]}" style="width: 100%; border: none; height: 42px;" seamless></iframe>`;
+                let cleanSrc = match[1];
+                if (cleanSrc.includes('bandcamp.com')) {
+                    cleanSrc = cleanSrc.replace('/size=small/', '/size=small/artwork=none/tracklist=false/');
+                } else if (cleanSrc.includes('soundcloud.com')) {
+                    cleanSrc += '&show_artwork=false&show_user=false&sharing=false&download=false&buying=false&show_playcount=false';
+                }
+                const isSc = cleanSrc.includes('soundcloud.com');
+                audioPlayerHtml = `<iframe class="${isSc ? 'popup-player-sc' : 'popup-player'}" src="${cleanSrc}" style="width: 100%; border: none; height: ${isSc ? '60px' : '42px'};" seamless></iframe>`;
             }
         } else if (rawAudio.includes('bandcamp.com/EmbeddedPlayer')) {
             // 2. Direct Bandcamp embedded player link
-            audioPlayerHtml = `<iframe class="popup-player" src="${rawAudio}" style="width: 100%; border: none; height: 42px;" seamless></iframe>`;
+            let bcUrl = rawAudio;
+            if (!bcUrl.includes('artwork=')) {
+                bcUrl = bcUrl.replace('/size=small/', '/size=small/artwork=none/tracklist=false/');
+            }
+            audioPlayerHtml = `<iframe class="popup-player" src="${bcUrl}" style="width: 100%; border: none; height: 42px;" seamless></iframe>`;
         } else if (rawAudio.includes('soundcloud.com')) {
             // 3. SoundCloud direct sharing link
-            const scUrl = `https://w.soundcloud.com/player/?url=${encodeURIComponent(rawAudio)}&color=%23ff33aa&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false`;
-            audioPlayerHtml = `<iframe class="popup-player-sc" src="${scUrl}" style="width: 100%; border: none; height: 120px;" scrolling="no" frameborder="no" allow="autoplay" seamless></iframe>`;
+            const scUrl = `https://w.soundcloud.com/player/?url=${encodeURIComponent(rawAudio)}&color=%23ff33aa&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false&show_artwork=false&sharing=false&download=false&buying=false&show_playcount=false`;
+            audioPlayerHtml = `<iframe class="popup-player-sc" src="${scUrl}" style="width: 100%; border: none; height: 60px;" scrolling="no" frameborder="no" allow="autoplay" seamless></iframe>`;
         } else if (trackId) {
             // 4. Fallback to bandcamp trackId
             audioPlayerHtml = `
                 <iframe class="popup-player" 
-                    src="https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=${bgCol}/linkcol=${linkCol}/track=${trackId}/transparent=true/autoplay=true/" 
+                    src="https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=${bgCol}/linkcol=${linkCol}/track=${trackId}/transparent=true/artwork=none/tracklist=false/autoplay=true/" 
                     style="width: 100%; border: none; height: 42px;"
                     seamless>
                 </iframe>
