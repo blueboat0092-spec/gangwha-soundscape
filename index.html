@@ -115,8 +115,12 @@
             flex: 1;
             height: 100%;
             z-index: 1;
-            filter: var(--map-filter);
             background-color: #fafafa;
+        }
+
+        /* Gray-toned map layout filter applied only to tiles, avoiding popup media color pollution */
+        .leaflet-tile-container img {
+            filter: var(--map-filter);
         }
 
         /* Sidebar container */
@@ -1053,8 +1057,7 @@
 
     // 📁 CATEGORY UTILITY FUNCTIONS
     function getCategoryColor(catName) {
-        if (!catName) return "#ff33aa";
-        const cleanName = catName.trim();
+        const cleanName = ((catName || "").trim()) || "Soundscape in ganghwa island 2025-2026";
         const savedColors = JSON.parse(localStorage.getItem('gangwha_category_colors') || '{}');
         if (savedColors[cleanName]) return savedColors[cleanName];
 
@@ -1082,9 +1085,8 @@
         }
         
         soundData.forEach(track => {
-            if (track.category && typeof track.category === 'string') {
-                uniqueNames.add(track.category.trim());
-            }
+            const cat = ((track.category || "").trim()) || "Soundscape in ganghwa island 2025-2026";
+            uniqueNames.add(cat);
         });
         
         if (!deletedDefaults.includes("Soundscape in ganghwa island 2025-2026")) uniqueNames.add("Soundscape in ganghwa island 2025-2026");
@@ -1465,7 +1467,10 @@
     // Render Markers on Map with curating Category theme colors
     function renderMarkers() {
         // Clear previous markers
-        markers.forEach(m => m.remove());
+        markers.forEach(m => {
+            m.off('popupclose'); // Unbind to prevent recursive re-entrancy crashes
+            m.remove();
+        });
         markers.length = 0;
 
         soundData.forEach((data, idx) => {
@@ -1901,6 +1906,11 @@
     // Delete track
     function deleteTrack(idx) {
         if (confirm(`Are you sure you want to delete track "${soundData[idx].title}"?`)) {
+            // Unbind popupclose listeners immediately to prevent recursive loop triggers during DOM removal
+            markers.forEach(m => m.off('popupclose'));
+            
+            map.closePopup(); // Close map popup first
+
             const marker = markers[idx];
             if (marker) {
                 marker.dragging.disable();
@@ -1913,7 +1923,6 @@
             renderCategories();
             renderTracklist();
             currentTrackIndex = -1;
-            map.closePopup();
         }
     }
 
