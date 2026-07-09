@@ -847,12 +847,11 @@
             </div>
 
             <!-- Custom Photo Upload/Link -->
+            <!-- Custom Photo Upload -->
             <div class="form-row">
-                <label>IMAGE SOURCE (UPLOAD OR URL) :</label>
+                <label>IMAGE FILE (UPLOAD OR REPLACE) :</label>
                 <input type="file" id="modal-edit-img-file" accept="image/*" class="bbs-input" onchange="handleImageUpload(this)" />
-                <div style="font-size: 9.5px; color: var(--text-sub); margin-top: 1px;">Or paste external Image URL:</div>
-                <input type="text" id="modal-edit-img-url" class="bbs-input" placeholder="https://example.com/photo.jpg" />
-                <div id="img-preview-container" style="display: none;">
+                <div id="img-preview-container" style="display: none; margin-top: 6px;">
                     <img id="img-preview" src="" style="max-width: 100%; max-height: 90px; object-fit: contain;" />
                 </div>
             </div>
@@ -1524,11 +1523,14 @@
         const listEl = document.getElementById('track-list');
         listEl.innerHTML = '';
 
+        let counter = 1;
         soundData.forEach((data, idx) => {
             const trackCat = data.category || "Soundscape in ganghwa island 2025-2026";
             if (selectedCategoryName && trackCat !== selectedCategoryName) {
                 return;
             }
+
+            const localNum = counter++;
 
             const item = document.createElement('div');
             item.className = 'track-item';
@@ -1546,7 +1548,7 @@
 
             item.innerHTML = `
                 <div class="track-item-content">
-                    <b class="track-item-num">${String(idx+1).padStart(2,'0')}</b>
+                    <b class="track-item-num">${String(localNum).padStart(2,'0')}</b>
                     <span class="track-item-title">${data.title}</span>
                 </div>
                 ${actionsHtml}
@@ -1561,6 +1563,12 @@
         if (idx < 0 || idx >= soundData.length) return;
         const track = soundData[idx];
         currentTrackIndex = idx;
+
+        // Calculate category-specific local track number
+        const trackCat = ((track.category || "").trim()) || "Soundscape in ganghwa island 2025-2026";
+        const catTracks = soundData.filter(t => (((t.category || "").trim()) || "Soundscape in ganghwa island 2025-2026") === trackCat);
+        const localIdx = catTracks.indexOf(track);
+        const localTrackNum = localIdx !== -1 ? localIdx + 1 : 1;
 
         // Close active popups and set active status on DOM markers
         markers.forEach((m, i) => {
@@ -1630,7 +1638,7 @@
             ${audioPlayerHtml}
             ${imageHtml}
             <div class="diary-box">
-                <span class="track-num" style="color: var(--text-accent); font-size: 10px; font-weight: bold; display: block; margin-bottom: 4px;">Track ${String(idx+1).padStart(2,'0')}</span>
+                <span class="track-num" style="color: var(--text-accent); font-size: 10px; font-weight: bold; display: block; margin-bottom: 4px;">Track ${String(localTrackNum).padStart(2,'0')}</span>
                 <h2>${track.title}</h2>
                 <p>${track.desc}</p>
                 <span class="meta-text">${track.meta}</span>
@@ -1704,7 +1712,6 @@
         document.getElementById('modal-edit-desc').value = track.desc || '';
         document.getElementById('modal-edit-meta').value = track.meta || '';
         document.getElementById('modal-edit-id').value = track.id || '';
-        document.getElementById('modal-edit-img-url').value = track.imageUrl || '';
         document.getElementById('modal-edit-audio-url').value = track.audioUrl || '';
         document.getElementById('modal-edit-lat').value = track.lat;
         document.getElementById('modal-edit-lng').value = track.lng;
@@ -1832,7 +1839,6 @@
         const desc = document.getElementById('modal-edit-desc').value.trim();
         const meta = document.getElementById('modal-edit-meta').value.trim();
         const id = document.getElementById('modal-edit-id').value.trim();
-        const imageUrl = document.getElementById('modal-edit-img-url').value.trim();
         const audioUrl = document.getElementById('modal-edit-audio-url').value.trim();
         const lat = parseFloat(document.getElementById('modal-edit-lat').value);
         const lng = parseFloat(document.getElementById('modal-edit-lng').value);
@@ -1883,7 +1889,6 @@
             meta,
             lat,
             lng,
-            imageUrl,
             audioUrl,
             category: category,
             imageBase64: uploadedImageBase64 || previousImageBase64 || ""
