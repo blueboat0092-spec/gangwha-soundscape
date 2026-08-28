@@ -1403,7 +1403,7 @@
     const soundData = [];
     
     // Force reset local database if caching version has changed (cleans corrupted structures)
-    const APP_VERSION = "2026-08-29-v4000";
+    const APP_VERSION = "2026-08-29-v5000";
     if (localStorage.getItem('gangwha_app_version') !== APP_VERSION) {
         localStorage.removeItem('gangwha_sound_data');
         localStorage.removeItem('gangwha_deleted_defaults');
@@ -2177,6 +2177,7 @@
         const isNativeStream = rawAudio && (rawAudio.endsWith('.wav') || rawAudio.endsWith('.mp3') || rawAudio.includes('r2.dev') || rawAudio.includes('storage'));
 
         if (existingAud && isNativeStream) {
+            existingAud.dataset.trackIndex = idx; // Update track index dataset dynamically
             existingAud.src = rawAudio;
             existingAud.play().catch(err => console.log("Continuous play prevented:", err));
             setMarkerPlayingState(idx, true);
@@ -2231,10 +2232,17 @@
             setTimeout(() => {
                 const audEl = document.getElementById('right-sidebar-audio-element');
                 if (audEl) {
+                    audEl.dataset.trackIndex = idx; // Inject track index dataset initially
                     audEl.removeEventListener('ended', playNextTrack);
                     audEl.addEventListener('ended', playNextTrack);
-                    audEl.addEventListener('play', () => setMarkerPlayingState(idx, true));
-                    audEl.addEventListener('pause', () => setMarkerPlayingState(idx, false));
+                    audEl.addEventListener('play', () => {
+                        const curIdx = parseInt(audEl.dataset.trackIndex);
+                        if (!isNaN(curIdx)) setMarkerPlayingState(curIdx, true);
+                    });
+                    audEl.addEventListener('pause', () => {
+                        const curIdx = parseInt(audEl.dataset.trackIndex);
+                        if (!isNaN(curIdx)) setMarkerPlayingState(curIdx, false);
+                    });
                     audEl.play().catch(err => console.log("Standard stream play prevented:", err));
                     setMarkerPlayingState(idx, true);
                 } else {
@@ -2279,20 +2287,25 @@
 
     // Re-bind ended event after src change to continue automatic loop
     function playNextTrack() {
-        const nextIdx = currentTrackIndex + 1;
+        const audEl = document.getElementById('right-sidebar-audio-element');
+        let curIdx = currentTrackIndex;
+        if (audEl && audEl.dataset.trackIndex !== undefined) {
+            curIdx = parseInt(audEl.dataset.trackIndex);
+        }
+        const nextIdx = curIdx + 1;
         if (nextIdx < soundData.length) {
             selectTrack(nextIdx);
             
             // Re-register ended listener on new src element
             setTimeout(() => {
-                const audEl = document.getElementById('right-sidebar-audio-element');
-                if (audEl) {
-                    audEl.removeEventListener('ended', playNextTrack);
-                    audEl.addEventListener('ended', playNextTrack);
+                const newAud = document.getElementById('right-sidebar-audio-element');
+                if (newAud) {
+                    newAud.removeEventListener('ended', playNextTrack);
+                    newAud.addEventListener('ended', playNextTrack);
                 }
             }, 150);
         } else {
-            setMarkerPlayingState(currentTrackIndex, false);
+            setMarkerPlayingState(curIdx, false);
         }
     }
 
