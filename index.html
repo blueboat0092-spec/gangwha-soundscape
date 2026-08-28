@@ -1036,7 +1036,7 @@
 
             <!-- Sidebar Footer -->
             <div class="sidebar-footer" style="margin-top: 24px; border-top: 1px dashed #663366; padding-top: 12px; font-size: 9.5px; color: #663366; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono);">
-                <span>Ganghwa Soundscape © 2026</span>
+                <span>Ganghwa Soundscape © 2026 <span id="app-version-label" style="opacity: 0.6; margin-left: 6px;">[v7000]</span></span>
                 <button class="track-item-btn" onclick="toggleAdminMode()" id="admin-trigger-link" style="font-size: 9.5px; padding: 2px 6px;">[E] ADMIN</button>
             </div>
         </div>
@@ -2506,7 +2506,8 @@
                 const canvas = document.createElement('canvas');
                 let width = img.width;
                 let height = img.height;
-                const maxDim = 800; // Limit image dimensions to maintain quota
+                // Super-compact compression to prevent QuotaExceededError on mobiles (Max 400px, 45% Quality)
+                const maxDim = 400; 
 
                 if (width > maxDim || height > maxDim) {
                     if (width > height) {
@@ -2523,8 +2524,8 @@
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
 
-                // Compress to compact JPEG Base64
-                uploadedImageBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                // Compress to highly compact JPEG Base64 (around 15-30KB)
+                uploadedImageBase64 = canvas.toDataURL('image/jpeg', 0.45);
 
                 const previewImg = document.getElementById('img-preview');
                 const container = document.getElementById('img-preview-container');
@@ -2754,6 +2755,8 @@
             // 🌟 Auto-bump APP_VERSION dynamically with timestamp to clear previous localStorage conflicts on next visit
             const newVersion = `v-${Date.now()}`;
             html = html.replace(/const\s+APP_VERSION\s*=\s*["'][^"']+["']\s*;/, `const APP_VERSION = "${newVersion}";`);
+            // Dynamic sync of footer html labels on exported code
+            html = html.replace(/id="app-version-label" style="[^"]*">\[[^\]]+\]<\/span>/, `id="app-version-label" style="opacity: 0.6; margin-left: 6px;">[${newVersion}]</span>`);
 
             // Create blob and trigger browser download
             const blob = new Blob([html], { type: 'text/html' });
