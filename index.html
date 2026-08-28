@@ -22,15 +22,16 @@
         };
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Pocket dream's soundmap</title>
+    <title>Ganghwa Sound map</title>
     <link rel="icon" href="favicon.png" type="image/png" />
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
+
+    
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-        @import url('https://fonts.googleapis.com/css2?family=Yeon+Sung&display=swap');
 
         :root {
             --font-mono: ui-monospace, 'SFMono-Regular', Consolas, Menlo, Monaco, 'Courier New', monospace;
@@ -172,7 +173,7 @@
             display: flex !important;
         }
 
-        /* Compass needle rotate animation for active audio track */
+        /* Compass needle rotate animation for currently active audio track */
         @keyframes marker-spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
@@ -209,6 +210,91 @@
             letter-spacing: 1px;
         }
 
+        .track-list-container {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .track-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .track-item {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--text-main);
+            transition: background-color 0.15s;
+        }
+
+        .track-item:hover {
+            background-color: var(--bg-hover);
+        }
+
+        .track-item.active {
+            font-weight: bold;
+            background-color: var(--bg-active);
+            color: var(--text-accent) !important;
+            border-left: 3px solid var(--text-accent);
+        }
+
+        .track-item-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .track-item-num {
+            font-size: 10.5px;
+            color: var(--text-sub);
+        }
+
+        .track-item-title {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .track-item-actions {
+            display: flex;
+            gap: 4px;
+            margin-left: 8px;
+        }
+
+        .track-item-btn {
+            font-size: 10px;
+            padding: 2px 6px;
+            border: 1px solid var(--border-color);
+            background: #ffffff;
+            color: var(--text-main);
+            cursor: pointer;
+            border-radius: 3px;
+            transition: all 0.15s;
+        }
+
+        .track-item-btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--text-accent);
+            color: var(--text-accent) !important;
+        }
+
+        /* Admin Control Panel inside Sidebar */
+        #admin-actions-panel {
+            padding: 12px;
+            border-bottom: 2px solid var(--border-color);
+            background-color: rgba(255, 51, 170, 0.03);
+            box-sizing: border-box;
+        }
+
         /* Custom Scrollbars */
         ::-webkit-scrollbar {
             width: 8px;
@@ -225,20 +311,86 @@
             background: #4a7bb0;
         }
 
-        /* Custom Leaflet Tooltip */
-        .leaflet-tooltip-own {
-            background-color: var(--bg-popup) !important;
-            border: 1px solid var(--border-color) !important;
-            box-shadow: 2px 2px 0px rgba(0,0,0,0.05) !important;
-            color: var(--text-main) !important;
-            font-family: var(--font-mono) !important;
-            font-size: 9px !important;
-            font-weight: bold !important;
-            padding: 2px 6px !important;
-            border-radius: 0px !important;
+        /* Album Info and Edit Modal Dialogs */
+        #info-modal, #edit-modal {
+            position: fixed;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 95%;
+            max-width: 480px;
+            max-height: calc(100vh - 80px);
+            background: var(--bg-popup);
+            border: 2px solid var(--text-accent); /* Bold pink border */
+            box-shadow: 6px 6px 0px var(--shadow-color);
+            z-index: 4000;
+            display: none;
+            flex-direction: column;
+            color: var(--text-main);
+            box-sizing: border-box;
+        }
+        
+        #edit-modal {
+            z-index: 4100; /* Layer on top of info-modal */
         }
 
-        /* Custom Marker Icons */
+        .modal-header {
+            padding: 10px 14px;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+
+        .modal-title {
+            font-weight: bold;
+            color: var(--text-accent);
+            font-size: 13px;
+        }
+
+        .modal-close {
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 16px;
+            font-family: var(--font-mono);
+            font-weight: bold;
+        }
+
+        .modal-close:hover {
+            color: var(--text-accent);
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            font-size: 12.5px;
+            line-height: 1.6;
+        }
+
+        /* Custom Leaflet Popup */
+        .custom-popup .leaflet-popup-content-wrapper {
+            background: var(--bg-popup) !important;
+            color: var(--text-main) !important;
+            border: 2px solid var(--text-accent) !important; /* Pink accent border */
+            border-radius: 0px !important;
+            box-shadow: 4px 4px 0px var(--shadow-color) !important;
+            padding: 0 !important;
+            font-family: var(--font-mono) !important;
+        }
+
+        .custom-popup .leaflet-popup-content {
+            margin: 0 !important;
+            width: 380px !important;
+        }
+
+        .custom-popup .leaflet-popup-tip-container {
+            display: none;
+        }
+
+        /* Custom Marker Icons (Circular note drawing) */
         .custom-marker-icon {
             background: #ffffff;
             border: 2px solid var(--border-color);
@@ -260,40 +412,414 @@
 
         /* Active selected marker icon styling */
         .custom-marker-icon.active {
-            transform: scale(1.15);
-            border-color: var(--text-accent);
-            box-shadow: 0 0 0 4px rgba(74, 123, 176, 0.2);
+            border: 3px solid var(--text-accent) !important;
+            transform: scale(1.2);
+            box-shadow: 0 4px 8px rgba(255, 51, 170, 0.3) !important;
         }
 
-        /* Left Calligraphy Brand & List Panel */
-        .left-brand-panel {
-            position: fixed;
-            left: 20px;
-            top: 24px;
-            z-index: 2000;
-            pointer-events: none;
+        /* Popup content box - Poetic Essay Style */
+        .diary-box {
+            padding: 16px 20px;
+            font-size: 11.5px;
+            line-height: 1.8;
+            color: #4b5563;
+            text-align: justify;
+            word-break: keep-all;
+            box-sizing: border-box;
+            background: transparent;
+        }
+
+        .diary-box h2 {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--text-main);
+            margin: 0 0 12px 0;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            word-break: keep-all;
+        }
+
+        .diary-box p {
+            margin: 0 0 12px 0;
+            color: #4b5563;
+            word-break: keep-all;
+        }
+
+        .diary-box .meta-text {
+            font-size: 9.5px;
+            color: var(--text-sub);
+            display: block;
+            margin-top: 12px;
+            border-top: 1px dashed var(--border-color);
+            padding-top: 8px;
+        }
+
+        .popup-player {
+            width: 100%;
+            height: 42px;
+            border: none;
+            border-bottom: 1px solid var(--border-color); /* Bottom border dividing from content below */
+            display: block;
+            background: #ffffff;
+        }
+
+        .popup-player-sc {
+            width: 100%;
+            height: 80px;
+            border: none;
+            border-bottom: 1px solid var(--border-color);
+            display: block;
+            background: #ffffff;
+        }
+        
+        .popup-audio-player {
+            width: 100%;
+            display: block;
+            border: none;
+            border-bottom: 1px solid var(--border-color); /* Bottom border dividing from content below */
+            background: #ffffff;
+            box-sizing: border-box;
+            padding: 6px 4px;
+        }
+
+        /* Popup Media Image styling - full size contain without cutting/cropping */
+        .popup-media-image {
+            width: 100%;
+            height: auto;
+            max-height: 130px;
+            object-fit: contain;
+            background-color: #fafafa;
+            display: block;
+            border-top: 1px solid var(--border-color);
+            box-sizing: border-box;
+        }
+
+        .popup-admin-actions {
+            padding: 0 16px 12px;
+            display: flex;
+            gap: 6px;
+        }
+
+        /* Forms inside Edit Modal */
+        .edit-form {
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 12px;
+        }
+
+        .form-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-row label {
+            font-size: 11px;
+            color: var(--text-accent);
+            font-weight: bold;
+        }
+
+        .bbs-input, .bbs-textarea {
+            background-color: #ffffff;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 8px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .bbs-input:focus, .bbs-textarea:focus {
+            outline: none;
+            border-color: var(--text-accent);
+        }
+
+        .coords-inputs {
+            display: flex;
+            gap: 6px;
+        }
+
+        .coords-inputs input {
+            flex: 1;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            justify-content: flex-end;
+        }
+
+        #img-preview-container {
+            margin-top: 8px;
+            border: 1px solid var(--border-color);
+            padding: 6px;
+            background: #fafafa;
+            text-align: center;
+        }
+
+        /* Zoom Controls */
+        .leaflet-control-zoom {
+            border: 1px solid var(--border-color) !important;
+            border-radius: 4px !important;
+            box-shadow: 0 2px 4px var(--shadow-color) !important;
+            margin: 12px !important;
+            overflow: hidden;
+        }
+
+        .leaflet-control-zoom-in, .leaflet-control-zoom-out {
+            background-color: #ffffff !important;
+            color: var(--text-main) !important;
+            border: none !important;
+            font-family: var(--font-mono) !important;
+            font-weight: bold !important;
+        }
+
+        .leaflet-control-zoom-in {
+            border-bottom: 1px solid var(--border-color) !important;
+        }
+
+        .leaflet-control-zoom-in:hover, .leaflet-control-zoom-out:hover {
+            background-color: var(--bg-hover) !important;
+            color: var(--text-accent) !important;
+        }
+
+        /* Mobile View Response */
+        @media (max-width: 768px) {
+            #app-body {
+                flex-direction: column;
+            }
+
+            #map {
+                height: calc(100% - 90px);
+            }
+
+            #sidebar-right {
+                width: 100%;
+                height: 90px;
+                border-left: none;
+                border-top: 2px solid var(--border-color);
+                flex-direction: row;
+                transition: height 0.3s ease;
+            }
+
+            #sidebar-right.collapsed {
+                height: 0px;
+                border-top: none;
+            }
+
+            #sidebar-toggle-tab {
+                left: 50%;
+                top: -20px;
+                transform: translateX(-50%);
+                width: 50px;
+                height: 20px;
+                border-left: 2px solid var(--border-color);
+                border-right: 2px solid var(--border-color);
+                border-top: 2px solid var(--border-color);
+                border-bottom: none;
+            }
+
+            .track-list-container {
+                flex-direction: row;
+                width: 100%;
+                overflow-x: auto;
+                overflow-y: hidden;
+            }
+
+            .sidebar-title {
+                display: none;
+            }
+
+            #track-list {
+                display: flex;
+                flex-direction: row;
+                white-space: nowrap;
+                padding: 8px;
+            }
+
+            .track-item {
+                border-bottom: none;
+                border-right: 1px dashed #663366;
+                padding: 0 16px;
+                height: 100%;
+                min-width: 170px;
+                box-sizing: border-box;
+                justify-content: center;
+                text-align: center;
+            }
+
+            .track-item.active {
+                border-left: none;
+                border-bottom: none;
+            }
+
+            .track-item-actions {
+                display: none;
+            }
+
+            #admin-actions-panel {
+                display: none !important;
+            }
+
+            #info-modal, #edit-modal {
+                width: 95%;
+                height: calc(100vh - 60px);
+                top: 40px;
+            }
+        }
+
+        /* 📁 CATEGORY CARDS PANELS - 90s Retro Style */
+        .category-card {
+            border: 2px outset #ffffff;
+            background-color: #cccccc;
+            padding: 10px 12px;
+            cursor: pointer;
+            box-sizing: border-box;
+            box-shadow: 2px 2px 0px #000000;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            transition: none;
+        }
+        .category-card:hover {
+            background-color: #dfdfdf;
+        }
+        .category-card:active {
+            border: 2px inset #ffffff;
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px #000000;
+        }
+        .category-card-name {
+            font-size: 11.5px;
+            font-weight: bold;
+            font-family: var(--font-mono);
+            word-break: keep-all;
+            color: #000000 !important;
+        }
+        .category-card-count {
+            font-size: 10px;
+            color: #666666;
+            font-family: var(--font-mono);
+        }
+
+        /* 📍 Minimalist Circle Waterdrop Pins (Cartografia das Memorias Style) */
+        .circle-pin {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-sizing: border-box;
+        }
+        .custom-marker-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .custom-marker-icon.active .circle-pin {
+            width: 20px;
+            height: 20px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+            border-width: 3px !important;
+        }
+        
+        /* Dynamic Ripple Wave pulse for currently playing sound spot */
+        .custom-marker-icon.playing .circle-pin::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            right: -8px;
+            bottom: -8px;
+            border-radius: 50%;
+            border: 2px solid var(--text-accent);
+            animation: ripple-wave 1.6s infinite cubic-bezier(0.1, 0.8, 0.3, 1);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        @keyframes ripple-wave {
+            0% {
+                transform: scale(0.6);
+                opacity: 0.9;
+            }
+            100% {
+                transform: scale(2.2);
+                opacity: 0;
+            }
+        }
+
+        /* 🎯 CROSSHAIR FOR ADD PIN MODE */
+        .add-spot-cursor {
+            cursor: crosshair !important;
+        }
+
+        /* Slide-out Sidebar Navigation Drawer - Modern Gallery Style */
+        .sidebar-drawer {
+            height: 100%;
+            width: 0; /* Hidden by default */
+            position: fixed;
+            z-index: 5000; /* Over Leaflet map */
+            top: 0;
+            left: 0;
+            background-color: #ffffff;
+            border-right: 1px solid var(--border-color);
+            overflow-x: hidden;
+            transition: 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.05);
+        }
+
+        .sidebar-drawer[style*="width: 320px"] {
+            border-right-width: 1px;
+        }
+
+        .sidebar-content {
+            padding: 20px;
+            width: 320px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .sidebar-scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        /* Left Brand & Track List Panel */
+        .left-brand-panel {
+            position: fixed;
+            top: 16px;
+            left: 20px;
+            z-index: 4500;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: flex-start;
+            pointer-events: none;
         }
 
         .left-brand-panel .logo-btn {
-            background: none;
+            background: transparent;
             border: none;
-            padding: 0;
             cursor: pointer;
+            padding: 0;
             transition: opacity 0.15s ease-in-out;
             pointer-events: auto;
-            text-align: left;
-            outline: none;
         }
 
-        /* 300% 로고 이미지 스케일업 */
         .left-brand-panel .logo-btn img {
+            height: 156px;
+            width: auto;
             display: block;
-            max-height: 156px; 
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
         }
 
         .left-brand-panel .logo-btn:hover {
@@ -311,7 +837,7 @@
             background: transparent;
             padding: 0;
             border: none;
-            max-height: calc(100vh - 240px);
+            max-height: calc(100vh - 160px);
             overflow-y: auto;
             width: 240px;
             text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.9), -1px -1px 2px rgba(255, 255, 255, 0.9);
@@ -335,38 +861,7 @@
             font-weight: bold;
         }
 
-        /* Slide-out Navigation Drawer (Left Side) */
-        .sidebar-drawer {
-            height: 100%;
-            width: 0; /* Hidden by default */
-            position: fixed;
-            z-index: 5000; /* Over Leaflet map */
-            top: 0;
-            left: 0;
-            background-color: #ffffff;
-            border-right: 1px solid var(--border-color);
-            overflow-x: hidden;
-            transition: 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 4px 0 10px rgba(0,0,0,0.05);
-        }
 
-        .sidebar-content-drawer {
-            padding: 20px;
-            width: 320px;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            box-sizing: border-box;
-            position: relative;
-        }
-
-        .sidebar-scroll-area {
-            flex: 1;
-            overflow-y: auto;
-            padding-right: 4px;
-        }
 
         /* 📖 Felix Blume Inspired Modern Accordions */
         .retro-accordion {
@@ -412,6 +907,38 @@
             color: var(--text-sub);
         }
 
+        .category-filter-btn {
+            width: 100%;
+            font-size: 11px;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            background: #ffffff;
+            color: var(--text-main);
+            cursor: pointer;
+            font-family: inherit;
+            text-align: left;
+            border-radius: 4px;
+            transition: all 0.15s;
+        }
+
+        .category-filter-btn:hover {
+            background-color: var(--bg-hover);
+        }
+
+        .category-filter-btn.active {
+            background: var(--text-accent);
+            color: #ffffff !important;
+            border-color: var(--text-accent);
+            font-weight: bold;
+        }
+
+        #retro-track-list {
+            max-height: 250px;
+            overflow-y: auto;
+            background-color: #ffffff;
+            border: 1px solid #808080;
+        }
+
         /* Close Button inside Sidebar */
         .menu-close-btn {
             position: absolute;
@@ -430,45 +957,6 @@
         .menu-close-btn:hover {
             color: var(--text-accent);
         }
-
-        /* Diary Cards styling inside right sidebar */
-        .diary-box {
-            background: #ffffff;
-            border: 1px solid var(--border-color);
-            padding: 14px;
-            box-shadow: 2px 2px 0px rgba(0,0,0,0.03);
-        }
-
-        .diary-box p {
-            font-family: var(--font-mono);
-            word-wrap: break-word;
-            white-space: pre-wrap;
-        }
-
-        .meta-date {
-            font-weight: bold;
-            color: var(--text-main);
-            border-bottom: 1px dashed var(--border-color);
-            padding-bottom: 4px;
-            margin-bottom: 4px;
-        }
-
-        /* Embedded audio player size controls */
-        iframe.popup-player {
-            width: 100%;
-            height: 42px;
-            border: none;
-            box-shadow: 2px 2px 0px rgba(0,0,0,0.03);
-            display: block;
-        }
-
-        iframe.popup-player-sc {
-            width: 100%;
-            height: 80px;
-            border: none;
-            box-shadow: 2px 2px 0px rgba(0,0,0,0.03);
-            display: block;
-        }
     </style>
 </head>
 <body>
@@ -484,7 +972,8 @@
 <!-- Slide-out Navigation Drawer (Left Side) -->
 <div id="mySidebar" class="sidebar-drawer" style="width: 0;">
     <button class="menu-close-btn" onclick="closeSidebar()">×</button>
-    <div class="sidebar-content-drawer">
+    <div class="sidebar-content">
+        
         <div class="sidebar-scroll-area">
             <!-- 1. ABOUT ALBUM SECTION -->
             <div class="retro-accordion">
@@ -519,17 +1008,50 @@
                     </div>
                 </div>
             </div>
-            
+
+            <!-- 3. TRACK LIST SECTION -->
+            <div class="retro-accordion">
+                <button class="accordion-trigger" onclick="toggleAccordion('acc-tracks')">🎧 TRACK LIST <span class="acc-chevron">▸</span></button>
+                <div id="acc-tracks" class="accordion-content">
+                    <!-- Retro Track Items List relocated inside accordion -->
+                    <div id="retro-track-list" class="track-list" style="max-height: 250px; overflow-y: auto; background-color: #ffffff; border: 1px solid #808080; padding: 2px;"></div>
+                </div>
+            </div>
+
+            <!-- 4. CATEGORIES SECTION -->
+            <div class="retro-accordion">
+                <button class="accordion-trigger" onclick="toggleAccordion('acc-categories')">📁 CATEGORIES <span class="acc-chevron">▸</span></button>
+                <div id="acc-categories" class="accordion-content">
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <button class="category-filter-btn active" onclick="filterCategoryByBtn('', this)">★ ALL CATEGORIES</button>
+                        <div id="category-btns-container" style="display: flex; flex-direction: column; gap: 6px;">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Sidebar Footer -->
             <div class="sidebar-footer" style="margin-top: 24px; border-top: 1px dashed #663366; padding-top: 12px; font-size: 9.5px; color: #663366; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono);">
                 <span>Ganghwa Soundscape © 2026</span>
+                <button class="track-item-btn" onclick="toggleAdminMode()" id="admin-trigger-link" style="font-size: 9.5px; padding: 2px 6px;">[E] ADMIN</button>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Floating Admin Actions Panel (Appears at top-right when Admin Mode is ON) -->
+<div id="floating-admin-panel">
+    <div style="font-weight: bold; font-size: 10.5px; margin-bottom: 8px; color: var(--text-accent); border-bottom: 1px dashed var(--border-color); padding-bottom: 4px;">[ADMIN CONTROLS]</div>
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+        <button id="add-spot-btn" class="bbs-btn" onclick="toggleAddSpotMode()" style="width: 100%; font-size: 10px;">[+] Add Spot (Click Map)</button>
+        <button id="download-btn" class="bbs-btn" onclick="downloadHtml()" style="width: 100%; font-size: 10px; color: var(--text-accent);">[S] Export HTML</button>
+        <button id="reset-btn" class="bbs-btn" onclick="resetData()" style="width: 100%; font-size: 10px;">[R] Reset Database</button>
+    </div>
+</div>
+
 <!-- Leaflet Map Container -->
-<div id="map"></div>
+<div id="map" style="width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1;"></div>
 
 <!-- Right Side Player Sidebar (Opens when a pin is clicked) -->
 <div id="sidebar-right" class="collapsed">
@@ -542,23 +1064,133 @@
         <!-- Track Title (Top) -->
         <div id="right-sidebar-title-card" class="diary-box" style="display: none; padding-bottom: 0;">
             <span id="right-sidebar-track-num" style="color: var(--text-accent); font-size: 10px; font-weight: bold; display: block; margin-bottom: 6px;">Track --</span>
-            <h2 id="right-sidebar-title" style="margin: 0; font-size: 13px; font-weight: bold; border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; color: var(--text-main); font-family: var(--font-mono);">Select a spot</h2>
+            <h2 id="right-sidebar-title" style="margin: 0; font-size: 13px; font-weight: bold; border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; color: var(--text-main);">Select a spot</h2>
         </div>
 
-        <!-- Audio Player Container -->
+        <!-- Audio Player Container (Middle - Title 아래) -->
         <div id="right-sidebar-player-container" style="width: 100%; display: none;">
             <!-- Embed audio player dynamically here -->
         </div>
 
-        <!-- Text Body Details -->
+        <!-- Text Body Details (Middle - Player 아래) -->
         <div id="right-sidebar-body-card" class="diary-box" style="display: none; padding-top: 0; border-top: none;">
             <p id="right-sidebar-desc" style="margin: 10px 0 10px 0; font-size: 11px; line-height: 1.6; color: var(--text-main); text-align: justify; word-break: keep-all;">Click a pin on the map to listen to the sound of Ganghwa.</p>
             <div id="right-sidebar-meta" style="font-size: 9.5px; color: var(--text-sub); display: block; margin-top: 8px;"></div>
         </div>
 
-        <!-- Cover Art / Image container -->
+        <!-- Cover Art / Image container (Bottom) -->
         <div id="right-sidebar-image-container" style="width: 100%; border: 1px solid var(--border-color); display: none; background: #ffffff;">
             <img id="right-sidebar-image" src="" style="width: 100%; object-fit: contain; display: block;" />
+        </div>
+
+        <!-- Admin Action Section inside Sidebar -->
+        <div id="right-sidebar-admin-actions" class="popup-admin-actions admin-only" style="display: none; margin-top: auto; display: flex; gap: 8px;">
+            <button class="bbs-btn" id="right-sidebar-edit-btn" style="flex: 1;">[E] EDIT</button>
+            <button class="bbs-btn" id="right-sidebar-delete-btn" style="flex: 1; color: var(--text-accent);">[D] DELETE</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Recording Modal (새창/다이얼로그) -->
+<div id="edit-modal">
+    <div class="modal-header">
+        <span class="modal-title">[EDIT RECORDING DETAILS]</span>
+        <button class="modal-close" onclick="closeEditModal()">[X]</button>
+    </div>
+    
+    <div class="modal-body">
+        <form id="edit-form" class="edit-form" onsubmit="submitEditForm(event)">
+            <input type="hidden" id="edit-idx" />
+            
+            <div style="font-size: 10.5px; color: var(--text-sub); border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; margin-bottom: 6px; line-height: 1.4;">
+                * Drag the pin on the map to adjust coordinates in real-time.
+            </div>
+
+            <div class="form-row">
+                <label>CATEGORY :</label>
+                <select id="modal-edit-category" class="bbs-input" onchange="handleCategorySelectChange(this)" style="width: 100%; height: 32px; background: #ffffff; cursor: pointer; border: 1px solid var(--border-color); font-family: var(--font-mono); font-size: 12px;"></select>
+                <div id="edit-category-color-wrapper" style="display: none; align-items: center; gap: 8px; margin-top: 6px;">
+                    <label style="font-size: 10px;">THEME COLOR :</label>
+                    <input type="color" id="modal-edit-category-color" value="#4a7bb0" class="bbs-input" style="width: 40px; height: 28px; padding: 0; cursor: pointer; border: 1px solid var(--border-color);" />
+                    <div id="edit-color-swatches" style="display: flex; gap: 4px;"></div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label>TITLE :</label>
+                <input type="text" id="modal-edit-title" required class="bbs-input" placeholder="Recording location / name" />
+            </div>
+
+            <div class="form-row">
+                <label>DESCRIPTION :</label>
+                <textarea id="modal-edit-desc" class="bbs-textarea" rows="3" placeholder="Describe the atmosphere, feelings, weather, or notes about the sound."></textarea>
+            </div>
+
+            <div class="form-row">
+                <label>DATE / TIME (날짜 및 시간) :</label>
+                <input type="text" id="modal-edit-date" class="bbs-input" placeholder="예: 2025-08-06 14:00 ☀️" />
+            </div>
+
+            <div class="form-row">
+                <label>RECORDING GEAR (녹음 장비) :</label>
+                <input type="text" id="modal-edit-gear" class="bbs-input" placeholder="예: Zoom F3 / Clippy EM2 pair / AB Stereo" />
+            </div>
+
+            <!-- Custom Photo Upload -->
+            <div class="form-row">
+                <label>IMAGE FILE (UPLOAD OR REPLACE) :</label>
+                <input type="file" id="modal-edit-img-file" accept="image/*" class="bbs-input" onchange="handleImageUpload(this)" />
+                <div id="img-preview-container" style="display: none; margin-top: 6px;">
+                    <img id="img-preview" src="" style="max-width: 100%; max-height: 90px; object-fit: contain;" />
+                </div>
+            </div>
+
+            <!-- Custom Audio Link -->
+            <div class="form-row">
+                <label>AUDIO URL (EXTERNAL LINK OR EMBED CODE) :</label>
+                <input type="text" id="modal-edit-audio-url" class="bbs-input" placeholder="https://example.com/sound.mp3, Bandcamp, or SoundCloud link" />
+            </div>
+
+            <div class="form-row">
+                <label>COORDINATES (LAT, LNG) :</label>
+                <div class="coords-inputs">
+                    <input type="number" step="any" id="modal-edit-lat" required class="bbs-input" placeholder="LAT" />
+                    <input type="number" step="any" id="modal-edit-lng" required class="bbs-input" placeholder="LNG" />
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="bbs-btn" style="background-color: var(--text-accent); color: #ffffff; border-color: var(--text-accent);">[S] SAVE</button>
+                <button type="button" class="bbs-btn" onclick="closeEditModal()">[C] CANCEL</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Dedicated Create Category Modal Dialog (새창) -->
+<div id="category-modal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 400px; background: var(--bg-panel); border: 2px solid var(--border-color); box-shadow: 6px 6px 0 var(--shadow-color); z-index: 6000; padding: 16px; box-sizing: border-box; flex-direction: column;">
+    <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 12px;">
+        <span class="modal-title" id="category-modal-title" style="font-weight: bold; font-size: 12px; color: var(--text-accent);">[CREATE NEW CATEGORY]</span>
+        <button class="modal-close" onclick="closeCategoryModal()" style="cursor: pointer; background: none; border: none; font-family: var(--font-mono); font-size: 12px; color: var(--text-main);">[X]</button>
+    </div>
+    <div class="modal-body">
+        <div class="edit-form" style="display: flex; flex-direction: column; gap: 10px;">
+            <input type="hidden" id="modal-cat-original-name" />
+            <div class="form-row" style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-weight: bold; font-size: 11px;">CATEGORY NAME :</label>
+                <input type="text" id="modal-cat-name" required class="bbs-input" placeholder="New Category Name" />
+            </div>
+            <div class="form-row" style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-weight: bold; font-size: 11px;">CHOOSE THEME COLOR :</label>
+                <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
+                    <input type="color" id="modal-cat-color" value="#4a7bb0" class="bbs-input" style="width: 50px; height: 32px; padding: 0; cursor: pointer; border: 1px solid var(--border-color);" />
+                    <div id="color-swatches" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
+                </div>
+            </div>
+            <div class="form-actions" style="margin-top: 12px; display: flex; gap: 6px; justify-content: flex-end;">
+                <button type="button" id="category-modal-submit-btn" class="bbs-btn" onclick="saveNewCategory()" style="background-color: var(--text-accent); color: #ffffff; border-color: var(--text-accent);">[S] CREATE</button>
+                <button type="button" class="bbs-btn" onclick="closeCategoryModal()">[C] CANCEL</button>
+            </div>
         </div>
     </div>
 </div>
@@ -600,7 +1232,7 @@
                 "desc": "한여름 매미소리가 숲을 가득 채우고 있다.\n햇볕은 뜨겁고, 바람도 불지않는 정족산의 낮.\n14처길을 따라 땀을 흘리며 걷다보면 자연스레 명상에 잠기게 된다.",
                 "meta": "Date: 2025-08-06 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
                 "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/03%20%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%84%83%E1%85%A9%20%E1%84%8C%E1%85%A5%E1%86%BC%E1%84%8C%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A1%E1%86%AB%2014%E1%84%8E%E1%85%A5%E1%84%80%E1%85%B5%E1%86%AF%20%E1%84%82%E1%85%A1%E1%86%B5_250806.wav",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/03%20%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%E1%84%83%E1%85%A9%20%E1%84%8C%E1%85%A5%E1%86%BC%E1%84%8C%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A1%E1%86%AB%2014%E1%84%8E%E1%85%A5%E1%84%80%E1%85%B5%E1%86%AF%20%E1%84%82%E1%85%A1%E1%86%B5_250806.wav",
                 "imageBase64": "",
                 "imageUrl": ""
         },
@@ -612,7 +1244,7 @@
                 "desc": "해질녘 정족산성 동문 아래에 서서 녹음기를 켠다.\n여름 밤벌레 소리가 파도처럼 밀려온다.\n간간히 지나가는 자동차 소리가 밤하늘을 가른다.",
                 "meta": "Date: 2025-08-20 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
                 "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/04%20%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%84%83%E1%85%A9%20%E1%84%8C%E1%85%A5%E1%86%BC%E1%84%8C%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A1%E1%86%AB%E1%84%89%E1%85%A5%E1%86%A8%20%E1%84%8B%E1%85%B5%E1%86%B8%E1%84%80%E1%85%AE%20%E1%84%87%E1%85%A1%E1%86%B7_250820.wav",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/04%20%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%E1%84%83%E1%85%A9%20%E1%84%8C%E1%85%A5%E1%86%BC%E1%84%8C%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A1%E1%86%AB%E1%84%89%E1%85%A5%E1%86%A8%20%E1%84%8B%E1%85%B5%E1%86%B8%E1%84%80%E1%85%AE%20%E1%84%87%E1%85%A1%E1%86%B7_250820.wav",
                 "imageBase64": "",
                 "imageUrl": ""
         },
@@ -624,7 +1256,7 @@
                 "desc": "어스름해지는 저녁, Jeondeungsa(전등사)의 법고(Dharma Drum) 소리가 울려 퍼진다.\n북소리는 묵직하게 가슴을 울리며, 온 산으로 퍼져나간다.\n바쁜 일상을 잠시 멈추고 귀를 기울여본다.",
                 "meta": "Date: 2025-09-22 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
                 "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/05%20%E1%84%8C%E1%85%A5%E1%86%AB%E1%84%83%E1%85%B3%E1%85%A5%E1%86%BC%E1%84%89%E1%85%A1%20%E1%84%8C%E1%85%A5%E1%86%AB%E1%84%82%E1%85%A7%E1%86%A8%E1%84%80%E1%85%A5%E1%84%87%E1%85%AE%E1%86%AF%20%E1%84%83%E1%85%A2%E1%84%80%E1%85%A9_250922.wav",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/05%20%E1%84%8C%E1%85%A5%E1%86%AB%E1%84%83%E1%85%B5%E1%86%BC%E1%84%89%E1%85%A1%20%E1%84%8C%E1%85%A5%E1%86%AB%E1%84%82%E1%85%A7%E1%86%A8%E1%84%80%E1%85%A5%E1%84%87%E1%85%AE%E1%86%AF%20%E1%84%83%E1%85%A2%E1%84%80%E1%85%A9_250922.wav",
                 "imageBase64": "",
                 "imageUrl": ""
         },
@@ -648,7 +1280,7 @@
                 "desc": "썰물 때가 되어 동검도 앞 갯벌이 광활하게 드러났다.\n갯벌 속 생명체들이 숨 쉬는 소리, 미세한 바람 소리가 고요하게 펼쳐진다.\n자연의 거대한 호흡을 엿듣는 듯한 느낌.",
                 "meta": "Date: 2025-10-08 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
                 "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/07%20%E1%84%90%E1%85%A9%E1%86%BC%E1%84%80%E1%85%B5%E1%86%B7%E1%84%83%E1%85%A9%20%E1%84%83%E1%85%A9%E1%86%BC%E1%84%80%E1%85%B3%E1%84%85%E1%85%A1%E1%86%BC%E1%84%89%E1%85%A5%E1%86%B7_251008.wav",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/07%20%E1%84%83%E1%85%A9%E1%86%BC%E1%84%80%E1%85%A5%E1%86%B7%E1%84%83%E1%85%A9%20%E1%84%83%E1%85%A9%E1%86%BC%E1%84%80%E1%85%B3%E1%84%85%E1%85%A1%E1%86%BC%E1%84%89%E1%85%A5%E1%86%B7_251008.wav",
                 "imageBase64": "",
                 "imageUrl": ""
         },
@@ -672,7 +1304,7 @@
                 "desc": "비 내리는 오후, Gwangseongbo(광성보) 성벽 아래서 빗소리를 녹음한다.\n기와와 배수관을 통해 떨어지는 물방울 소리가 맑게 튀어 오른다.\n조용한 유적지에 떨어지는 빗물 소리가 마음을 차분하게 한다.",
                 "meta": "Date: 2025-11-19 ☔️ / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
                 "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/09%20%E1%84%80%E1%85%AA%E1%86%BC%E1%84%9B%E1%85%A5%E1%86%BD%E1%84%87%E1%85%A9%20%E1%84%87%E1%85%B5%E1%86%BA%E1%84%87%E1%85%A1%E1%86%BC%E1%84%8B%E1%85%AE%E1%86%AF_251119.wav",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/09%20%E1%84%80%E1%85%AA%E1%86%BC%E1%84%89%E1%85%A5%E1%86%BD%E1%84%87%E1%85%A9%20%E1%84%87%E1%85%B5%E1%86%BA%E1%84%87%E1%85%A1%E1%86%BC%E1%84%8B%E1%85%AE%E1%86%AF_251119.wav",
                 "imageBase64": "",
                 "imageUrl": ""
         },
@@ -692,7 +1324,7 @@
                 "id": "519450696",
                 "lat": 447,
                 "lng": 251,
-                "title": "부길곶 돈대 해안 파도",
+                "title": "부길ᄀ 돈대 해안 파도",
                 "desc": "Bugilgot Dondae(부길곶돈대) 해안가의 거친 파도소리.\n바위에 부딪혀 부서지는 파도 소리가 웅장하게 울려 퍼진다.\n자연의 강인한 생명력을 느낄 수 있는 소리풍경.",
                 "meta": "Date: 2025-11-20 ☁️ / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
                 "category": "Soundscape in ganghwa island 2025-2026",
@@ -716,7 +1348,7 @@
                 "id": "2110564066",
                 "lat": 321,
                 "lng": 529,
-                "title": "강화의 첫눈",
+                "title": "강ᄒ의 첫눈",
                 "desc": "소리 없이 내리는 첫눈, 모든 소음을 흡수하는 하얀 적막.\n강화의 겨울이 침묵 속에서 더 깊어져 간다.\n눈 밟는 소리, 고요한 겨울의 소리.",
                 "meta": "Date: 2026-01-24 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
                 "category": "Soundscape in ganghwa island 2025-2026",
@@ -732,7 +1364,7 @@
                 "desc": "100년 넘는 역사의 온수리 한옥성당에서 종소리가 울린다.\n마을의 평화로운 일상을 축복하듯 울리는 깊은 타종 소리.\n종소리가 주는 마음의 평온.",
                 "meta": "Date: 2025-11-22 ☁️ / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
                 "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/14%20%E1%84%8B%E1%85%A9%E1%86%AB%E1%84%89%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/14%20%E1%84%8B%E1%85%A9%E1%86%AB%E1%84%89%E1%85%AE%E1%86%AB%E1%84%85%E1%85%B5%E1%84%89%E1%85%A5%E1%86%BC%E1%84%83%E1%85%A3%E1%86%BC%20%E1%84%89%E1%85%A1%E1%86%B7%E1%84%8C%E1%85%A9%E1%86%BC_251122.wav",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/14%20%E1%84%8B%E1%85%A9%E1%86%AB%E1%84%89%E1%85%AE%E1%84%85%E1%85%B5%E1%84%89%E1%85%A5%E1%86%BC%E1%84%83%E1%85%A3%E1%86%BC%20%E1%84%89%E1%85%A1%E1%86%B7%E1%84%8C%E1%85%A9%E1%86%BC_251122.wav",
                 "imageBase64": "",
                 "imageUrl": ""
         },
@@ -744,7 +1376,7 @@
                 "desc": "평화전망대에서 바람을 타고 들려오는 북녘의 소리.\n가깝지만 닿을 수 없는 분단의 거리감이 소리로 전해진다.\n고요함 속에 팽팽한 긴장감이 흐른다.",
                 "meta": "Date: 2026-01-14 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
                 "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/15%20%E1%84%91%E1%85%A7%E1%86%BC%E1%84%92%E1%85%AA%E1%84%A8%E1%85%A5%E1%86%AB%E1%84%86%E1%85%A1%E1%86%BD%E1%84%83%E1%85%A2%20%E1%84%87%E1%85%AE%E1%86%A5%E1%84%92%E1%85%A3%E1%86%BC%E1%84%8B%E1%85%AE%E1%86%B5%20%E1%84%89%E1%85%A5%E1%86%A8%E1%84%8B%E1%85%B5_260114.wav",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/15%20%E1%84%91%E1%85%A7%E1%86%BC%E1%84%92%E1%85%AA%E1%84%8C%E1%85%A5%E1%86%AB%E1%84%86%E1%85%A1%E1%86%BD%E1%84%83%E1%85%A2%20%E1%84%87%E1%85%AE%E1%86%A5%E1%84%92%E1%85%A3%E1%86%BC%E1%84%8B%E1%85%AE%E1%86%B5%20%E1%84%89%E1%85%A5%E1%84%85%E1%85%B5_260114.wav",
                 "imageBase64": "",
                 "imageUrl": ""
         },
@@ -756,60 +1388,626 @@
                 "desc": "교동도의 새벽을 깨우는 바람 소리와 먼 닭 울음소리.\n적막한 농가의 마당을 쓸고 가는 바람이 섬의 아침을 연다.\n소박하고 아련한 삶의 소리.",
                 "meta": "Date: 2025-11-22 ☁️ / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
                 "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/16%20%E1%84%80%E1%85%A5%E1%84%83%E1%85%A9%E1%86%BD%E1%84%83%E1%85%A0%20%E1%84%82%E1%85%A5%E1%86%BD%E1%84%83%E1%85%A0%20%E1%84%89%E1%85%A4%E1%84%8B%E1%85%B5%E1%86%A8_251122.wav",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/16%20%E1%84%80%E1%85%A5%E1%84%83%E1%85%A9%E1%86%BD%E1%84%83%E1%85%A9%20%E1%84%82%E1%85%A5%E1%86%BD%E1%84%80%E1%85%A1%E1%86%B5%20%E1%84%89%E1%85%A4%E1%84%8B%E1%85%B5%E1%86%A8_251122.wav",
                 "imageBase64": "",
                 "imageUrl": ""
         }
-    ];
+];
 
+    // Hardcoded default categories configuration (Populated dynamically on HTML export)
+    const DEFAULT_CATEGORY_COLORS = {};
+    const DEFAULT_CUSTOM_CATEGORIES = [];
+    const DEFAULT_DELETED_DEFAULTS = [];
+
+    // Data array that changes in memory
     const soundData = [];
-    soundData.push(...DEFAULT_SOUND_DATA);
+    
+    // Force reset local database if caching version has changed (cleans corrupted structures)
+    const APP_VERSION = "2026-08-29-v3000";
+        // Force reset local database if caching version has changed (cleans corrupted structures)
+    localStorage.clear();
 
-    // Flat Grid Bounds matching layout
+    // Initialize category fallback defaults in localStorage if missing
+    if (!localStorage.getItem('gangwha_custom_categories')) {
+        localStorage.setItem('gangwha_custom_categories', JSON.stringify(DEFAULT_CUSTOM_CATEGORIES));
+    }
+    if (!localStorage.getItem('gangwha_category_colors')) {
+        localStorage.setItem('gangwha_category_colors', JSON.stringify(DEFAULT_CATEGORY_COLORS));
+    }
+    if (!localStorage.getItem('gangwha_deleted_defaults')) {
+        localStorage.setItem('gangwha_deleted_defaults', JSON.stringify(DEFAULT_DELETED_DEFAULTS));
+    }
+
+    // Load from localStorage or fallback
+    const localData = localStorage.getItem('gangwha_sound_data');
+    if (localData) {
+        try {
+            const parsed = JSON.parse(localData);
+            if (Array.isArray(parsed)) {
+                // Filter out corrupted items without title or coordinates to prevent crashes
+                const validated = parsed.filter(t => t && t.title && !isNaN(parseFloat(t.lat)) && !isNaN(parseFloat(t.lng)));
+                if (validated.length > 0) {
+                    soundData.push(...validated);
+                } else {
+                    soundData.push(...DEFAULT_SOUND_DATA);
+                }
+            } else {
+                soundData.push(...DEFAULT_SOUND_DATA);
+            }
+        } catch(e) {
+            console.error("Local data parse error. Falling back to default", e);
+            soundData.push(...DEFAULT_SOUND_DATA);
+        }
+    } else {
+        soundData.push(...DEFAULT_SOUND_DATA);
+    }
+
+    // Custom flat grid layout bounds matching original portrait ratio (733x1024)
     const bounds = [[0, 0], [1000, 715]];
 
-    // Leaflet map setup - Simple CRS Simple Grid
+    // Leaflet map setup - Zoomable flat overlay on top of fixed background
     const map = L.map('map', { 
         crs: L.CRS.Simple,
         zoomControl: false, 
         attributionControl: false,
-        dragging: true,
-        scrollWheelZoom: true,
-        doubleClickZoom: true,
+        dragging: true,        // Enable map dragging
+        scrollWheelZoom: true,  // Enable wheel zoom
+        doubleClickZoom: true,  // Enable dblclick zoom
         boxZoom: true,
         keyboard: true,
         maxZoom: 2
     });
 
-    // Mount background illustration Overlay
+    // Mount map illustration as an overlay inside Leaflet so it zooms unified with the markers
     L.imageOverlay('old-map.jpg', bounds).addTo(map);
 
-    // Sync viewport Containment
+    // Synchronize Leaflet map viewport dimensions to exactly contain the background image
     function syncMapToViewport() {
         map.fitBounds(bounds);
         const minZoom = map.getBoundsZoom(bounds);
-        map.setMinZoom(minZoom);
+        map.setMinZoom(minZoom); // Lock minZoom dynamically to fit viewport height/width contain limits
     }
 
+    // Initialize fit layout
     setTimeout(syncMapToViewport, 50);
-    window.addEventListener('resize', syncMapToViewport);
+
+    // Re-lock containment limits dynamically when browser is resized
+    window.addEventListener('resize', () => {
+        syncMapToViewport();
+    });
+
+
+
+    // Handle map click for Add Spot Placement Mode
+    map.on('click', (e) => {
+        if (isAddSpotMode) {
+            handleMapAddSpot(e.latlng);
+        }
+    });
 
     const markers = [];
     let currentTrackIndex = -1;
-    let currentPlayingTrackIndex = -1;
+    let currentPlayingTrackIndex = -1; // Track currently rotating/playing
+    let isAdminMode = false; // Disabled by default for quiet gallery style
+    
+    // File upload local variables (stores base64 data)
+    let uploadedImageBase64 = "";
 
-    // Render Markers with Blue circle styles
+    // Category management states
+    let selectedCategoryName = "";
+    let isAddSpotMode = false;
+
+    // Harmonious, curated preset colors for category tags
+    const PRESET_COLORS = [
+        "#4a7bb0", // Water Blue (Default)
+        "#3388ff", // Soft Blue
+        "#22cc88", // Mint Green
+        "#ffaa00", // Warm Orange
+        "#9966ff", // Pastel Purple
+        "#ff5555", // Red Accent
+        "#448888", // Slate Gray
+        "#cc6699"  // Coral Rose
+    ];
+
+    // Navigation Drawer Controls (Slide Open / Close)
+    function openSidebar() {
+        document.getElementById("mySidebar").style.width = "320px";
+    }
+
+    function closeSidebar() {
+        document.getElementById("mySidebar").style.width = "0";
+    }
+
+    // 📁 CATEGORY UTILITY FUNCTIONS
+    function getCategoryColor(catName) {
+        const cleanName = ((catName || "").trim()) || "Soundscape in ganghwa island 2025-2026";
+        const savedColors = JSON.parse(localStorage.getItem('gangwha_category_colors') || '{}');
+        if (savedColors[cleanName]) return savedColors[cleanName];
+
+        if (cleanName === "Soundscape in ganghwa island 2025-2026") return "#4a7bb0";
+        if (cleanName === "Field Recordings / Live Notes") return "#3388ff";
+        if (cleanName === "Drafts & Miscellaneous") return "#9966ff";
+
+        let hash = 0;
+        for (let i = 0; i < cleanName.length; i++) {
+            hash = cleanName.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const idx = Math.abs(hash) % PRESET_COLORS.length;
+        return PRESET_COLORS[idx];
+    }
+
+    function getCategories() {
+        const uniqueNames = new Set();
+        const deletedDefaults = JSON.parse(localStorage.getItem('gangwha_deleted_defaults') || '[]');
+        const customCats = JSON.parse(localStorage.getItem('gangwha_custom_categories') || '[]');
+
+        if (Array.isArray(customCats)) {
+            customCats.forEach(cat => {
+                if (cat && typeof cat === 'string') uniqueNames.add(cat.trim());
+            });
+        }
+        
+        soundData.forEach(track => {
+            const cat = ((track.category || "").trim()) || "Soundscape in ganghwa island 2025-2026";
+            uniqueNames.add(cat);
+        });
+        
+        if (!deletedDefaults.includes("Soundscape in ganghwa island 2025-2026")) uniqueNames.add("Soundscape in ganghwa island 2025-2026");
+        if (!deletedDefaults.includes("Field Recordings / Live Notes")) uniqueNames.add("Field Recordings / Live Notes");
+        if (!deletedDefaults.includes("Drafts & Miscellaneous")) uniqueNames.add("Drafts & Miscellaneous");
+        
+        const list = Array.from(uniqueNames);
+        return list.map(name => {
+            return {
+                name,
+                color: getCategoryColor(name),
+                isDefault: ["Soundscape in ganghwa island 2025-2026", "Field Recordings / Live Notes", "Drafts & Miscellaneous"].includes(name)
+            };
+        });
+    }
+
+    function renderSwatches(containerId, colorInputId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = '';
+        PRESET_COLORS.forEach(color => {
+            const sw = document.createElement('div');
+            sw.style.cssText = `
+                width: 18px; height: 18px; border-radius: 50%; background-color: ${color};
+                cursor: pointer; border: 1px solid rgba(0,0,0,0.2); box-sizing: border-box;
+                transition: transform 0.1s;
+            `;
+            sw.onmouseenter = () => sw.style.transform = 'scale(1.15)';
+            sw.onmouseleave = () => sw.style.transform = 'none';
+            sw.onclick = () => {
+                document.getElementById(colorInputId).value = color;
+            };
+            container.appendChild(sw);
+        });
+    }
+
+    function promptCreateCategory() {
+        if (!isAdminMode) return;
+        document.getElementById('category-modal-title').innerText = '[CREATE NEW CATEGORY]';
+        document.getElementById('category-modal-submit-btn').innerText = '[S] CREATE';
+        document.getElementById('modal-cat-original-name').value = '';
+        
+        document.getElementById('modal-cat-name').value = '';
+        document.getElementById('modal-cat-color').value = '#4a7bb0';
+        renderSwatches('color-swatches', 'modal-cat-color');
+        document.getElementById('category-modal').style.display = 'flex';
+    }
+
+    function promptEditCategory(catName) {
+        if (!isAdminMode) return;
+        document.getElementById('category-modal-title').innerText = '[EDIT CATEGORY DETAILS]';
+        document.getElementById('category-modal-submit-btn').innerText = '[S] SAVE';
+        document.getElementById('modal-cat-original-name').value = catName;
+        
+        document.getElementById('modal-cat-name').value = catName;
+        document.getElementById('modal-cat-color').value = getCategoryColor(catName);
+        renderSwatches('color-swatches', 'modal-cat-color');
+        document.getElementById('category-modal').style.display = 'flex';
+    }
+
+    function closeCategoryModal() {
+        document.getElementById('category-modal').style.display = 'none';
+    }
+
+    function saveNewCategory() {
+        const name = document.getElementById('modal-cat-name').value.trim();
+        const color = document.getElementById('modal-cat-color').value;
+        const originalName = document.getElementById('modal-cat-original-name').value.trim();
+        
+        if (!name) {
+            alert("Category name is required.");
+            return;
+        }
+
+        if (originalName) {
+            // EDIT MODE
+            if (originalName !== name) {
+                // Update all tracks that had this category
+                soundData.forEach(track => {
+                    if ((track.category || "Soundscape in ganghwa island 2025-2026") === originalName) {
+                        track.category = name;
+                    }
+                });
+
+                // Update custom category list
+                const customCats = JSON.parse(localStorage.getItem('gangwha_custom_categories') || '[]');
+                const idx = customCats.indexOf(originalName);
+                if (idx !== -1) {
+                    customCats[idx] = name;
+                } else if (!["Soundscape in ganghwa island 2025-2026", "Field Recordings / Live Notes", "Drafts & Miscellaneous"].includes(originalName)) {
+                    customCats.push(name);
+                }
+                localStorage.setItem('gangwha_custom_categories', JSON.stringify(customCats));
+
+                // Move color key
+                const savedColors = JSON.parse(localStorage.getItem('gangwha_category_colors') || '{}');
+                delete savedColors[originalName];
+                savedColors[name] = color;
+                localStorage.setItem('gangwha_category_colors', JSON.stringify(savedColors));
+
+                // Handle deleted defaults mapping
+                const deletedDefaults = JSON.parse(localStorage.getItem('gangwha_deleted_defaults') || '[]');
+                if (deletedDefaults.includes(originalName)) {
+                    const dIdx = deletedDefaults.indexOf(originalName);
+                    deletedDefaults.splice(dIdx, 1);
+                    deletedDefaults.push(name);
+                    localStorage.setItem('gangwha_deleted_defaults', JSON.stringify(deletedDefaults));
+                }
+            } else {
+                // Just color changed
+                const savedColors = JSON.parse(localStorage.getItem('gangwha_category_colors') || '{}');
+                savedColors[name] = color;
+                localStorage.setItem('gangwha_category_colors', JSON.stringify(savedColors));
+            }
+        } else {
+            // CREATE MODE
+            const customCats = JSON.parse(localStorage.getItem('gangwha_custom_categories') || '[]');
+            if (!customCats.includes(name)) {
+                customCats.push(name);
+                localStorage.setItem('gangwha_custom_categories', JSON.stringify(customCats));
+            }
+
+            const savedColors = JSON.parse(localStorage.getItem('gangwha_category_colors') || '{}');
+            savedColors[name] = color;
+            localStorage.setItem('gangwha_category_colors', JSON.stringify(savedColors));
+        }
+
+        saveToLocalStorage();
+        closeCategoryModal();
+        renderCategories();
+        renderMarkers();
+        renderTracklist();
+
+        // If in edit modal, refresh choices
+        if (document.getElementById('edit-modal').style.display === 'block') {
+            const select = document.getElementById('modal-edit-category');
+            bindCategorySelect();
+            select.value = name;
+            handleCategorySelectChange(select);
+        }
+    }
+
+    function deleteCategory(catName) {
+        if (["Soundscape in ganghwa island 2025-2026", "Field Recordings / Live Notes", "Drafts & Miscellaneous"].includes(catName)) {
+            if (confirm(`Are you sure you want to delete default category "${catName}"? This will not delete its items but hide the group.`)) {
+                const deletedDefaults = JSON.parse(localStorage.getItem('gangwha_deleted_defaults') || '[]');
+                if (!deletedDefaults.includes(catName)) {
+                    deletedDefaults.push(catName);
+                    localStorage.setItem('gangwha_deleted_defaults', JSON.stringify(deletedDefaults));
+                }
+                renderCategories();
+                renderMarkers();
+            }
+        } else {
+            if (confirm(`Are you sure you want to delete custom category "${catName}"? This does not delete any sound tracks.`)) {
+                const customCats = JSON.parse(localStorage.getItem('gangwha_custom_categories') || '[]');
+                const filtered = customCats.filter(c => c !== catName);
+                localStorage.setItem('gangwha_custom_categories', JSON.stringify(filtered));
+
+                const savedColors = JSON.parse(localStorage.getItem('gangwha_category_colors') || '{}');
+                delete savedColors[catName];
+                localStorage.setItem('gangwha_category_colors', JSON.stringify(savedColors));
+
+                renderCategories();
+                renderMarkers();
+            }
+        }
+    }
+
+    // Toggle accordion state inside left sidebar
+    function toggleAccordion(id) {
+        const target = document.getElementById(id);
+        if (!target) return;
+        const isOpen = target.style.display === 'block';
+        
+        // Close all accordion contents
+        document.querySelectorAll('.accordion-content').forEach(el => {
+            el.style.display = 'none';
+        });
+        
+        // Reset all chevrons to right point
+        document.querySelectorAll('.accordion-trigger .acc-chevron').forEach(ch => {
+            ch.innerText = '▸';
+        });
+
+        // Toggle clicked content
+        const btn = target.previousElementSibling;
+        const chev = btn ? btn.querySelector('.acc-chevron') : null;
+        if (!isOpen) {
+            target.style.display = 'block';
+            if (chev) chev.innerText = '▾';
+        } else {
+            if (chev) chev.innerText = '▸';
+        }
+    }
+
+    // Filter categories on button click (Felix Blume style)
+    function filterCategoryByBtn(categoryName, btn) {
+        // Highlight active filter button
+        document.querySelectorAll('.category-filter-btn').forEach(b => {
+            b.classList.remove('active');
+        });
+        if (btn) btn.classList.add('active');
+
+        selectedCategoryName = categoryName;
+        
+        // Re-draw map markers and track items matching selected filter
+        renderMarkers();
+        renderTracklist();
+    }
+
+    // Render and populate category filter buttons inside the 4th accordion panel
+    function renderCategories() {
+        const container = document.getElementById('category-btns-container');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const categories = getCategories();
+        categories.forEach(cat => {
+            const catTracks = soundData.filter(t => {
+                const trackCat = t.category || "Soundscape in ganghwa island 2025-2026";
+                return trackCat === cat.name;
+            });
+
+            if (catTracks.length === 0 && !isAdminMode) {
+                return;
+            }
+
+            const btnWrapper = document.createElement('div');
+            btnWrapper.style.display = 'flex';
+            btnWrapper.style.gap = '4px';
+            btnWrapper.style.width = '100%';
+
+            const btn = document.createElement('button');
+            btn.className = 'category-filter-btn';
+            if (selectedCategoryName === cat.name) btn.classList.add('active');
+            btn.innerText = `📁 ${cat.name} (${catTracks.length})`;
+            btn.style.flex = '1';
+            btn.style.borderLeft = `5px solid ${cat.color}`;
+            btn.onclick = () => filterCategoryByBtn(cat.name, btn);
+
+            btnWrapper.appendChild(btn);
+
+            if (isAdminMode) {
+                const editBtn = document.createElement('button');
+                editBtn.className = 'track-item-btn';
+                editBtn.innerHTML = '✏️';
+                editBtn.title = "수정 (Edit Category)";
+                editBtn.style.padding = '2px 6px';
+                editBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    promptEditCategory(cat.name);
+                };
+
+                const delBtn = document.createElement('button');
+                delBtn.className = 'track-item-btn';
+                delBtn.innerHTML = '🗑️';
+                delBtn.title = "삭제 (Delete Category)";
+                delBtn.style.color = 'var(--text-accent)';
+                delBtn.style.padding = '2px 6px';
+                delBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteCategory(cat.name);
+                };
+
+                btnWrapper.appendChild(editBtn);
+                btnWrapper.appendChild(delBtn);
+            }
+
+            container.appendChild(btnWrapper);
+        });
+    }
+
+    function bindCategorySelect() {
+        const select = document.getElementById('modal-edit-category');
+        if (!select) return;
+        select.innerHTML = '';
+        const categories = getCategories();
+        categories.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat.name;
+            opt.innerText = cat.name;
+            select.appendChild(opt);
+        });
+        const addOpt = document.createElement('option');
+        addOpt.value = "__new__";
+        addOpt.innerText = "➕ Create New Category...";
+        select.appendChild(addOpt);
+    }
+
+    function handleCategorySelectChange(select) {
+        const wrapper = document.getElementById('edit-category-color-wrapper');
+        if (select.value === "__new__") {
+            wrapper.style.display = 'flex';
+            renderSwatches('edit-color-swatches', 'modal-edit-category-color');
+        } else {
+            wrapper.style.display = 'none';
+        }
+    }
+
+    function updateEditCategoryColorPicker() {
+        const select = document.getElementById('modal-edit-category');
+        const wrapper = document.getElementById('edit-category-color-wrapper');
+        if (select && select.value === "__new__") {
+            wrapper.style.display = 'flex';
+        } else {
+            if (wrapper) wrapper.style.display = 'none';
+        }
+    }
+
+    // 🎯 INTERACTIVE ADD SPOT MODE UTILS
+    function toggleAddSpotMode() {
+        if (!isAdminMode) return;
+        isAddSpotMode = !isAddSpotMode;
+        
+        const btn = document.getElementById('add-spot-btn');
+        const mapEl = document.getElementById('map');
+
+        if (isAddSpotMode) {
+            btn.innerText = "[ESC] Cancel Pin Placement";
+            btn.style.backgroundColor = "var(--text-accent)";
+            btn.style.color = "#ffffff";
+            mapEl.classList.add('add-spot-cursor');
+            
+            map.doubleClickZoom.disable();
+            window.addEventListener('keydown', handleEscKey);
+        } else {
+            cancelAddSpotMode();
+        }
+    }
+
+    function cancelAddSpotMode() {
+        isAddSpotMode = false;
+        const btn = document.getElementById('add-spot-btn');
+        const mapEl = document.getElementById('map');
+        if (btn) {
+            btn.innerText = "[+] Add Spot (Click on Map)";
+            btn.style.backgroundColor = "";
+            btn.style.color = "";
+        }
+        if (mapEl) {
+            mapEl.classList.remove('add-spot-cursor');
+        }
+
+        if (isAdminMode) {
+            map.doubleClickZoom.disable();
+        } else {
+            map.doubleClickZoom.enable();
+        }
+        window.removeEventListener('keydown', handleEscKey);
+    }
+
+    function handleEscKey(e) {
+        if (e.key === 'Escape') {
+            cancelAddSpotMode();
+        }
+    }
+
+    function handleMapAddSpot(latlng) {
+        if (!isAdminMode) return;
+        const lat = latlng.lat;
+        const lng = latlng.lng;
+        const newIdx = soundData.length;
+
+        soundData.push({
+            id: "",
+            title: "New Sound Spot",
+            desc: "Describe the sound note here.",
+            meta: new Date().toISOString().split('T')[0] + " / Atelier",
+            lat: lat,
+            lng: lng,
+            category: selectedCategoryName || "Soundscape in ganghwa island 2025-2026",
+            isTemporary: true
+        });
+
+        renderMarkers();
+        renderCategories();
+        if (selectedCategoryName) {
+            renderTracklist();
+        }
+
+        setTimeout(() => {
+            openEditModal(newIdx);
+        }, 100);
+
+        cancelAddSpotMode();
+    }
+
+    // Toggle Modal dialogs
+    function toggleInfo() {
+        const modal = document.getElementById('info-modal');
+        modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+    }
+
+    // Toggle admin mode
+    function toggleAdminMode() {
+        isAdminMode = !isAdminMode;
+        
+        const triggerLink = document.getElementById('admin-trigger-link');
+        if (triggerLink) {
+            triggerLink.innerText = isAdminMode ? "[Admin Mode: ON]" : "[Admin Mode]";
+        }
+        
+        // Show/hide admin panels
+        document.querySelectorAll('.admin-only').forEach(el => {
+            el.style.display = isAdminMode ? 'block' : 'none';
+        });
+        
+        const adminPanel = document.getElementById('floating-admin-panel');
+        if (adminPanel) {
+            adminPanel.style.display = isAdminMode ? 'block' : 'none';
+        }
+
+        const catAdminActions = document.getElementById('category-admin-actions');
+        if (catAdminActions) {
+            catAdminActions.style.display = isAdminMode ? 'block' : 'none';
+        }
+
+        // Toggle map double-click zoom
+        if (isAdminMode) {
+            map.doubleClickZoom.disable();
+        } else {
+            map.doubleClickZoom.enable();
+        }
+
+        renderMarkers();
+        renderCategories();
+        renderTracklist();
+    }
+
+    // Render Markers on Map with curating Category theme colors
     function renderMarkers() {
-        markers.forEach(m => m.remove());
+        // Clear previous markers
+        markers.forEach(m => {
+            m.remove();
+        });
         markers.length = 0;
 
         soundData.forEach((data, idx) => {
+            // Defensive verification of coordinates to prevent leaflet crash
+            if (!data || isNaN(parseFloat(data.lat)) || isNaN(parseFloat(data.lng))) {
+                console.warn(`Skipping invalid marker data at index ${idx}:`, data);
+                return;
+            }
+
+            // Apply category filter (Felix Blume Sound Map Style)
+            const trackCat = data.category || "Soundscape in ganghwa island 2025-2026";
+            if (selectedCategoryName && trackCat !== selectedCategoryName) {
+                return; // Skip rendering map pins not matching the selected category
+            }
+
+            // Simple styled minimalist circle pin using dynamic category color
             const isTrackPlaying = (idx === currentPlayingTrackIndex);
-            const catColor = "#4a7bb0"; 
+            const catColor = getCategoryColor(trackCat);
             const icon = L.divIcon({ 
                 className: 'custom-marker-icon' + (idx === currentTrackIndex ? ' active' : '') + (isTrackPlaying ? ' playing' : ''), 
                 html: `<div class="circle-pin" style="background-color: ${catColor}; border: 2px solid #ffffff; width: 100%; height: 100%; border-radius: 50%; box-sizing: border-box; --text-accent: ${catColor};"></div>`, 
-                iconSize: [16, 16],
+                iconSize: [16, 16], // Slightly smaller and elegant size matching Cartografia das Memorias
                 iconAnchor: [8, 8],
                 popupAnchor: [0, -8]
             });
@@ -817,6 +2015,7 @@
             const marker = L.marker([data.lat, data.lng], { icon }).addTo(map);
             markers.push(marker);
 
+            // Bind tooltip on hover (Felix Blume Style)
             marker.bindTooltip(data.title, {
                 className: 'leaflet-tooltip-own',
                 direction: 'top',
@@ -828,18 +2027,63 @@
         });
     }
 
-    // Populate left calligraphy style lists
+    // Render tracklist to sidebar - 90s Retro Style
     function renderTracklist() {
+        const listEl = document.getElementById('retro-track-list');
+        if (listEl) {
+            listEl.innerHTML = '';
+            let counter = 1;
+            soundData.forEach((data, idx) => {
+                const trackCat = data.category || "Soundscape in ganghwa island 2025-2026";
+                if (selectedCategoryName && trackCat !== selectedCategoryName) {
+                    return;
+                }
+
+                const localNum = counter++;
+
+                const item = document.createElement('div');
+                item.className = 'track-item';
+                if (idx === currentTrackIndex) item.classList.add('active');
+                
+                let actionsHtml = '';
+                if (isAdminMode) {
+                    actionsHtml = `
+                        <div class="track-item-actions">
+                            <button class="track-item-btn" onclick="event.stopPropagation(); openEditModal(${idx})">Edit</button>
+                            <button class="track-item-btn" onclick="event.stopPropagation(); deleteTrack(${idx})" style="color: var(--text-accent);">Del</button>
+                        </div>
+                    `;
+                }
+
+                item.innerHTML = `
+                    <div class="track-item-content">
+                        <b class="track-item-num">${String(localNum).padStart(2,'0')}</b>
+                        <span class="track-item-title">${data.title}</span>
+                    </div>
+                    ${actionsHtml}
+                `;
+                item.onclick = () => selectTrack(idx);
+                listEl.appendChild(item);
+            });
+        }
+
+        // Render to left brand calligraphy list
         const leftListEl = document.getElementById('left-track-list');
         if (leftListEl) {
             leftListEl.innerHTML = '';
-            let counter = 1;
+            let leftCounter = 1;
             soundData.forEach((data, idx) => {
+                const trackCat = data.category || "Soundscape in ganghwa island 2025-2026";
+                if (selectedCategoryName && trackCat !== selectedCategoryName) {
+                    return;
+                }
+
+                const localNum = leftCounter++;
                 const item = document.createElement('div');
                 item.className = 'left-track-item';
                 if (idx === currentTrackIndex) item.classList.add('active');
 
-                item.innerText = `${String(counter++).padStart(2,'0')}. ${data.title}`;
+                item.innerText = `${String(localNum).padStart(2,'0')}. ${data.title}`;
                 item.title = data.title;
                 item.onclick = () => selectTrack(idx);
                 leftListEl.appendChild(item);
@@ -847,41 +2091,62 @@
         }
     }
 
+    // Helper to format meta text into clean HTML block with line break and divider line
     function formatMetaToHtml(metaText) {
         if (!metaText) return '';
+        
         const recIdx = metaText.indexOf('Recording:');
         let dateStr = '';
         let recStr = '';
+        
         if (recIdx !== -1) {
-            dateStr = metaText.substring(0, recIdx).replace(/\//g, '').replace('Date:', '').trim();
+            dateStr = metaText.substring(0, recIdx).replace(/\//g, '').trim();
             recStr = metaText.substring(recIdx).trim();
         } else {
-            dateStr = metaText.replace('Date:', '').trim();
+            dateStr = metaText.trim();
         }
+        
         let html = '';
-        if (dateStr) html += `<div class="meta-date">Date: ${dateStr}</div>`;
-        if (recStr) html += `<div class="meta-rec" style="${dateStr ? 'margin-top: 8px;' : ''}">${recStr}</div>`;
+        if (dateStr) {
+            html += `<div class="meta-date">${dateStr}</div>`;
+        }
+        if (recStr) {
+            html += `<div class="meta-rec" style="${dateStr ? 'margin-top: 8px;' : ''}">${recStr}</div>`;
+        }
+        
         return html;
     }
 
-    // Select track and open right sidebar drawer
+    // Select track and update right sidebar content - No zoom in (camera stays static)
     function selectTrack(idx) {
         if (idx < 0 || idx >= soundData.length) return;
         const track = soundData[idx];
         currentTrackIndex = idx;
 
+        // Calculate category-specific local track number
+        const trackCat = ((track.category || "").trim()) || "Soundscape in ganghwa island 2025-2026";
+        const catTracks = soundData.filter(t => (((t.category || "").trim()) || "Soundscape in ganghwa island 2025-2026") === trackCat);
+        const localIdx = catTracks.indexOf(track);
+        const localTrackNum = localIdx !== -1 ? localIdx + 1 : 1;
+
+        // Toggle marker active states
         markers.forEach((m, i) => {
             const el = m.getElement();
-            if (el) el.classList.toggle('active', i === idx);
+            if (el) {
+                el.classList.toggle('active', i === idx);
+            }
         });
 
+        // Open Right Sidebar Drawer
         openRightSidebar();
 
-        document.getElementById('right-sidebar-track-num').innerText = `Track #${String(idx + 1).padStart(2,'0')}`;
+        // Populate Right Sidebar Text Details
+        document.getElementById('right-sidebar-track-num').innerText = `Track ${String(localTrackNum).padStart(2,'0')}`;
         document.getElementById('right-sidebar-title').innerText = track.title;
         document.getElementById('right-sidebar-desc').innerText = track.desc;
         document.getElementById('right-sidebar-meta').innerHTML = formatMetaToHtml(track.meta);
 
+        // Show Hidden Track Details Panels
         const titleCard = document.getElementById('right-sidebar-title-card');
         const bodyCard = document.getElementById('right-sidebar-body-card');
         const playerContainer = document.getElementById('right-sidebar-player-container');
@@ -889,20 +2154,20 @@
         if (bodyCard) bodyCard.style.display = 'block';
         if (playerContainer) playerContainer.style.display = 'block';
 
+        // Update Cover Image
         const imgContainer = document.getElementById('right-sidebar-image-container');
         const imgEl = document.getElementById('right-sidebar-image');
-        if (track.imageUrl || track.imageBase64) {
-            imgEl.src = track.imageUrl || track.imageBase64;
+        if (track.imageBase64 || track.imageUrl) {
+            imgEl.src = track.imageBase64 || track.imageUrl;
             imgContainer.style.display = 'block';
         } else {
             imgContainer.style.display = 'none';
             imgEl.src = '';
         }
 
+        // Render Audio Player inside Right Sidebar Container
         const rawAudio = track.audioUrl ? track.audioUrl.trim() : "";
         const trackId = track.id ? track.id.trim() : "";
-
-        // 🌟 Autoplay optimization: if audio tag already exists, reuse it to bypass browser autoplay blocks
         const existingAud = document.getElementById('right-sidebar-audio-element');
         const isNativeStream = rawAudio && (rawAudio.endsWith('.wav') || rawAudio.endsWith('.mp3') || rawAudio.includes('r2.dev') || rawAudio.includes('storage'));
 
@@ -924,23 +2189,24 @@
                         cleanSrc += '&auto_play=true&show_artwork=false&show_user=false&sharing=false&download=false&buying=false&show_playcount=false';
                     }
                     const isSc = cleanSrc.includes('soundcloud.com');
-                    audioPlayerHtml = `<iframe class="${isSc ? 'popup-player-sc' : 'popup-player'}" src="${cleanSrc}" allow="autoplay" seamless></iframe>`;
+                    audioPlayerHtml = `<iframe class="${isSc ? 'popup-player-sc' : 'popup-player'}" src="${cleanSrc}" style="width: 100%; border: none; height: ${isSc ? '80px' : '42px'};" allow="autoplay" seamless></iframe>`;
                 }
             } else if (rawAudio.includes('bandcamp.com/EmbeddedPlayer')) {
                 let bcUrl = rawAudio;
                 if (!bcUrl.includes('artwork=')) {
                     bcUrl = bcUrl.replace('/size=small/', '/size=small/artwork=none/tracklist=false/autoplay=true/');
                 }
-                audioPlayerHtml = `<iframe class="popup-player" src="${bcUrl}" allow="autoplay" seamless></iframe>`;
+                audioPlayerHtml = `<iframe class="popup-player" src="${bcUrl}" style="width: 100%; border: none; height: 42px;" allow="autoplay" seamless></iframe>`;
             } else if (rawAudio.includes('soundcloud.com')) {
                 const scUrl = `https://w.soundcloud.com/player/?url=${encodeURIComponent(rawAudio)}&color=%234a7bb0&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false&show_artwork=false&sharing=false&download=false&buying=false&show_playcount=false`;
-                audioPlayerHtml = `<iframe class="popup-player-sc" src="${scUrl}" scrolling="no" frameborder="no" allow="autoplay" seamless></iframe>`;
+                audioPlayerHtml = `<iframe class="popup-player-sc" src="${scUrl}" style="width: 100%; border: none; height: 80px;" scrolling="no" frameborder="no" allow="autoplay" seamless></iframe>`;
             } else if (isNativeStream) {
                 audioPlayerHtml = `<audio id="right-sidebar-audio-element" controls src="${rawAudio}" style="width: 100%;" autoplay></audio>`;
             } else if (trackId) {
                 audioPlayerHtml = `
                     <iframe class="popup-player" 
                         src="https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/transparent=true/artwork=none/tracklist=false/track=${trackId}/transparent=true/autoplay=true/" 
+                        style="width: 100%; border: none; height: 42px;"
                         allow="autoplay"
                         seamless>
                     </iframe>
@@ -957,15 +2223,14 @@
 
             playerContainer.innerHTML = audioPlayerHtml;
 
-            // Bind new audio element listeners
             setTimeout(() => {
                 const audEl = document.getElementById('right-sidebar-audio-element');
                 if (audEl) {
-                    // Bind ended handler for automatic sequential playback
+                    audEl.removeEventListener('ended', playNextTrack);
                     audEl.addEventListener('ended', playNextTrack);
                     audEl.addEventListener('play', () => setMarkerPlayingState(idx, true));
                     audEl.addEventListener('pause', () => setMarkerPlayingState(idx, false));
-                    audEl.play().catch(err => console.log("Play prevented:", err));
+                    audEl.play().catch(err => console.log("Standard stream play prevented:", err));
                     setMarkerPlayingState(idx, true);
                 } else {
                     if (rawAudio || trackId) {
@@ -977,7 +2242,34 @@
             }, 100);
         }
 
-        renderTracklist();
+        // Show Admin actions inside sidebar if in Admin Mode
+        const adminActions = document.getElementById('right-sidebar-admin-actions');
+        if (adminActions) {
+            adminActions.style.display = isAdminMode ? 'flex' : 'none';
+            const editBtn = document.getElementById('right-sidebar-edit-btn');
+            const deleteBtn = document.getElementById('right-sidebar-delete-btn');
+            if (editBtn) editBtn.onclick = () => openEditModal(idx);
+            if (deleteBtn) deleteBtn.onclick = () => deleteTrack(idx);
+        }
+
+        // Set active in tracklist
+        const isMobile = window.innerWidth <= 768;
+        const items = document.querySelectorAll('.track-item');
+        items.forEach((item, i) => {
+            item.classList.toggle('active', i === idx);
+            if (i === idx) {
+                item.scrollIntoView({ behavior: 'smooth', block: isMobile ? 'center' : 'nearest', inline: 'center' });
+            }
+        });
+
+        // Set active in left calligraphy tracklist
+        const leftItems = document.querySelectorAll('.left-track-item');
+        leftItems.forEach((item, i) => {
+            item.classList.toggle('active', i === idx);
+            if (i === idx) {
+                item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
     }
 
     // Re-bind ended event after src change to continue automatic loop
@@ -986,7 +2278,7 @@
         if (nextIdx < soundData.length) {
             selectTrack(nextIdx);
             
-            // Re-registerended listener on new src element
+            // Re-register ended listener on new src element
             setTimeout(() => {
                 const audEl = document.getElementById('right-sidebar-audio-element');
                 if (audEl) {
@@ -999,8 +2291,10 @@
         }
     }
 
+    // Helper function to animate marker pins spinning on the map
     function setMarkerPlayingState(idx, isPlaying) {
-        markers.forEach(m => {
+        // Reset playing state on all markers first
+        markers.forEach((m, i) => {
             const el = m.getElement();
             if (el) {
                 el.classList.remove('playing');
@@ -1014,11 +2308,16 @@
                 activeEl.classList.add('playing');
             }
         } else {
-            if (currentPlayingTrackIndex === idx) currentPlayingTrackIndex = -1;
+            if (currentPlayingTrackIndex === idx) {
+                currentPlayingTrackIndex = -1;
+            }
         }
+
+        // Sync and refresh left sidebar retro track list indicators dynamically
         renderTracklist();
     }
 
+    // Right Sidebar Drawer Controls
     function openRightSidebar() {
         const sb = document.getElementById("sidebar-right");
         if (sb) {
@@ -1034,10 +2333,16 @@
             sb.classList.add("collapsed");
             const btn = document.getElementById("sidebar-toggle-tab");
             if (btn) btn.innerText = "◂";
-            const audEl = document.getElementById('right-sidebar-audio-element');
-            if (audEl) audEl.pause();
-            setMarkerPlayingState(-1, false);
             
+            // Stop any active audio when right sidebar is closed
+            const audEl = document.getElementById('right-sidebar-audio-element');
+            if (audEl) {
+                audEl.pause();
+            }
+            // Stop marker rotating animations
+            setMarkerPlayingState(-1, false);
+
+            // Hide track details and player
             const titleCard = document.getElementById('right-sidebar-title-card');
             const bodyCard = document.getElementById('right-sidebar-body-card');
             const playerContainer = document.getElementById('right-sidebar-player-container');
@@ -1060,44 +2365,454 @@
         }
     }
 
-    // Left Drawer Sidebar Controls
-    function openSidebar() {
-        const sb = document.getElementById("mySidebar");
-        if (sb) sb.style.width = "320px";
+    // Open dedicated Edit Modal Dialog (새창)
+    function openEditModal(idx) {
+        const track = soundData[idx];
+        currentTrackIndex = idx;
+
+        // Set form fields in modal
+        document.getElementById('edit-idx').value = idx;
+        
+        bindCategorySelect();
+        const select = document.getElementById('modal-edit-category');
+        select.value = track.category || 'Soundscape in ganghwa island 2025-2026';
+        updateEditCategoryColorPicker();
+        document.getElementById('modal-edit-title').value = track.title || '';
+        document.getElementById('modal-edit-desc').value = track.desc || '';
+        
+        let dateVal = track.date || '';
+        let gearVal = track.gear || '';
+        if (!dateVal && !gearVal && track.meta) {
+            const raw = track.meta;
+            if (raw.includes('Date:') && raw.includes('Recording:')) {
+                const parts = raw.split('Recording:');
+                dateVal = parts[0].replace('Date:', '').replace('/', '').trim();
+                gearVal = parts[1].trim();
+            } else if (raw.includes('Date:')) {
+                dateVal = raw.replace('Date:', '').trim();
+            } else if (raw.includes('/')) {
+                const parts = raw.split('/');
+                dateVal = parts[0].trim();
+                gearVal = parts[1].trim();
+            } else {
+                dateVal = raw;
+            }
+        }
+        document.getElementById('modal-edit-date').value = dateVal;
+        document.getElementById('modal-edit-gear').value = gearVal;
+
+        document.getElementById('modal-edit-audio-url').value = track.audioUrl || '';
+        document.getElementById('modal-edit-lat').value = track.lat;
+        document.getElementById('modal-edit-lng').value = track.lng;
+
+        // Clear file inputs
+        document.getElementById('modal-edit-img-file').value = '';
+
+        uploadedImageBase64 = track.imageBase64 || "";
+
+        // Image Preview configuration
+        const previewImg = document.getElementById('img-preview');
+        const container = document.getElementById('img-preview-container');
+        if (previewImg && container) {
+            previewImg.src = ''; // Clear preview buffer first
+            if (uploadedImageBase64) {
+                previewImg.src = uploadedImageBase64;
+                container.style.display = 'block';
+            } else if (track.imageUrl) {
+                previewImg.src = track.imageUrl;
+                container.style.display = 'block';
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        // Enable Leaflet marker dragging for geographical selection
+        const marker = markers[idx];
+        if (marker) {
+            marker.dragging.enable();
+            marker.on('drag', (e) => {
+                document.getElementById('modal-edit-lat').value = e.latlng.lat.toFixed(6);
+                document.getElementById('modal-edit-lng').value = e.latlng.lng.toFixed(6);
+            });
+        }
+
+        // Close any active popups
+        markers.forEach(m => m.closePopup());
+
+        // Show Modal Window
+        document.getElementById('edit-modal').style.display = 'flex';
     }
 
-    function closeSidebar() {
-        const sb = document.getElementById("mySidebar");
-        if (sb) sb.style.width = "0";
+    // Close Edit Modal and disable marker dragging
+    function closeEditModal() {
+        const idx = parseInt(document.getElementById('edit-idx').value);
+        const marker = markers[idx];
+        if (marker) {
+            marker.dragging.disable();
+            marker.off('drag');
+        }
+
+        document.getElementById('edit-modal').style.display = 'none';
+
+        // If it was an unsaved temporary track, clean it up
+        if (soundData[idx] && soundData[idx].isTemporary) {
+            soundData.splice(idx, 1);
+            renderMarkers();
+            renderTracklist();
+            currentTrackIndex = -1;
+        }
     }
 
-    function toggleAccordion(id) {
-        const content = document.getElementById(id);
-        if (content) {
-            const isHidden = content.style.display === "none" || content.style.display === "";
-            content.style.display = isHidden ? "block" : "none";
-            const trigger = content.previousElementSibling;
-            if (trigger) {
-                const chevron = trigger.querySelector('.acc-chevron');
-                if (chevron) {
-                    chevron.innerText = isHidden ? "▾" : "▸";
+    // Handle Image file uploading converting it to Base64 with canvas-based size compression (Max 800px width/height, 70% JPEG quality)
+    // Cautions users uploading unsupported iOS HEIC / HEIF file formats.
+    function handleImageUpload(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        // Verify image formats compatible with web browsers (Reject HEIC/HEIF)
+        const fileName = file.name.toLowerCase();
+        if (fileName.endsWith('.heic') || fileName.endsWith('.heif')) {
+            alert("⚠️ HEIC photos from iPhones cannot be read directly by web browsers!\n\nSolutions:\n1. Go to Settings > Camera > Formats on your iPhone and set it to 'Most Compatible',\n2. Or send the photo to yourself via messenger first, then upload the downloaded JPG!");
+            input.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                // Initialize canvas compressor
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                const maxDim = 800; // Limit image dimensions to maintain quota
+
+                if (width > maxDim || height > maxDim) {
+                    if (width > height) {
+                        height = Math.round((height * maxDim) / width);
+                        width = maxDim;
+                    } else {
+                        width = Math.round((width * maxDim) / height);
+                        height = maxDim;
+                    }
                 }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Compress to compact JPEG Base64
+                uploadedImageBase64 = canvas.toDataURL('image/jpeg', 0.7);
+
+                const previewImg = document.getElementById('img-preview');
+                const container = document.getElementById('img-preview-container');
+                if (previewImg && container) {
+                    previewImg.src = uploadedImageBase64;
+                    container.style.display = 'block';
+                }
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+
+
+    // Submit Edit Form and save modifications
+    function submitEditForm(event) {
+        event.preventDefault();
+
+        const idx = parseInt(document.getElementById('edit-idx').value);
+        const title = document.getElementById('modal-edit-title').value.trim();
+        const desc = document.getElementById('modal-edit-desc').value.trim();
+        const date = document.getElementById('modal-edit-date').value.trim();
+        const gear = document.getElementById('modal-edit-gear').value.trim();
+        const meta = (date || gear) ? `Date: ${date} / Recording: ${gear}` : '';
+        const audioUrl = document.getElementById('modal-edit-audio-url').value.trim();
+        const lat = parseFloat(document.getElementById('modal-edit-lat').value);
+        const lng = parseFloat(document.getElementById('modal-edit-lng').value);
+
+        let category = document.getElementById('modal-edit-category').value;
+        if (category === "__new__") {
+            const newCatName = prompt("Please enter the new category name:").trim();
+            if (!newCatName) {
+                alert("Category name cannot be empty.");
+                return;
+            }
+            const newCatColor = document.getElementById('modal-edit-category-color').value;
+            // Save custom category
+            const customCats = JSON.parse(localStorage.getItem('gangwha_custom_categories') || '[]');
+            if (!customCats.includes(newCatName)) {
+                customCats.push(newCatName);
+                localStorage.setItem('gangwha_custom_categories', JSON.stringify(customCats));
+            }
+            const savedColors = JSON.parse(localStorage.getItem('gangwha_category_colors') || '{}');
+            savedColors[newCatName] = newCatColor;
+            localStorage.setItem('gangwha_category_colors', JSON.stringify(savedColors));
+            
+            category = newCatName;
+        }
+
+        if (isNaN(lat) || isNaN(lng)) {
+            alert("Valid latitude and longitude coordinates are required!");
+            return;
+        }
+
+        // Lock marker coordinate & disable dragging
+        const marker = markers[idx];
+        if (marker) {
+            marker.dragging.disable();
+            marker.off('drag');
+            marker.setLatLng([lat, lng]);
+        }
+
+        delete soundData[idx].isTemporary;
+
+        // Maintain previous assets if no new file is uploaded
+        const previousImageBase64 = soundData[idx] ? soundData[idx].imageBase64 : "";
+
+        soundData[idx] = {
+            title,
+            desc,
+            date,
+            gear,
+            meta,
+            lat,
+            lng,
+            audioUrl,
+            category: category,
+            imageBase64: uploadedImageBase64 || previousImageBase64 || ""
+        };
+
+        // Clear temporal variables to prevent pollution
+        uploadedImageBase64 = "";
+
+        saveToLocalStorage();
+        renderMarkers();
+        renderCategories();
+        renderTracklist();
+
+        document.getElementById('edit-modal').style.display = 'none';
+
+        // Select the saved pin to display updated popup
+        selectTrack(idx);
+    }
+
+    // Delete track
+    function deleteTrack(idx) {
+        if (confirm(`Are you sure you want to delete track "${soundData[idx].title}"?`)) {
+            // Unbind popupclose listeners immediately to prevent recursive loop triggers during DOM removal
+            markers.forEach(m => m.off('popupclose'));
+            
+            map.closePopup(); // Close map popup first
+
+            const marker = markers[idx];
+            if (marker) {
+                marker.dragging.disable();
+                marker.off('drag');
+            }
+
+            soundData.splice(idx, 1);
+            saveToLocalStorage();
+            renderMarkers();
+            renderCategories();
+            renderTracklist();
+            currentTrackIndex = -1;
+        }
+    }
+
+    // Add a record at map center
+    function addNewTrackAtCenter() {
+        if (!isAdminMode) return;
+        const center = map.getCenter();
+        const newIdx = soundData.length;
+        
+        soundData.push({
+            id: "",
+            title: "New Recording Spot",
+            desc: "Add your recording description here.",
+            meta: new Date().toISOString().split('T')[0] + " / New Gear",
+            lat: center.lat,
+            lng: center.lng,
+            isTemporary: true
+        });
+
+        renderMarkers();
+        renderTracklist();
+        map.panTo(center);
+        setTimeout(() => {
+            openEditModal(newIdx);
+        }, 100);
+    }
+
+    // Double-click on map to insert marker (in Admin Mode)
+    map.on('dblclick', (e) => {
+        if (!isAdminMode) return;
+        const newIdx = soundData.length;
+
+        soundData.push({
+            id: "",
+            title: "New Recording Spot",
+            desc: "Add your recording description here.",
+            meta: new Date().toISOString().split('T')[0],
+            lat: e.latlng.lat,
+            lng: e.latlng.lng,
+            isTemporary: true
+        });
+
+        renderMarkers();
+        renderTracklist();
+        
+        // Center view on click coordinate
+        map.panTo(e.latlng);
+        setTimeout(() => {
+            openEditModal(newIdx);
+        }, 100);
+    });
+
+    // Save to browser localStorage with error handling for quota ceiling issues
+    function saveToLocalStorage() {
+        try {
+            localStorage.setItem('gangwha_sound_data', JSON.stringify(soundData));
+        } catch (e) {
+            console.error("Local storage save failed:", e);
+            if (e.name === 'QuotaExceededError' || e.code === 22) {
+                alert("⚠️ The uploaded image size is too large and exceeds the browser's storage limit (5MB)!\n\nYour changes are kept in memory but will be lost if you refresh. Solutions:\n1. Try again with a smaller, compressed image file.\n2. Or click the [S] Export HTML button on the top right to download the source code and push it to GitHub.");
+            } else {
+                alert("An error occurred during saving: " + e.message);
             }
         }
     }
 
-    function resetView() {
-        map.fitBounds(bounds);
-        closeRightSidebar();
-        closeSidebar();
-        currentTrackIndex = -1;
-        markers.forEach(m => {
-            const el = m.getElement();
-            if (el) el.classList.remove('active');
-        });
-        renderTracklist();
+    // Reset modifications back to default list
+    function resetData() {
+        if (confirm("Are you sure you want to reset all modifications back to the default tracklist? This deletes all additions and edits.")) {
+            localStorage.removeItem('gangwha_sound_data');
+            localStorage.removeItem('gangwha_deleted_defaults');
+            localStorage.removeItem('gangwha_custom_categories');
+            localStorage.removeItem('gangwha_category_colors');
+            soundData.length = 0;
+            soundData.push(...DEFAULT_SOUND_DATA);
+            renderMarkers();
+            renderCategories();
+            renderTracklist();
+            currentTrackIndex = -1;
+            map.closePopup();
+            alert("Data reset successfully.");
+        }
     }
 
+    // Build the dynamic updated index.html for download
+    async function downloadHtml() {
+        try {
+            const resp = await fetch(window.location.href);
+            if (!resp.ok) throw new Error("Fetch failed");
+            let html = await resp.text();
+
+            // Clear temporary draft tracks that weren't saved
+            const cleanSoundData = soundData.filter(t => !t.isTemporary).map(t => {
+                const { isTemporary, ...rest } = t;
+                return rest;
+            });
+
+            // Replace soundData array definition
+            const dataRegex = /const\s+DEFAULT_SOUND_DATA\s*=\s*\[[\s\S]*?\]\s*;/;
+            const newBlock = `const DEFAULT_SOUND_DATA = ${JSON.stringify(cleanSoundData, null, 8)};`;
+            html = html.replace(dataRegex, newBlock);
+
+            // Replace category settings definitions
+            const customCats = JSON.parse(localStorage.getItem('gangwha_custom_categories') || '[]');
+            const catColors = JSON.parse(localStorage.getItem('gangwha_category_colors') || '{}');
+            const deletedDefs = JSON.parse(localStorage.getItem('gangwha_deleted_defaults') || '[]');
+
+            html = html.replace(/const\s+DEFAULT_CUSTOM_CATEGORIES\s*=\s*\[[\s\S]*?\]\s*;/, `const DEFAULT_CUSTOM_CATEGORIES = ${JSON.stringify(customCats)};`);
+            html = html.replace(/const\s+DEFAULT_CATEGORY_COLORS\s*=\s*\{[\s\S]*?\}\s*;/, `const DEFAULT_CATEGORY_COLORS = ${JSON.stringify(catColors)};`);
+            html = html.replace(/const\s+DEFAULT_DELETED_DEFAULTS\s*=\s*\[[\s\S]*?\]\s*;/, `const DEFAULT_DELETED_DEFAULTS = ${JSON.stringify(deletedDefs)};`);
+
+            // Create blob and trigger browser download
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'index.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (e) {
+            console.error("Local download failed. Offering copy-paste option.", e);
+            
+            const cleanSoundData = soundData.filter(t => !t.isTemporary).map(t => {
+                const { isTemporary, ...rest } = t;
+                return rest;
+            });
+            const jsonStr = JSON.stringify(cleanSoundData, null, 8);
+
+            // Show a simple copy dialog overlay
+            const copyModal = document.createElement('div');
+            copyModal.id = "fallback-copy-modal";
+            copyModal.style = `
+                position: fixed; top: 12%; left: 50%; transform: translateX(-50%);
+                width: 90%; max-width: 500px; max-height: 80vh; background: var(--bg-panel);
+                border: 2px solid var(--border-color); box-shadow: 6px 6px 0px var(--shadow-color);
+                padding: 16px; z-index: 5000; color: var(--text-main); font-family: var(--font-mono);
+                box-sizing: border-box; display: flex; flex-direction: column;
+            `;
+            copyModal.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 10px; color: var(--text-accent);">[CORS PROTOCOL RESTRICTION]</div>
+                <div style="font-size: 11.5px; line-height: 1.5; margin-bottom: 12px;">
+                    Local <code>file://</code> files cannot be downloaded automatically due to browser sandbox security.<br><br>
+                    Please copy the updated track data block below and overwrite the <code>const DEFAULT_SOUND_DATA = [...]</code> block inside your local <code>index.html</code> code:
+                </div>
+                <textarea style="width: 100%; height: 250px; font-family: var(--font-mono); font-size: 10px; background: rgba(0,0,0,0.05); color: var(--text-main); border: 1px solid var(--border-color); box-sizing: border-box; margin-bottom: 12px; padding: 8px;" readonly onclick="this.select()">${jsonStr}</textarea>
+                <div style="text-align: right;">
+                    <button class="bbs-btn" onclick="document.getElementById('fallback-copy-modal').remove()">[C] CLOSE</button>
+                </div>
+            `;
+            document.body.appendChild(copyModal);
+        }
+    }
+
+    // Initialization
+    // Set initial Admin Mode state dynamically
+    if (isAdminMode) {
+        document.querySelectorAll('.admin-only').forEach(el => {
+            el.style.display = 'block';
+        });
+        const adminPanel = document.getElementById('floating-admin-panel');
+        if (adminPanel) adminPanel.style.display = 'block';
+        const catAdminActions = document.getElementById('category-admin-actions');
+        if (catAdminActions) catAdminActions.style.display = 'block';
+        
+        const triggerLink = document.getElementById('admin-trigger-link');
+        if (triggerLink) triggerLink.innerText = "[Admin Mode: ON]";
+        
+        map.doubleClickZoom.disable();
+    } else {
+        document.querySelectorAll('.admin-only').forEach(el => {
+            el.style.display = 'none';
+        });
+        const adminPanel = document.getElementById('floating-admin-panel');
+        if (adminPanel) adminPanel.style.display = 'none';
+        const catAdminActions = document.getElementById('category-admin-actions');
+        if (catAdminActions) catAdminActions.style.display = 'none';
+        
+        const triggerLink = document.getElementById('admin-trigger-link');
+        if (triggerLink) triggerLink.innerText = "[Admin Mode]";
+        
+        map.doubleClickZoom.enable();
+    }
+
+    // Bind keyboard shortcut Alt+A / Option+A for Admin Mode toggling (Felix Blume style hidden gate)
+    window.addEventListener('keydown', (e) => {
+        if (e.altKey && e.key.toLowerCase() === 'a') {
+            e.preventDefault();
+            toggleAdminMode();
+        }
+    });
+
+    renderCategories();
     renderTracklist();
     renderMarkers();
 </script>
