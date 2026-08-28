@@ -2,11 +2,36 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <script>
+        window.onerror = function(message, source, lineno, colno, error) {
+            const errDiv = document.createElement('div');
+            errDiv.style.position = 'fixed';
+            errDiv.style.top = '0';
+            errDiv.style.left = '0';
+            errDiv.style.width = '100vw';
+            errDiv.style.backgroundColor = '#ff0000';
+            errDiv.style.color = '#ffffff';
+            errDiv.style.zIndex = '9999999';
+            errDiv.style.padding = '12px';
+            errDiv.style.fontFamily = 'monospace';
+            errDiv.style.fontSize = '12.5px';
+            errDiv.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
+            errDiv.innerHTML = '<b>[JS RUNTIME ERROR]</b> ' + message + '<br><small>Location: ' + source + ' (Line: ' + lineno + ', Col: ' + colno + ')</small>';
+            document.body.appendChild(errDiv);
+            return false;
+        };
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Pocket dream's soundmap</title>
+    <title>Ganghwa Sound map</title>
+    <link rel="icon" href="favicon.png" type="image/png" />
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Google Web Fonts Calligraphy Link (Resolves file:// CORS block) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Yeon+Sung&display=swap" rel="stylesheet">
     
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
@@ -17,68 +42,38 @@
             --bg-panel: #fafafa;
             --bg-popup: #ffffff;
             --bg-hover: #f3f4f6;
-            --bg-active: #ffeef8;
+            --bg-active: #ebf3fc;
             --text-main: #1f2937;
             --text-sub: #8c92ac;
-            --text-accent: #ff33aa;  /* Hot Pink */
+            --text-accent: #4a7bb0;  /* Water Blue */
             --border-color: #d1d5db;
             --shadow-color: rgba(0, 0, 0, 0.08);
             --btn-bg: #ffffff;
             --btn-border: #d1d5db;
             --btn-text: #1f2937;
-            --marker-bg: #ff33aa;    /* Pink pin */
+            --marker-bg: #4a7bb0;
             --marker-text: #ffffff;
-            --map-filter: grayscale(0.8) contrast(1.05) brightness(1.02); /* Bright, clean, gray-toned map */
+            --map-filter: grayscale(0.8) contrast(1.05) brightness(1.02);
         }
 
         body, html {
             margin: 0;
             padding: 0;
-            height: 100%;
-            overflow: hidden;
-            font-family: var(--font-mono);
-            background-color: var(--bg-main);
-            color: var(--text-main);
-        }
-
-        #app {
-            display: flex;
-            flex-direction: column;
             width: 100vw;
             height: 100vh;
-        }
-
-        /* Top Header Status Bar */
-        .bbs-header {
-            height: 38px;
-            background-color: var(--bg-panel);
-            border-bottom: 2px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 12px;
-            box-sizing: border-box;
-            font-size: 12px;
-            z-index: 3000;
-            box-shadow: 0 1px 3px var(--shadow-color);
-        }
-
-        .bbs-title {
-            font-weight: bold;
-            color: var(--text-accent);
-            letter-spacing: 0.5px;
-        }
-
-        .bbs-nav {
-            display: flex;
-            gap: 6px;
+            overflow: hidden;
+            font-family: var(--font-mono);
+            background-color: #ffffff;
+            color: var(--text-main);
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
         }
 
         .bbs-btn {
             background: var(--btn-bg);
             color: var(--btn-text);
             border: 1px solid var(--btn-border);
-            padding: 3px 8px;
+            padding: 4px 10px;
             cursor: pointer;
             font-family: var(--font-mono);
             font-size: 11px;
@@ -102,29 +97,32 @@
             border-color: var(--text-accent);
         }
 
-        #app-body {
-            display: flex;
-            flex: 1;
-            height: calc(100vh - 38px);
-            position: relative;
-            flex-direction: row;
-        }
-
-        /* Leaflet Map */
+        /* Fullscreen Transparent Leaflet Map */
         #map {
-            flex: 1;
-            height: 100%;
-            z-index: 1;
-            background-color: #fafafa;
+            width: 100vw !important;
+            height: 100vh !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            z-index: 1 !important;
+            background-color: #ffffff !important;
+            background: #ffffff !important;
+        }
+        .leaflet-container {
+            background-color: #ffffff !important;
+            background: #ffffff !important;
         }
 
-        /* Gray-toned map layout filter applied only to tiles, avoiding popup media color pollution */
         .leaflet-tile-container img {
             filter: var(--map-filter);
         }
 
         /* Sidebar container */
         #sidebar-right {
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100vh;
             width: 320px;
             background-color: var(--bg-panel);
             border-left: 2px solid var(--border-color);
@@ -132,8 +130,7 @@
             flex-direction: column;
             z-index: 1000;
             box-sizing: border-box;
-            position: relative;
-            transition: width 0.3s ease;
+            transition: width 0.3s ease, height 0.3s ease, border-left-width 0.3s ease;
         }
 
         /* Sidebar Toggle Tab */
@@ -179,6 +176,15 @@
             display: flex !important;
         }
 
+        /* Compass needle rotate animation for currently active audio track */
+        @keyframes marker-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .custom-marker-icon.playing .circle-pin {
+            animation: marker-spin 3s linear infinite !important;
+        }
+
         .sidebar-title {
             padding: 12px;
             font-weight: bold;
@@ -203,15 +209,15 @@
         }
 
         .track-item {
-            padding: 12px 14px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             cursor: pointer;
-            font-size: 12.5px;
+            font-size: 12px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             color: var(--text-main);
-            transition: background-color 0.1s;
+            transition: background-color 0.15s;
         }
 
         .track-item:hover {
@@ -219,9 +225,9 @@
         }
 
         .track-item.active {
-            background-color: var(--bg-active);
             font-weight: bold;
-            color: var(--text-accent);
+            background-color: var(--bg-active);
+            color: var(--text-accent) !important;
             border-left: 3px solid var(--text-accent);
         }
 
@@ -234,8 +240,8 @@
         }
 
         .track-item-num {
-            opacity: 0.6;
-            font-size: 11px;
+            font-size: 10.5px;
+            color: var(--text-sub);
         }
 
         .track-item-title {
@@ -252,19 +258,19 @@
 
         .track-item-btn {
             font-size: 10px;
-            padding: 1px 4px;
+            padding: 2px 6px;
             border: 1px solid var(--border-color);
             background: #ffffff;
             color: var(--text-main);
             cursor: pointer;
-            font-family: var(--font-mono);
-            box-shadow: 1px 1px 0px rgba(0,0,0,0.05);
+            border-radius: 3px;
+            transition: all 0.15s;
         }
 
         .track-item-btn:hover {
             background: var(--bg-hover);
-            color: var(--text-accent) !important;
             border-color: var(--text-accent);
+            color: var(--text-accent) !important;
         }
 
         /* Admin Control Panel inside Sidebar */
@@ -288,7 +294,7 @@
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #ff33aa;
+            background: #4a7bb0;
         }
 
         /* Album Info and Edit Modal Dialogs */
@@ -397,37 +403,41 @@
             box-shadow: 0 4px 8px rgba(255, 51, 170, 0.3) !important;
         }
 
-        /* Popup content box */
+        /* Popup content box - Poetic Essay Style */
         .diary-box {
-            padding: 10px 12px;
-            font-size: 11px;
-            line-height: 1.5;
+            padding: 16px 20px;
+            font-size: 11.5px;
+            line-height: 1.8;
+            color: #4b5563;
+            text-align: justify;
+            word-break: keep-all;
             box-sizing: border-box;
+            background: transparent;
         }
 
         .diary-box h2 {
-            font-size: 12.5px;
+            font-size: 14px;
             font-weight: bold;
-            color: var(--text-accent);
-            margin: 0 0 6px 0;
-            border-bottom: 1px dashed var(--border-color);
-            padding-bottom: 4px;
+            color: var(--text-main);
+            margin: 0 0 12px 0;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
             word-break: keep-all;
         }
 
         .diary-box p {
-            margin: 0 0 8px 0;
-            color: var(--text-main);
+            margin: 0 0 12px 0;
+            color: #4b5563;
             word-break: keep-all;
         }
 
         .diary-box .meta-text {
-            font-size: 10px;
+            font-size: 9.5px;
             color: var(--text-sub);
             display: block;
-            margin-bottom: 4px;
-            border-top: 1px dotted rgba(0, 0, 0, 0.08);
-            padding-top: 4px;
+            margin-top: 12px;
+            border-top: 1px dashed var(--border-color);
+            padding-top: 8px;
         }
 
         .popup-player {
@@ -617,7 +627,7 @@
 
             .track-item {
                 border-bottom: none;
-                border-right: 1px solid rgba(0, 0, 0, 0.08);
+                border-right: 1px dashed #663366;
                 padding: 0 16px;
                 height: 100%;
                 min-width: 170px;
@@ -628,7 +638,7 @@
 
             .track-item.active {
                 border-left: none;
-                border-bottom: 4px solid var(--text-accent);
+                border-bottom: none;
             }
 
             .track-item-actions {
@@ -646,45 +656,48 @@
             }
         }
 
-        /* 📁 CATEGORY CARDS PANELS */
+        /* 📁 CATEGORY CARDS PANELS - 90s Retro Style */
         .category-card {
-            border: 2px solid var(--border-color);
-            background-color: #ffffff;
-            padding: 14px;
+            border: 2px outset #ffffff;
+            background-color: #cccccc;
+            padding: 10px 12px;
             cursor: pointer;
             box-sizing: border-box;
-            box-shadow: 3px 3px 0px var(--shadow-color);
-            transition: transform 0.1s, box-shadow 0.1s, border-color 0.1s;
+            box-shadow: 2px 2px 0px #000000;
             display: flex;
             flex-direction: column;
             gap: 4px;
+            transition: none;
         }
         .category-card:hover {
-            transform: translate(-1px, -1px);
-            box-shadow: 4px 4px 0px var(--shadow-color);
+            background-color: #dfdfdf;
         }
         .category-card:active {
+            border: 2px inset #ffffff;
             transform: translate(1px, 1px);
-            box-shadow: 2px 2px 0px var(--shadow-color);
+            box-shadow: 1px 1px 0px #000000;
         }
         .category-card-name {
-            font-size: 12px;
+            font-size: 11.5px;
             font-weight: bold;
+            font-family: var(--font-mono);
             word-break: keep-all;
+            color: #000000 !important;
         }
         .category-card-count {
-            font-size: 10.5px;
-            color: var(--text-sub);
+            font-size: 10px;
+            color: #666666;
+            font-family: var(--font-mono);
         }
 
-        /* 📍 CIRCLE PIN MARKERS */
+        /* 📍 Minimalist Circle Waterdrop Pins (Cartografia das Memorias Style) */
         .circle-pin {
-            width: 18px;
-            height: 18px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
-            border: 2px solid #ffffff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            transition: width 0.2s, height 0.2s, border-width 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
             box-sizing: border-box;
         }
         .custom-marker-icon {
@@ -693,110 +706,378 @@
             justify-content: center;
         }
         .custom-marker-icon.active .circle-pin {
-            width: 26px;
-            height: 26px;
-            border: 3px solid #ffffff;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            animation: pin-pulse 1.2s infinite alternate;
+            width: 20px;
+            height: 20px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+            border-width: 3px !important;
         }
-        @keyframes pin-pulse {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.15); }
+        
+        /* Dynamic Ripple Wave pulse for currently playing sound spot */
+        .custom-marker-icon.playing .circle-pin::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            right: -8px;
+            bottom: -8px;
+            border-radius: 50%;
+            border: 2px solid var(--text-accent);
+            animation: ripple-wave 1.6s infinite cubic-bezier(0.1, 0.8, 0.3, 1);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        @keyframes ripple-wave {
+            0% {
+                transform: scale(0.6);
+                opacity: 0.9;
+            }
+            100% {
+                transform: scale(2.2);
+                opacity: 0;
+            }
         }
 
         /* 🎯 CROSSHAIR FOR ADD PIN MODE */
         .add-spot-cursor {
             cursor: crosshair !important;
         }
+
+        /* Slide-out Sidebar Navigation Drawer - Modern Gallery Style */
+        .sidebar-drawer {
+            height: 100%;
+            width: 0; /* Hidden by default */
+            position: fixed;
+            z-index: 5000; /* Over Leaflet map */
+            top: 0;
+            left: 0;
+            background-color: #ffffff;
+            border-right: 1px solid var(--border-color);
+            overflow-x: hidden;
+            transition: 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.05);
+        }
+
+        .sidebar-drawer[style*="width: 320px"] {
+            border-right-width: 1px;
+        }
+
+        .sidebar-content {
+            padding: 20px;
+            width: 320px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .sidebar-scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        /* Left Brand & Track List Panel */
+        .left-brand-panel {
+            position: fixed;
+            top: 16px;
+            left: 20px;
+            z-index: 4500;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: flex-start;
+            pointer-events: none;
+        }
+
+        .left-brand-panel .logo-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            transition: opacity 0.15s ease-in-out;
+            pointer-events: auto;
+        }
+
+        .left-brand-panel .logo-btn img {
+            height: 120px;
+            width: auto;
+            display: block;
+        }
+
+        .left-brand-panel .logo-btn:hover {
+            opacity: 0.7;
+        }
+
+        .left-track-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            pointer-events: auto;
+            font-family: 'Yeon Sung', 'Gungsuh', '궁서', serif;
+            font-size: 15px;
+            color: var(--text-main);
+            background: transparent;
+            padding: 0;
+            border: none;
+            max-height: calc(100vh - 160px);
+            overflow-y: auto;
+            width: 240px;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.9), -1px -1px 2px rgba(255, 255, 255, 0.9);
+        }
+
+        .left-track-item {
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            padding: 2px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .left-track-item:hover {
+            color: var(--text-accent);
+        }
+
+        .left-track-item.active {
+            color: var(--text-accent);
+            font-weight: bold;
+        }
+
+        /* Calligraphy typeface for Track Detail title */
+        #right-sidebar-title {
+            font-family: 'Yeon Sung', 'Gungsuh', '궁서', serif !important;
+            font-size: 18px !important;
+            font-weight: bold !important;
+        }
+
+        /* 📖 Felix Blume Inspired Modern Accordions */
+        .retro-accordion {
+            margin-bottom: 10px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-panel);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .accordion-trigger {
+            width: 100%;
+            text-align: left;
+            padding: 10px 14px;
+            background-color: #ffffff;
+            border: none;
+            color: var(--text-main);
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.15s;
+        }
+
+        .accordion-trigger:hover {
+            background-color: var(--bg-hover);
+        }
+
+        .accordion-content {
+            display: none; /* Collapsed by default */
+            padding: 14px;
+            background-color: #ffffff;
+            border-top: 1px solid var(--border-color);
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .acc-chevron {
+            font-size: 9px;
+            color: var(--text-sub);
+        }
+
+        .category-filter-btn {
+            width: 100%;
+            font-size: 11px;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            background: #ffffff;
+            color: var(--text-main);
+            cursor: pointer;
+            font-family: inherit;
+            text-align: left;
+            border-radius: 4px;
+            transition: all 0.15s;
+        }
+
+        .category-filter-btn:hover {
+            background-color: var(--bg-hover);
+        }
+
+        .category-filter-btn.active {
+            background: var(--text-accent);
+            color: #ffffff !important;
+            border-color: var(--text-accent);
+            font-weight: bold;
+        }
+
+        #retro-track-list {
+            max-height: 250px;
+            overflow-y: auto;
+            background-color: #ffffff;
+            border: 1px solid #808080;
+        }
+
+        /* Close Button inside Sidebar */
+        .menu-close-btn {
+            position: absolute;
+            top: 10px;
+            right: 14px;
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            font-weight: bold;
+            z-index: 5100;
+        }
+
+        .menu-close-btn:hover {
+            color: var(--text-accent);
+        }
     </style>
 </head>
 <body>
 
-<div id="app">
-    <!-- Top Header Status Bar -->
-    <div class="bbs-header">
-        <div class="bbs-title">■ Pocket dream's soundmap</div>
-        <div class="bbs-nav">
-            <button class="bbs-btn" onclick="toggleInfo()">[H] Info</button>
-            <button class="bbs-btn" id="admin-toggle" onclick="toggleAdminMode()">[A] Admin: OFF</button>
-            <button class="bbs-btn admin-only" id="download-btn" onclick="downloadHtml()" style="display: none; color: var(--text-accent);">[S] Export HTML</button>
-            <button class="bbs-btn admin-only" id="reset-btn" onclick="resetData()" style="display: none;">[R] Reset</button>
-        </div>
+<!-- Left Brand & Track List Panel (Fixed Top Left) -->
+<div class="left-brand-panel">
+    <button class="logo-btn" onclick="openSidebar()"><img src="logo.png" alt="江華 소리" /></button>
+    <div id="left-track-list" class="left-track-list">
+        <!-- Populated dynamically via JS -->
     </div>
+</div>
 
-    <div id="app-body">
-        <!-- Leaflet Map Container -->
-        <div id="map"></div>
-
-        <!-- Sidebar Right Container -->
-        <div id="sidebar-right">
-            <!-- Sidebar Toggle Tab -->
-            <button id="sidebar-toggle-tab" onclick="toggleSidebar()">▸</button>
-
-            <!-- Admin Controls panel -->
-            <div id="admin-actions-panel" style="display: none;">
-                <div style="font-weight: bold; font-size: 11px; margin-bottom: 6px; color: var(--text-accent);">[ADMIN ACTIONS]</div>
-                <button id="add-spot-btn" class="bbs-btn" onclick="toggleAddSpotMode()" style="width: 100%;">[+] Add Spot (Click on Map)</button>
+<!-- Slide-out Navigation Drawer (Left Side) -->
+<div id="mySidebar" class="sidebar-drawer" style="width: 0;">
+    <button class="menu-close-btn" onclick="closeSidebar()">×</button>
+    <div class="sidebar-content">
+        
+        <div class="sidebar-scroll-area">
+            <!-- 1. ABOUT ALBUM SECTION -->
+            <div class="retro-accordion">
+                <button class="accordion-trigger" onclick="toggleAccordion('acc-album')">📖 ABOUT ALBUM <span class="acc-chevron">▾</span></button>
+                <div id="acc-album" class="accordion-content" style="display: block;"> <!-- Open by default -->
+                    <div class="sidebar-logo-container" style="text-align: center; margin-bottom: 12px;">
+                        <img src="https://f4.bcbits.com/img/a2885868170_1x1_700.avif" alt="Cover" class="sidebar-cover-art" style="width: 100%; max-width: 160px; border: 1px solid #000000;" />
+                    </div>
+                    <div style="font-size: 11px; line-height: 1.6; color: #663366; text-align: justify; word-break: keep-all; font-family: var(--font-mono);">
+                        Ganghwadae Island is where I spent the most defining years of my childhood.<br><br>
+                        For my teenage self boarding here, Ganghwa was merely a monotonous rural island, and every weekend, I yearned to escape to the bustling noise of Seoul.<br><br>
+                        Later in my 20s, I moved to the capital to pursue music and played in bands, losing my own rhythm amidst the city's frantic velocity.<br><br>
+                        When I felt I could endure it no longer, I packed up everything and fled back here to Ganghwa.<br><br>
+                        Back on the island, I met and recorded the deep resonance of the evening bell from Jeondeungsa Temple blending with the hum of grass insects, the Angelus bell of Onsu-ri Cathedral, and the shifting faces of the sea shaped by the ebb and flow of the tide.<br><br>
+                        This process has become a quiet window to look back upon my weary soul.
+                    </div>
+                </div>
             </div>
 
-            <!-- Sliding Views Wrapper Container -->
-            <div class="sidebar-views-container" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
-                <div class="sidebar-views-wrapper" id="sidebar-views-wrapper" style="display: flex; width: 200%; height: 100%; transition: transform 0.3s ease-in-out;">
-                    
-                    <!-- View 1: Categories Panel -->
-                    <div class="sidebar-view" id="view-categories" style="width: 50%; height: 100%; display: flex; flex-direction: column; overflow-y: auto; padding: 0 10px 10px; box-sizing: border-box;">
-                        <div class="sidebar-title" style="margin-top: 10px;">┌─── [ ARCHIVE CATEGORIES ] ───┐</div>
-                        <div id="category-admin-actions" style="padding: 10px 0px 5px; display: block;">
-                            <button class="bbs-btn" onclick="promptCreateCategory()" style="width: 100%;">[+] Create New Category</button>
-                        </div>
-                        <div class="categories-container" id="categories-container" style="display: flex; flex-direction: column; gap: 10px; margin-top: 5px;"></div>
+            <!-- 2. ABOUT ARTIST SECTION -->
+            <div class="retro-accordion">
+                <button class="accordion-trigger" onclick="toggleAccordion('acc-artist')">👤 ABOUT ARTIST <span class="acc-chevron">▸</span></button>
+                <div id="acc-artist" class="accordion-content">
+                    <div style="font-size: 11px; line-height: 1.6; color: #663366; font-family: var(--font-mono); text-align: justify; word-break: keep-all;">
+                        <strong>Chulmin Lee (전철민)</strong><br><br>
+                        An artist and sound recordist exploring the auditory landscapes of rural borders and historical memories. Based in Ganghwa Island.<br><br>
+                        <strong>CREDITS:</strong><br>
+                        Produced by Chulmin Lee<br>
+                        Recorded, edited and mastered by Chulmin Lee<br>
+                        Illustrations & Cover photo by Chulmin Lee<br>
+                        Designed by Jaesoo Lee
                     </div>
-
-                    <!-- View 2: Tracklist Panel -->
-                    <div class="sidebar-view" id="view-tracks" style="width: 50%; height: 100%; display: flex; flex-direction: column; overflow-y: auto; padding: 0 10px 10px; box-sizing: border-box;">
-                        <div class="sidebar-title" style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between; font-size: 11px;">
-                            <button class="back-btn" onclick="slideBackToCategories()" style="cursor: pointer; background: var(--bg-panel); border: 1px solid var(--border-color); color: var(--text-accent); font-family: var(--font-mono); font-size: 10px; padding: 2px 6px;">◂ BACK</button>
-                            <span id="active-category-title" style="font-weight: bold;">[TRACKLIST]</span>
-                        </div>
-                        <div class="track-list-container" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; margin-top: 10px;">
-                            <div id="track-list" class="track-list"></div>
-                        </div>
-                    </div>
-
                 </div>
+            </div>
+
+            <!-- 3. TRACK LIST SECTION -->
+            <div class="retro-accordion">
+                <button class="accordion-trigger" onclick="toggleAccordion('acc-tracks')">🎧 TRACK LIST <span class="acc-chevron">▸</span></button>
+                <div id="acc-tracks" class="accordion-content">
+                    <!-- Retro Track Items List relocated inside accordion -->
+                    <div id="retro-track-list" class="track-list" style="max-height: 250px; overflow-y: auto; background-color: #ffffff; border: 1px solid #808080; padding: 2px;"></div>
+                </div>
+            </div>
+
+            <!-- 4. CATEGORIES SECTION -->
+            <div class="retro-accordion">
+                <button class="accordion-trigger" onclick="toggleAccordion('acc-categories')">📁 CATEGORIES <span class="acc-chevron">▸</span></button>
+                <div id="acc-categories" class="accordion-content">
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <button class="category-filter-btn active" onclick="filterCategoryByBtn('', this)">★ ALL CATEGORIES</button>
+                        <div id="category-btns-container" style="display: flex; flex-direction: column; gap: 6px;">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar Footer -->
+            <div class="sidebar-footer" style="margin-top: 24px; border-top: 1px dashed #663366; padding-top: 12px; font-size: 9.5px; color: #663366; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono);">
+                <span>Ganghwa Soundscape © 2026</span>
+                <button class="track-item-btn" onclick="toggleAdminMode()" id="admin-trigger-link" style="font-size: 9.5px; padding: 2px 6px;">[E] ADMIN</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Album Info modal -->
-<div id="info-modal">
-    <div class="modal-header">
-        <span class="modal-title">[ALBUM INFORMATION]</span>
-        <button class="modal-close" onclick="toggleInfo()">[X]</button>
+<!-- Floating Admin Actions Panel (Appears at top-right when Admin Mode is ON) -->
+<div id="floating-admin-panel">
+    <div style="font-weight: bold; font-size: 10.5px; margin-bottom: 8px; color: var(--text-accent); border-bottom: 1px dashed var(--border-color); padding-bottom: 4px;">[ADMIN CONTROLS]</div>
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+        <button id="add-spot-btn" class="bbs-btn" onclick="toggleAddSpotMode()" style="width: 100%; font-size: 10px;">[+] Add Spot (Click Map)</button>
+        <button id="download-btn" class="bbs-btn" onclick="downloadHtml()" style="width: 100%; font-size: 10px; color: var(--text-accent);">[S] Export HTML</button>
+        <button id="reset-btn" class="bbs-btn" onclick="resetData()" style="width: 100%; font-size: 10px;">[R] Reset Database</button>
     </div>
+</div>
+
+<!-- Leaflet Map Container -->
+<div id="map" style="width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1;"></div>
+
+<!-- Right Side Player Sidebar (Opens when a pin is clicked) -->
+<div id="sidebar-right" class="collapsed">
+    <!-- Collapse toggle button (chevron tab on the left edge of the sidebar) -->
+    <button id="sidebar-toggle-tab" onclick="toggleRightSidebar()">◂</button>
     
-    <div class="modal-body">
-        <div style="width: 100%; margin-bottom: 20px; border: 1px solid var(--border-color); box-shadow: 3px 3px 0 var(--shadow-color); box-sizing: border-box; overflow: hidden; background-color: #fafafa;">
-            <img src="https://f4.bcbits.com/img/a2885868170_1x1_700.avif" alt="Cover" style="width: 100%; height: auto; display: block;">
+    <div class="sidebar-title">Ganghwa soundscape</div>
+    <div class="sidebar-content" style="padding: 16px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; flex: 1;">
+
+        <!-- Track Title (Top) -->
+        <div id="right-sidebar-title-card" class="diary-box" style="display: none; padding-bottom: 0;">
+            <span id="right-sidebar-track-num" style="color: var(--text-accent); font-size: 10px; font-weight: bold; display: block; margin-bottom: 6px;">Track --</span>
+            <h2 id="right-sidebar-title" style="margin: 0; font-size: 13px; font-weight: bold; border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; color: var(--text-main);">Select a spot</h2>
         </div>
 
-        <div style="font-size: 12.5px; line-height: 1.7; word-break: keep-all;">
-            <div style="font-weight: bold; border-bottom: 1px dashed var(--border-color); padding-bottom: 4px; margin-bottom: 10px; color: var(--text-accent);">ABOUT</div>
-            Ganghwadae Island is where I spent the most defining years of my childhood. <br><br>
-            For my teenage self boarding here, Ganghwa was merely a monotonous rural island, and every weekend, I yearned to escape to the bustling noise of Seoul. <br><br>
-            Later in my 20s, I moved to the capital to pursue music and played in bands, losing my own rhythm amidst the city's frantic velocity. <br><br>
-            When I felt I could endure it no longer, I packed up everything and fled back here to Ganghwa. <br><br>
-            Back on the island, I met and recorded the deep resonance of the evening bell from Jeondeungsa Temple blending with the hum of grass insects, the Angelus bell of Onsu-ri Cathedral, and the shifting faces of the sea shaped by the ebb and flow of the tide. <br><br>
-            This process has become a quiet window to look back upon my weary soul.
+        <!-- Audio Player Container (Middle - Title 아래) -->
+        <div id="right-sidebar-player-container" style="width: 100%; display: none;">
+            <!-- Embed audio player dynamically here -->
         </div>
 
-        <div style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 15px;">
-            <div style="font-weight: bold; border-bottom: 1px dashed var(--border-color); padding-bottom: 4px; margin-bottom: 10px; color: var(--text-accent);">CREDITS</div>
-            <p style="margin: 4px 0; font-size: 11.5px;">Produced by Chulmin Lee</p>
-            <p style="margin: 4px 0; font-size: 11.5px;">Recorded, edited and mastered by Chulmin Lee</p>
-            <p style="margin: 4px 0; font-size: 11.5px;">Illustrations & Cover photo by Chulmin Lee</p>
-            <p style="margin: 4px 0; font-size: 11.5px;">Designed by Jaesoo Lee</p>
+        <!-- Text Body Details (Middle - Player 아래) -->
+        <div id="right-sidebar-body-card" class="diary-box" style="display: none; padding-top: 0; border-top: none;">
+            <p id="right-sidebar-desc" style="margin: 10px 0 10px 0; font-size: 11px; line-height: 1.6; color: var(--text-main); text-align: justify; word-break: keep-all;">Click a pin on the map to listen to the sound of Ganghwa.</p>
+            <div id="right-sidebar-meta" style="font-size: 9.5px; color: var(--text-sub); display: block; margin-top: 8px;"></div>
+        </div>
+
+        <!-- Cover Art / Image container (Bottom) -->
+        <div id="right-sidebar-image-container" style="width: 100%; border: 1px solid var(--border-color); display: none; background: #ffffff;">
+            <img id="right-sidebar-image" src="" style="width: 100%; object-fit: contain; display: block;" />
+        </div>
+
+        <!-- Admin Action Section inside Sidebar -->
+        <div id="right-sidebar-admin-actions" class="popup-admin-actions admin-only" style="display: none; margin-top: auto; display: flex; gap: 8px;">
+            <button class="bbs-btn" id="right-sidebar-edit-btn" style="flex: 1;">[E] EDIT</button>
+            <button class="bbs-btn" id="right-sidebar-delete-btn" style="flex: 1; color: var(--text-accent);">[D] DELETE</button>
         </div>
     </div>
 </div>
@@ -813,7 +1094,7 @@
             <input type="hidden" id="edit-idx" />
             
             <div style="font-size: 10.5px; color: var(--text-sub); border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; margin-bottom: 6px; line-height: 1.4;">
-                * Drag the pink pin on the map to adjust its coordinates in real-time.
+                * Drag the pin on the map to adjust coordinates in real-time.
             </div>
 
             <div class="form-row">
@@ -821,7 +1102,7 @@
                 <select id="modal-edit-category" class="bbs-input" onchange="handleCategorySelectChange(this)" style="width: 100%; height: 32px; background: #ffffff; cursor: pointer; border: 1px solid var(--border-color); font-family: var(--font-mono); font-size: 12px;"></select>
                 <div id="edit-category-color-wrapper" style="display: none; align-items: center; gap: 8px; margin-top: 6px;">
                     <label style="font-size: 10px;">THEME COLOR :</label>
-                    <input type="color" id="modal-edit-category-color" value="#ff33aa" class="bbs-input" style="width: 40px; height: 28px; padding: 0; cursor: pointer; border: 1px solid var(--border-color);" />
+                    <input type="color" id="modal-edit-category-color" value="#4a7bb0" class="bbs-input" style="width: 40px; height: 28px; padding: 0; cursor: pointer; border: 1px solid var(--border-color);" />
                     <div id="edit-color-swatches" style="display: flex; gap: 4px;"></div>
                 </div>
             </div>
@@ -837,16 +1118,15 @@
             </div>
 
             <div class="form-row">
-                <label>METADATA (DATE / GEAR) :</label>
-                <input type="text" id="modal-edit-meta" class="bbs-input" placeholder="e.g., 2026-07-03 / Zoom F3" />
+                <label>DATE / TIME (날짜 및 시간) :</label>
+                <input type="text" id="modal-edit-date" class="bbs-input" placeholder="예: 2025-08-06 14:00 ☀️" />
             </div>
 
             <div class="form-row">
-                <label>BANDCAMP TRACK ID (OPTIONAL) :</label>
-                <input type="text" id="modal-edit-id" class="bbs-input" placeholder="Enter Bandcamp Track ID if available" />
+                <label>RECORDING GEAR (녹음 장비) :</label>
+                <input type="text" id="modal-edit-gear" class="bbs-input" placeholder="예: Zoom F3 / Clippy EM2 pair / AB Stereo" />
             </div>
 
-            <!-- Custom Photo Upload/Link -->
             <!-- Custom Photo Upload -->
             <div class="form-row">
                 <label>IMAGE FILE (UPLOAD OR REPLACE) :</label>
@@ -894,7 +1174,7 @@
             <div class="form-row" style="display: flex; flex-direction: column; gap: 4px;">
                 <label style="font-weight: bold; font-size: 11px;">CHOOSE THEME COLOR :</label>
                 <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
-                    <input type="color" id="modal-cat-color" value="#ff33aa" class="bbs-input" style="width: 50px; height: 32px; padding: 0; cursor: pointer; border: 1px solid var(--border-color);" />
+                    <input type="color" id="modal-cat-color" value="#4a7bb0" class="bbs-input" style="width: 50px; height: 32px; padding: 0; cursor: pointer; border: 1px solid var(--border-color);" />
                     <div id="color-swatches" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
                 </div>
             </div>
@@ -911,199 +1191,23 @@
 <script>
     // Hardcoded initial data source
     const DEFAULT_SOUND_DATA = [
-        {
-                "id": "2989378636",
-                "lat": 37.652175,
-                "lng": 126.440529,
-                "title": "강화도 국자와 주걱 책방 앞",
-                "desc": "책방 처마 끝 풍경 소리가 맑아 조용히 녹음기를 꺼내 들었다.\n어디선가 동네 고양이 한 마리가 다가와 빤히 말을 건넨다.\n\"인간, 내 허락도 없이 여기서 뭐 하는 거냐?\"\n녹음 하나를 하려 해도 이 작은 마을 주인님의 결재를 받아야 할 모양이다.\n조심스레 손을 내밀자, 녀석은 기다렸다는 듯 머리를 비비며 제 체취를 묻혀온다.\n합격이라는 뜻일까.\n멀리서 들려오는 개 짖는 소리, 바람결에 섞인 새들의 지저귐.\n불협화음 같던 소리들이 자연스레 엉기며 하나의 음악이 된다.\n우연히 마주친, 한 편의 영화 같던 소리풍경",
-                "meta": "Date: 2025-11-20 ☁️ / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
-                "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/01%20%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%E1%84%83%E1%85%A9%20%E1%84%80%E1%85%AE%E1%86%A8%E1%84%8C%E1%85%A1%E1%84%8B%E1%85%AA%20%E1%84%8C%E1%85%AE%E1%84%80%E1%85%A5%E1%86%A8%20%E1%84%8E%E1%85%A2%E1%86%A8%E1%84%87%E1%85%A1%E1%86%BC%20%E1%84%8B%E1%85%A1%E1%87%81_251120.wav",
-                "imageBase64": "",
-                "imageUrl": "images/track01.png"
-        },
-        {
-                "id": "753759855",
-                "lat": 37.651298,
-                "lng": 126.333199,
-                "title": "사운드워킹-석모도 민머루해변",
-                "desc": "맨발로 모래사장을 걸으면 기분이 좋다.\n까끌까끌 따가운 감촉, 모래 사이 사이 알록달록 유리조각을 피해 파도를 향해 걷는다. 시원한 파도소리를 뚫고 비행기가 항해한다.\n3분에 한대씩 비행기가 지나간다. \n이 수많은 비행기는 어디로 가는걸까..",
-                "meta": "Date: 2026-02-04 17:10  🌤️ / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
-                "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/02%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%8B%E1%85%AF%E1%84%8F%E1%85%B5%E1%86%BC-%E1%84%89%E1%85%A5%E1%86%A8%E1%84%86%E1%85%A9%E1%84%83%E1%85%A9%20%E1%84%86%E1%85%B5%E1%86%AB%E1%84%86%E1%85%A5%E1%84%85%E1%85%AE%E1%84%92%E1%85%A2%E1%84%87%E1%85%A7%E1%86%AB_260204.wav",
-                "imageBase64": "",
-                "imageUrl": ""
-        },
-        {
-                "id": "1719650266",
-                "lat": 37.636524,
-                "lng": 126.487527,
-                "title": "강화도 정족산 14처길 낮",
-                "desc": "한여름 매미소리가 숲을 가득 채우고 있다.\n햇볕은 뜨겁고, 바람도 불지않는 정족산의 낮.\n14처길을 따라 땀을 흘리며 걷다보면 자연스레 명상에 잠기게 된다.",
-                "meta": "Date: 2025-08-06 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
-                "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/03%20%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%E1%84%83%E1%85%A9%20%E1%84%8C%E1%85%A5%E1%86%BC%E1%84%8C%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A1%E1%86%AB%2014%E1%84%8E%E1%85%A5%E1%84%80%E1%85%B5%E1%86%AF%20%E1%84%82%E1%85%A1%E1%86%B5_250806.wav",
-                "imageBase64": "",
-                "imageUrl": ""
-        },
-        {
-                "id": "843445286",
-                "lat": 37.63187,
-                "lng": 126.477204,
-                "title": "강화도 정족산 입구 밤",
-                "desc": "해질녘 정족산성 동문 아래에 서서 녹음기를 켠다.\n여름 밤벌레 소리가 파도처럼 밀려온다.\n간간히 지나가는 자동차 소리가 밤하늘을 가른다.",
-                "meta": "Date: 2025-08-20 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
-                "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/04%20%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%E1%84%83%E1%85%A9%20%E1%84%8C%E1%85%A5%E1%86%BC%E1%84%8C%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A1%E1%86%AB%E1%84%89%E1%85%A5%E1%86%A8%20%E1%84%8B%E1%85%B5%E1%86%B8%E1%84%80%E1%85%AE%20%E1%84%87%E1%85%A1%E1%86%B7_250820.wav",
-                "imageBase64": "",
-                "imageUrl": ""
-        },
-        {
-                "id": "372803100",
-                "lat": 37.63183,
-                "lng": 126.484682,
-                "title": "전등사 저녁예불 대고",
-                "desc": "어스름해지는 저녁, Jeondeungsa(전등사)의 법고(Dharma Drum) 소리가 울려 퍼진다.\n북소리는 묵직하게 가슴을 울리며, 온 산으로 퍼져나간다.\n바쁜 일상을 잠시 멈추고 귀를 기울여본다.",
-                "meta": "Date: 2025-09-22 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
-                "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/05%20%E1%84%8C%E1%85%A5%E1%86%AB%E1%84%83%E1%85%B5%E1%86%BC%E1%84%89%E1%85%A1%20%E1%84%8C%E1%85%A5%E1%86%AB%E1%84%82%E1%85%A7%E1%86%A8%E1%84%80%E1%85%A5%E1%84%87%E1%85%AE%E1%86%AF%20%E1%84%83%E1%85%A2%E1%84%80%E1%85%A9_250922.wav",
-                "imageBase64": "",
-                "imageUrl": ""
-        },
-        {
-                "id": "1394143868",
-                "lat": 37.631493,
-                "lng": 126.483674,
-                "title": "전등사 저녁예불 범종",
-                "desc": "법고 소리가 멎고, 이어서 범종(Brahma Bell)이 울린다.\n깊은 울림이 공기를 진동시키며, 번뇌를 씻어내듯 길게 꼬리를 남긴다.\n산사(Mountain Temple)의 저녁이 깊어간다.",
-                "meta": "Date: 2025-09-22 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
-                "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/06%20%E1%84%8C%E1%85%A5%E1%86%AB%E1%84%83%E1%85%B5%E1%86%BC%E1%84%89%E1%85%A1%20%E1%84%8C%E1%85%A5%E1%86%AB%E1%84%82%E1%85%A7%E1%86%A8%E1%84%80%E1%85%A5%E1%84%87%E1%85%AE%E1%86%AF%20%E1%84%87%E1%85%A5%E1%86%B7%E1%84%8C%E1%85%A9%E1%86%BC_250922.wav",
-                "imageBase64": "",
-                "imageUrl": ""
-        },
-        {
-                "id": "925560464",
-                "lat": 37.58902,
-                "lng": 126.525597,
-                "title": "동검도 동그랑섬",
-                "desc": "썰물 때가 되어 동검도 앞 갯벌이 광활하게 드러났다.\n갯벌 속 생명체들이 숨 쉬는 소리, 미세한 바람 소리가 고요하게 펼쳐진다.\n자연의 거대한 호흡을 엿듣는 듯한 느낌.",
-                "meta": "Date: 2025-10-08 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
-                "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/07%20%E1%84%83%E1%85%A9%E1%86%BC%E1%84%80%E1%85%A5%E1%86%B7%E1%84%83%E1%85%A9%20%E1%84%83%E1%85%A9%E1%86%BC%E1%84%80%E1%85%B3%E1%84%85%E1%85%A1%E1%86%BC%E1%84%89%E1%85%A5%E1%86%B7_251008.wav",
-                "imageBase64": "",
-                "imageUrl": ""
-        },
-        {
-                "id": "1588339098",
-                "lat": 37.785945,
-                "lng": 126.479647,
-                "title": "대산저수지 갈대바람",
-                "desc": "겨울의 초입, Daesan Reservoir(대산저수지)의 갈대밭에 바람이 분다.\n갈대들이 서로 부대끼며 바스락거리는 마른 소리가 차가운 공기를 가득 채운다.\n쓸쓸하지만 따뜻한 울림이 있는 소리.",
-                "meta": "Date: 2025-12-08 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
-                "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/08%20%E1%84%83%E1%85%A2%E1%84%89%E1%85%A1%E1%86%AB%E1%84%8C%E1%85%A5%E1%84%89%E1%85%AE%E1%84%8C%E1%85%B5%20%E1%84%80%E1%85%A1%E1%86%AF%E1%84%83%E1%85%A2%E1%84%87%E1%85%A1%E1%84%85%E1%85%A1%E1%86%B7_251208.wav",
-                "imageBase64": "",
-                "imageUrl": ""
-        },
-        {
-                "id": "224371653",
-                "lat": 37.665276,
-                "lng": 126.530615,
-                "title": "광성보 빗방울",
-                "desc": "비 내리는 오후, Gwangseongbo(광성보) 성벽 아래서 빗소리를 녹음한다.\n기와와 배수관을 통해 떨어지는 물방울 소리가 맑게 튀어 오른다.\n조용한 유적지에 떨어지는 빗물 소리가 마음을 차분하게 한다.",
-                "meta": "Date: 2025-11-19 ☔️ / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
-                "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/09%20%E1%84%80%E1%85%AA%E1%86%BC%E1%84%89%E1%85%A5%E1%86%BD%E1%84%87%E1%85%A9%20%E1%84%87%E1%85%B5%E1%86%BA%E1%84%87%E1%85%A1%E1%86%BC%E1%84%8B%E1%85%AE%E1%86%AF_251119.wav",
-                "imageBase64": "",
-                "imageUrl": ""
-        },
-        {
-                "id": "4164866312",
-                "lat": 37.763106,
-                "lng": 126.290747,
-                "title": "교동도 남산포 만조",
-                "desc": "밀물 때가 된 Gyodongdo(교동도) Namsanpo(남산포) 포구.\n바닷물이 포구를 가득 채우며 출렁이는 소리, 갈매기 소리가 섞인다.\n서해 바다의 역동성과 적막함이 공존하는 순간.",
-                "meta": "Date: 2025-11-21 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
-                "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/10%20%E1%84%80%E1%85%A5%E1%84%83%E1%85%A9%E1%86%BD%E1%84%83%E1%85%A9%20%E1%84%82%E1%85%A1%E1%86%B7%E1%84%89%E1%85%A1%E1%86%AB%E1%84%87%E1%85%A9%20%E1%84%86%E1%85%A1%E1%86%AB%E1%84%8C%E1%85%A5_251121.wav",
-                "imageBase64": "",
-                "imageUrl": ""
-        },
-        {
-                "id": "519450696",
-                "lat": 37.611408,
-                "lng": 126.37504,
-                "title": "북일곶 돈대 해안 파도",
-                "desc": "Bugilgot Dondae(부길곶돈대) 해안가의 거친 파도소리.\n바위에 부딪혀 부서지는 파도 소리가 웅장하게 울려 퍼진다.\n자연의 강인한 생명력을 느낄 수 있는 소리풍경.",
-                "meta": "Date: 2025-11-20 ☁️ / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
-                "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/11%20%E1%84%87%E1%85%AE%E1%84%80%E1%85%B5%E1%86%AF%E1%84%80%E1%85%A9%E1%86%BE%20%E1%84%83%E1%85%A9%E1%86%AB%E1%84%83%E1%85%A2%20%E1%84%92%E1%85%A2%E1%84%8B%E1%85%A1%E1%86%AB%20%E1%84%91%E1%85%A1%E1%84%83%E1%85%A5_251120.wav",
-                "imageBase64": "",
-                "imageUrl": ""
-        },
-        {
-                "id": "64694152",
-                "lat": 37.774263,
-                "lng": 126.316992,
-                "title": "교동도 월선포 간조",
-                "desc": "밀려 나간 바닷물, 침묵에 잠긴 Wolseonpo(월선포) 항구.\n갯벌이 남긴 젖은 숨소리만이 고요한 포구의 빈자리를 채우고 있다.\n적막하지만 깊은 평화로움.",
-                "meta": "Date: 2026-02-12 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
-                "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/12%20%E1%84%80%E1%85%A5%E1%84%83%E1%85%A9%E1%86%BD%E1%84%83%E1%85%A9%20%E1%84%8B%E1%85%AF%E1%86%AF%E1%84%89%E1%85%A5%E1%86%AB%E1%84%87%E1%85%A9%20%E1%84%80%E1%85%A1%E1%86%AB%E1%84%8C%E1%85%A5_260212.wav",
-                "imageBase64": "",
-                "imageUrl": ""
-        },
-        {
-                "id": "2110564066",
-                "lat": 37.638092,
-                "lng": 126.490264,
-                "title": "강ᄒ의 첫눈",
-                "desc": "소리 없이 내리는 첫눈, 모든 소음을 흡수하는 하얀 적막.\n강화의 겨울이 침묵 속에서 더 깊어져 간다.\n눈 밟는 소리, 고요한 겨울의 소리.",
-                "meta": "Date: 2026-01-24 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
-                "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/13%20%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%E1%84%9C%E1%85%B5%20%E1%84%8E%E1%85%A5%E1%86%BA%E1%84%82%E1%85%AE%E1%86%AB_260124.wav",
-                "imageBase64": "",
-                "imageUrl": ""
-        },
-        {
-                "id": "2505151801",
-                "lat": 37.640278,
-                "lng": 126.489879,
-                "title": "온수리성당 삼종",
-                "desc": "100년 넘는 역사의 온수리 한옥성당에서 종소리가 울린다.\n마을의 평화로운 일상을 축복하듯 울리는 깊은 타종 소리.\n종소리가 주는 마음의 평온.",
-                "meta": "Date: 2025-11-22 ☁️ / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
-                "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/14%20%E1%84%8B%E1%85%A9%E1%86%AB%E1%84%89%E1%85%AE%E1%84%85%E1%85%B5%E1%84%89%E1%85%A5%E1%86%BC%E1%84%83%E1%85%A3%E1%86%BC%20%E1%84%89%E1%85%A1%E1%86%B7%E1%84%8C%E1%85%A9%E1%86%BC_251122.wav",
-                "imageBase64": "",
-                "imageUrl": ""
-        },
-        {
-                "id": "3520696282",
-                "lat": 37.820137,
-                "lng": 126.444672,
-                "title": "평화전망대 북향의 소리",
-                "desc": "평화전망대에서 바람을 타고 들려오는 북녘의 소리.\n가깝지만 닿을 수 없는 분단의 거리감이 소리로 전해진다.\n고요함 속에 팽팽한 긴장감이 흐른다.",
-                "meta": "Date: 2026-01-14 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
-                "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/15%20%E1%84%91%E1%85%A7%E1%86%BC%E1%84%92%E1%85%AA%E1%84%8C%E1%85%A5%E1%86%AB%E1%84%86%E1%85%A1%E1%86%BD%E1%84%83%E1%85%A2%20%E1%84%87%E1%85%AE%E1%86%A5%E1%84%92%E1%85%A3%E1%86%BC%E1%84%8B%E1%85%AE%E1%86%B5%20%E1%84%89%E1%85%A5%E1%84%85%E1%85%B5_260114.wav",
-                "imageBase64": "",
-                "imageUrl": ""
-        },
-        {
-                "id": "3411754260",
-                "lat": 37.768691,
-                "lng": 126.290418,
-                "title": "교동도 농가의 새벽",
-                "desc": "교동도의 새벽을 깨우는 바람 소리와 먼 닭 울음소리.\n적막한 농가의 마당을 쓸고 가는 바람이 섬의 아침을 연다.\n소박하고 아련한 삶의 소리.",
-                "meta": "Date: 2025-11-22 ☁️ / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
-                "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/16%20%E1%84%80%E1%85%A5%E1%84%83%E1%85%A9%E1%86%BD%E1%84%83%E1%85%A9%20%E1%84%82%E1%85%A5%E1%86%BD%E1%84%80%E1%85%A1%E1%86%B5%20%E1%84%89%E1%85%A4%E1%84%8B%E1%85%B5%E1%86%A8_251122.wav",
-                "imageBase64": "",
-                "imageUrl": ""
-        }
-];
+        { id: "2989378636", title: "In Front of Ladle & Spatula Bookstore", lat: 37.652175, lng: 126.440529, desc: "Sitting on the bookstore floorboards, recording the wind chimes, a cat approaches to converse. The rhythm of a working carpenter and the postman's motorcycle sketch the peace of a Ganghwa afternoon.", meta: "2025-11-20 / Zoom F3 / Clippy EM272", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "753759855", title: "Seokmodo Minmeoru Beach", lat: 37.651298, lng: 126.333199, desc: "Soundwalking. Walking along the sandy beach, focusing on my footsteps and the waves, experiencing my own pace.", meta: "2026-02-04", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "1719650266", title: "Jeongjoksan 14 Stations Road (Day)", lat: 37.636524, lng: 126.487527, desc: "The burning heat of summer in Ganghwa, harmonized with the lively cicada chorus slicing through it.", meta: "2025-08-06", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "843445286", title: "Jeongjoksanseong Entrance (Night)", lat: 37.631870, lng: 126.477204, desc: "At the gate of Jeongjoksanseong fortress, the orchestra of nocturnal insects begins as darkness settles.", meta: "2025-08-20", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "372803100", title: "Jeondeungsa Temple Evening Worship Drum", lat: 37.631830, lng: 126.484682, desc: "The Dharma drum of Jeondeungsa. Heart-throbbing low vibrations spread across the mountain sanctuary.", meta: "2025-09-22", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "1394143868", title: "Jeondeungsa Temple Evening Worship Bell", lat: 37.631493, lng: 126.483674, desc: "The deep resonance of the Brahma bell. The lingering echo after the sound fades fills the Ganghwa night.", meta: "2025-09-22", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "925560464", title: "Donggeomdo Donggeorang Island", lat: 37.589020, lng: 126.525597, desc: "The subtle breathing of the tidal flats. Movements of creatures revealed after the seawater recedes.", meta: "2025-10-08", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "1588339098", title: "Daesan Reservoir Reed Wind", lat: 37.785945, lng: 126.479647, desc: "Daesan Reservoir in winter. The lonely yet warm whisper of the wind brushing through dry reeds.", meta: "2025-12-08", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "224371653", title: "Gwangseongbo Raindrops", lat: 37.665276, lng: 126.530615, desc: "Raindrops flowing down the drainpipe. The spatial echo transforms the sound of rain into a musical instrument.", meta: "2025-11-19", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "4164866312", title: "Gyodongdo Namsanpo Port High Tide", lat: 37.763106, lng: 126.290747, desc: "Seawater rising at Namsanpo Port. The heavy presence of the incoming tide slowly makes its way.", meta: "2025-11-21", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "519450696", title: "Bugilgot Dondae Coast", lat: 37.611408, lng: 126.375040, desc: "Rough waves breaking against rocks below the historical fort. The sheer force of the Ganghwa sea is felt.", meta: "2025-11-20", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "64694152", title: "Gyodongdo Wolseonpo Port Low Tide", lat: 37.774263, lng: 126.316992, desc: "The silence of the port as water recedes, filled with the delicate murmurs of the mudflat.", meta: "2026-02-12", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "2110564066", title: "First Snow of Ganghwa", lat: 37.638092, lng: 126.490264, desc: "Sound of falling snow. The Ganghwa winter deepens inside a silence that absorbs all ambient noise.", meta: "2026-01-24", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "2505151801", title: "Onsu-ri Church Angelus Bell", lat: 37.640278, lng: 126.489879, desc: "The Angelus bell tolling from the historic Onsu-ri Anglican Church, blessing the daily routines of the village.", meta: "2025-11-22", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "3520696282", title: "Peace Observatory Northward Sound", lat: 37.820137, lng: 126.444672, desc: "Faint sounds drifting on the wind from the north. A close yet distant tension lingers in the air.", meta: "2026-01-14", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "3411754260", title: "Gyodongdo Dawn at a Farmhouse", lat: 37.768691, lng: 126.290418, desc: "The gusty wind waking the island dawn, accompanied by the distant crowing of a rooster.", meta: "2025-11-22", category: "Soundscape in ganghwa island 2025-2026" }
+    ];
 
     // Hardcoded default categories configuration (Populated dynamically on HTML export)
     const DEFAULT_CATEGORY_COLORS = {};
@@ -1114,7 +1218,7 @@
     const soundData = [];
     
     // Force reset local database if caching version has changed (cleans corrupted structures)
-    const APP_VERSION = "2026-08-29-v7";
+    const APP_VERSION = "2026-07-09-v3";
     if (localStorage.getItem('gangwha_app_version') !== APP_VERSION) {
         localStorage.removeItem('gangwha_sound_data');
         localStorage.removeItem('gangwha_deleted_defaults');
@@ -1158,32 +1262,41 @@
         soundData.push(...DEFAULT_SOUND_DATA);
     }
 
-    // Leaflet map setup
-    const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([37.68, 126.43], 11);
-    
-    // Clean bright light gray map tiles
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
-    L.control.zoom({ position: 'topleft' }).addTo(map);
+    // Custom flat grid layout bounds matching original portrait ratio (733x1024)
+    const bounds = [[0, 0], [1000, 715]];
 
-    // Apply dynamic category colors to leaflet popups on opening
-    map.on('popupopen', (e) => {
-        if (currentTrackIndex !== -1) {
-            const track = soundData[currentTrackIndex];
-            const color = getCategoryColor(track.category || "Soundscape in ganghwa island 2025-2026");
-            const popupContainer = e.popup.getElement();
-            if (popupContainer) {
-                const wrapper = popupContainer.querySelector('.leaflet-popup-content-wrapper');
-                const tip = popupContainer.querySelector('.leaflet-popup-tip');
-                if (wrapper) {
-                    wrapper.style.border = `3px solid ${color}`;
-                    wrapper.style.borderRadius = `8px`;
-                }
-                if (tip) {
-                    tip.style.backgroundColor = color;
-                }
-            }
-        }
+    // Leaflet map setup - Zoomable flat overlay on top of fixed background
+    const map = L.map('map', { 
+        crs: L.CRS.Simple,
+        zoomControl: false, 
+        attributionControl: false,
+        dragging: true,        // Enable map dragging
+        scrollWheelZoom: true,  // Enable wheel zoom
+        doubleClickZoom: true,  // Enable dblclick zoom
+        boxZoom: true,
+        keyboard: true,
+        maxZoom: 2
     });
+
+    // Mount map illustration as an overlay inside Leaflet so it zooms unified with the markers
+    L.imageOverlay('old-map.jpg', bounds).addTo(map);
+
+    // Synchronize Leaflet map viewport dimensions to exactly contain the background image
+    function syncMapToViewport() {
+        map.fitBounds(bounds);
+        const minZoom = map.getBoundsZoom(bounds);
+        map.setMinZoom(minZoom); // Lock minZoom dynamically to fit viewport height/width contain limits
+    }
+
+    // Initialize fit layout
+    setTimeout(syncMapToViewport, 50);
+
+    // Re-lock containment limits dynamically when browser is resized
+    window.addEventListener('resize', () => {
+        syncMapToViewport();
+    });
+
+
 
     // Handle map click for Add Spot Placement Mode
     map.on('click', (e) => {
@@ -1194,7 +1307,8 @@
 
     const markers = [];
     let currentTrackIndex = -1;
-    let isAdminMode = true; // Enabled by default for easy adding and editing
+    let currentPlayingTrackIndex = -1; // Track currently rotating/playing
+    let isAdminMode = false; // Disabled by default for quiet gallery style
     
     // File upload local variables (stores base64 data)
     let uploadedImageBase64 = "";
@@ -1205,7 +1319,7 @@
 
     // Harmonious, curated preset colors for category tags
     const PRESET_COLORS = [
-        "#ff33aa", // Magenta (Default)
+        "#4a7bb0", // Water Blue (Default)
         "#3388ff", // Soft Blue
         "#22cc88", // Mint Green
         "#ffaa00", // Warm Orange
@@ -1215,25 +1329,13 @@
         "#cc6699"  // Coral Rose
     ];
 
-    // Toggle Sidebar Panel (Fold / Unfold)
-    function toggleSidebar() {
-        const sidebar = document.getElementById('sidebar-right');
-        const tab = document.getElementById('sidebar-toggle-tab');
-        sidebar.classList.toggle('collapsed');
-        
-        const isCollapsed = sidebar.classList.contains('collapsed');
-        const isMobile = window.innerWidth <= 768;
-        
-        if (isMobile) {
-            tab.innerText = isCollapsed ? '▴' : '▾';
-        } else {
-            tab.innerText = isCollapsed ? '◂' : '▸';
-        }
-        
-        // Notify leaflet map to update sizing after sliding transition ends
-        setTimeout(() => {
-            map.invalidateSize({ animate: true });
-        }, 300);
+    // Navigation Drawer Controls (Slide Open / Close)
+    function openSidebar() {
+        document.getElementById("mySidebar").style.width = "320px";
+    }
+
+    function closeSidebar() {
+        document.getElementById("mySidebar").style.width = "0";
     }
 
     // 📁 CATEGORY UTILITY FUNCTIONS
@@ -1242,7 +1344,7 @@
         const savedColors = JSON.parse(localStorage.getItem('gangwha_category_colors') || '{}');
         if (savedColors[cleanName]) return savedColors[cleanName];
 
-        if (cleanName === "Soundscape in ganghwa island 2025-2026") return "#ff33aa";
+        if (cleanName === "Soundscape in ganghwa island 2025-2026") return "#4a7bb0";
         if (cleanName === "Field Recordings / Live Notes") return "#3388ff";
         if (cleanName === "Drafts & Miscellaneous") return "#9966ff";
 
@@ -1311,7 +1413,7 @@
         document.getElementById('modal-cat-original-name').value = '';
         
         document.getElementById('modal-cat-name').value = '';
-        document.getElementById('modal-cat-color').value = '#ff33aa';
+        document.getElementById('modal-cat-color').value = '#4a7bb0';
         renderSwatches('color-swatches', 'modal-cat-color');
         document.getElementById('category-modal').style.display = 'flex';
     }
@@ -1437,14 +1539,55 @@
         }
     }
 
-    // Render category cards inside the Category View Panel
+    // Toggle accordion state inside left sidebar
+    function toggleAccordion(id) {
+        const target = document.getElementById(id);
+        if (!target) return;
+        const isOpen = target.style.display === 'block';
+        
+        // Close all accordion contents
+        document.querySelectorAll('.accordion-content').forEach(el => {
+            el.style.display = 'none';
+        });
+        
+        // Reset all chevrons to right point
+        document.querySelectorAll('.accordion-trigger .acc-chevron').forEach(ch => {
+            ch.innerText = '▸';
+        });
+
+        // Toggle clicked content
+        const btn = target.previousElementSibling;
+        const chev = btn ? btn.querySelector('.acc-chevron') : null;
+        if (!isOpen) {
+            target.style.display = 'block';
+            if (chev) chev.innerText = '▾';
+        } else {
+            if (chev) chev.innerText = '▸';
+        }
+    }
+
+    // Filter categories on button click (Felix Blume style)
+    function filterCategoryByBtn(categoryName, btn) {
+        // Highlight active filter button
+        document.querySelectorAll('.category-filter-btn').forEach(b => {
+            b.classList.remove('active');
+        });
+        if (btn) btn.classList.add('active');
+
+        selectedCategoryName = categoryName;
+        
+        // Re-draw map markers and track items matching selected filter
+        renderMarkers();
+        renderTracklist();
+    }
+
+    // Render and populate category filter buttons inside the 4th accordion panel
     function renderCategories() {
-        const container = document.getElementById('categories-container');
+        const container = document.getElementById('category-btns-container');
         if (!container) return;
         container.innerHTML = '';
-        
-        const categories = getCategories();
 
+        const categories = getCategories();
         categories.forEach(cat => {
             const catTracks = soundData.filter(t => {
                 const trackCat = t.category || "Soundscape in ganghwa island 2025-2026";
@@ -1455,49 +1598,49 @@
                 return;
             }
 
-            const card = document.createElement('div');
-            card.className = 'category-card';
-            card.style.borderLeft = `4px solid ${cat.color}`;
-            
-            card.onmouseenter = () => { card.style.borderColor = cat.color; };
-            card.onmouseleave = () => { card.style.borderColor = 'var(--border-color)'; };
+            const btnWrapper = document.createElement('div');
+            btnWrapper.style.display = 'flex';
+            btnWrapper.style.gap = '4px';
+            btnWrapper.style.width = '100%';
 
-            card.onclick = () => selectCategory(cat.name);
+            const btn = document.createElement('button');
+            btn.className = 'category-filter-btn';
+            if (selectedCategoryName === cat.name) btn.classList.add('active');
+            btn.innerText = `📁 ${cat.name} (${catTracks.length})`;
+            btn.style.flex = '1';
+            btn.style.borderLeft = `5px solid ${cat.color}`;
+            btn.onclick = () => filterCategoryByBtn(cat.name, btn);
 
-            let actionHtml = '';
+            btnWrapper.appendChild(btn);
+
             if (isAdminMode) {
-                actionHtml = `
-                    <div style="align-self: flex-end; margin-top: -18px; font-size: 10px;">
-                        <span onclick="event.stopPropagation(); promptEditCategory('${cat.name.replace(/'/g, "\\'")}')" style="cursor: pointer; padding: 2px 4px; border: 1px solid var(--border-color); font-family: var(--font-mono); background: #ffffff; margin-right: 4px;">[E]</span>
-                        <span onclick="event.stopPropagation(); deleteCategory('${cat.name.replace(/'/g, "\\'")}')" style="color: var(--text-accent); cursor: pointer; padding: 2px 4px; border: 1px solid var(--border-color); font-family: var(--font-mono); background: #ffffff;">[D]</span>
-                    </div>
-                `;
+                const editBtn = document.createElement('button');
+                editBtn.className = 'track-item-btn';
+                editBtn.innerHTML = '✏️';
+                editBtn.title = "수정 (Edit Category)";
+                editBtn.style.padding = '2px 6px';
+                editBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    promptEditCategory(cat.name);
+                };
+
+                const delBtn = document.createElement('button');
+                delBtn.className = 'track-item-btn';
+                delBtn.innerHTML = '🗑️';
+                delBtn.title = "삭제 (Delete Category)";
+                delBtn.style.color = 'var(--text-accent)';
+                delBtn.style.padding = '2px 6px';
+                delBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteCategory(cat.name);
+                };
+
+                btnWrapper.appendChild(editBtn);
+                btnWrapper.appendChild(delBtn);
             }
 
-            card.innerHTML = `
-                <div style="display: flex; flex-direction: column;">
-                    <div class="category-card-name" style="color: ${cat.color};">${cat.name}</div>
-                    <div class="category-card-count">${catTracks.length} recordings</div>
-                </div>
-                ${actionHtml}
-            `;
-            container.appendChild(card);
+            container.appendChild(btnWrapper);
         });
-    }
-
-    function slideBackToCategories() {
-        selectedCategoryName = "";
-        const wrapper = document.getElementById('sidebar-views-wrapper');
-        if (wrapper) wrapper.style.transform = 'translateX(0%)';
-        renderCategories();
-    }
-
-    function selectCategory(catName) {
-        selectedCategoryName = catName;
-        document.getElementById('active-category-title').innerText = catName;
-        const wrapper = document.getElementById('sidebar-views-wrapper');
-        if (wrapper) wrapper.style.transform = 'translateX(-50%)';
-        renderTracklist();
     }
 
     function bindCategorySelect() {
@@ -1625,14 +1768,25 @@
     function toggleAdminMode() {
         isAdminMode = !isAdminMode;
         
-        const adminToggleBtn = document.getElementById('admin-toggle');
-        adminToggleBtn.innerText = isAdminMode ? "[A] Admin: ON" : "[A] Admin: OFF";
+        const triggerLink = document.getElementById('admin-trigger-link');
+        if (triggerLink) {
+            triggerLink.innerText = isAdminMode ? "[Admin Mode: ON]" : "[Admin Mode]";
+        }
         
         // Show/hide admin panels
         document.querySelectorAll('.admin-only').forEach(el => {
-            el.style.display = isAdminMode ? 'inline-flex' : 'none';
+            el.style.display = isAdminMode ? 'block' : 'none';
         });
-        document.getElementById('admin-actions-panel').style.display = isAdminMode ? 'block' : 'none';
+        
+        const adminPanel = document.getElementById('floating-admin-panel');
+        if (adminPanel) {
+            adminPanel.style.display = isAdminMode ? 'block' : 'none';
+        }
+
+        const catAdminActions = document.getElementById('category-admin-actions');
+        if (catAdminActions) {
+            catAdminActions.style.display = isAdminMode ? 'block' : 'none';
+        }
 
         // Toggle map double-click zoom
         if (isAdminMode) {
@@ -1642,6 +1796,7 @@
         }
 
         renderMarkers();
+        renderCategories();
         renderTracklist();
     }
 
@@ -1649,7 +1804,6 @@
     function renderMarkers() {
         // Clear previous markers
         markers.forEach(m => {
-            m.off('popupclose'); // Unbind to prevent recursive re-entrancy crashes
             m.remove();
         });
         markers.length = 0;
@@ -1661,80 +1815,129 @@
                 return;
             }
 
-            const color = getCategoryColor(data.category || "Soundscape in ganghwa island 2025-2026");
+            // Apply category filter (Felix Blume Sound Map Style)
+            const trackCat = data.category || "Soundscape in ganghwa island 2025-2026";
+            if (selectedCategoryName && trackCat !== selectedCategoryName) {
+                return; // Skip rendering map pins not matching the selected category
+            }
 
-            // Simple styled color circle pin
+            // Simple styled minimalist circle pin using dynamic category color
+            const isTrackPlaying = (idx === currentPlayingTrackIndex);
+            const catColor = getCategoryColor(trackCat);
             const icon = L.divIcon({ 
-                className: 'custom-marker-icon' + (idx === currentTrackIndex ? ' active' : ''), 
-                html: `<div class="circle-pin" style="background-color: ${color};"></div>`, 
-                iconSize: [30, 30],
-                iconAnchor: [15, 15],
-                popupAnchor: [0, -15]
+                className: 'custom-marker-icon' + (idx === currentTrackIndex ? ' active' : '') + (isTrackPlaying ? ' playing' : ''), 
+                html: `<div class="circle-pin" style="background-color: ${catColor}; border: 2px solid #ffffff; width: 100%; height: 100%; border-radius: 50%; box-sizing: border-box; --text-accent: ${catColor};"></div>`, 
+                iconSize: [16, 16], // Slightly smaller and elegant size matching Cartografia das Memorias
+                iconAnchor: [8, 8],
+                popupAnchor: [0, -8]
             });
             
             const marker = L.marker([data.lat, data.lng], { icon }).addTo(map);
             markers.push(marker);
+
+            // Bind tooltip on hover (Felix Blume Style)
+            marker.bindTooltip(data.title, {
+                className: 'leaflet-tooltip-own',
+                direction: 'top',
+                offset: [0, -10],
+                opacity: 0.95
+            });
             
             marker.on('click', () => selectTrack(idx));
-            
-            // Clean up dragging state if popup closes naturally
-            marker.on('popupclose', () => {
-                marker.dragging.disable();
-                marker.off('drag');
-                
-                // If it was an unsaved temporary track, remove it
-                if (soundData[idx] && soundData[idx].isTemporary) {
-                    soundData.splice(idx, 1);
-                    renderMarkers();
-                    renderCategories();
-                    renderTracklist();
-                    currentTrackIndex = -1;
-                }
-            });
         });
     }
 
-    // Render tracklist to sidebar
+    // Render tracklist to sidebar - 90s Retro Style
     function renderTracklist() {
-        const listEl = document.getElementById('track-list');
-        listEl.innerHTML = '';
+        const listEl = document.getElementById('retro-track-list');
+        if (listEl) {
+            listEl.innerHTML = '';
+            let counter = 1;
+            soundData.forEach((data, idx) => {
+                const trackCat = data.category || "Soundscape in ganghwa island 2025-2026";
+                if (selectedCategoryName && trackCat !== selectedCategoryName) {
+                    return;
+                }
 
-        let counter = 1;
-        soundData.forEach((data, idx) => {
-            const trackCat = data.category || "Soundscape in ganghwa island 2025-2026";
-            if (selectedCategoryName && trackCat !== selectedCategoryName) {
-                return;
-            }
+                const localNum = counter++;
 
-            const localNum = counter++;
+                const item = document.createElement('div');
+                item.className = 'track-item';
+                if (idx === currentTrackIndex) item.classList.add('active');
+                
+                let actionsHtml = '';
+                if (isAdminMode) {
+                    actionsHtml = `
+                        <div class="track-item-actions">
+                            <button class="track-item-btn" onclick="event.stopPropagation(); openEditModal(${idx})">Edit</button>
+                            <button class="track-item-btn" onclick="event.stopPropagation(); deleteTrack(${idx})" style="color: var(--text-accent);">Del</button>
+                        </div>
+                    `;
+                }
 
-            const item = document.createElement('div');
-            item.className = 'track-item';
-            if (idx === currentTrackIndex) item.classList.add('active');
-            
-            let actionsHtml = '';
-            if (isAdminMode) {
-                actionsHtml = `
-                    <div class="track-item-actions">
-                        <button class="track-item-btn" onclick="event.stopPropagation(); openEditModal(${idx})">Edit</button>
-                        <button class="track-item-btn" onclick="event.stopPropagation(); deleteTrack(${idx})" style="color: var(--text-accent);">Del</button>
+                item.innerHTML = `
+                    <div class="track-item-content">
+                        <b class="track-item-num">${String(localNum).padStart(2,'0')}</b>
+                        <span class="track-item-title">${data.title}</span>
                     </div>
+                    ${actionsHtml}
                 `;
-            }
+                item.onclick = () => selectTrack(idx);
+                listEl.appendChild(item);
+            });
+        }
 
-            item.innerHTML = `
-                <div class="track-item-content">
-                    <b class="track-item-num">${String(localNum).padStart(2,'0')}</b>
-                    <span class="track-item-title">${data.title}</span>
-                </div>
-                ${actionsHtml}
-            `;
-            item.onclick = () => selectTrack(idx);
-            listEl.appendChild(item);
-        });
+        // Render to left brand calligraphy list
+        const leftListEl = document.getElementById('left-track-list');
+        if (leftListEl) {
+            leftListEl.innerHTML = '';
+            let leftCounter = 1;
+            soundData.forEach((data, idx) => {
+                const trackCat = data.category || "Soundscape in ganghwa island 2025-2026";
+                if (selectedCategoryName && trackCat !== selectedCategoryName) {
+                    return;
+                }
+
+                const localNum = leftCounter++;
+                const item = document.createElement('div');
+                item.className = 'left-track-item';
+                if (idx === currentTrackIndex) item.classList.add('active');
+
+                item.innerText = `${String(localNum).padStart(2,'0')}. ${data.title}`;
+                item.title = data.title;
+                item.onclick = () => selectTrack(idx);
+                leftListEl.appendChild(item);
+            });
+        }
     }
 
-    // Select track and fly to view - Ordered: Player -> Image -> Text Content
+    // Helper to format meta text into clean HTML block with line break and divider line
+    function formatMetaToHtml(metaText) {
+        if (!metaText) return '';
+        
+        const recIdx = metaText.indexOf('Recording:');
+        let dateStr = '';
+        let recStr = '';
+        
+        if (recIdx !== -1) {
+            dateStr = metaText.substring(0, recIdx).replace(/\//g, '').trim();
+            recStr = metaText.substring(recIdx).trim();
+        } else {
+            dateStr = metaText.trim();
+        }
+        
+        let html = '';
+        if (dateStr) {
+            html += `<div class="meta-date">${dateStr}</div>`;
+        }
+        if (recStr) {
+            html += `<div class="meta-rec" style="${dateStr ? 'margin-top: 8px;' : ''}">${recStr}</div>`;
+        }
+        
+        return html;
+    }
+
+    // Select track and update right sidebar content - No zoom in (camera stays static)
     function selectTrack(idx) {
         if (idx < 0 || idx >= soundData.length) return;
         const track = soundData[idx];
@@ -1746,74 +1949,81 @@
         const localIdx = catTracks.indexOf(track);
         const localTrackNum = localIdx !== -1 ? localIdx + 1 : 1;
 
-        // Close active popups and set active status on DOM markers
+        // Toggle marker active states
         markers.forEach((m, i) => {
-            m.closePopup();
             const el = m.getElement();
             if (el) {
                 el.classList.toggle('active', i === idx);
             }
         });
 
-        const isMobile = window.innerWidth <= 768;
-        const targetZoom = isMobile ? 12 : 13;
+        // Open Right Sidebar Drawer
+        openRightSidebar();
 
-        // Build popup HTML
-        const bgCol = "ffffff";
-        const linkCol = "ff33aa";
-        
-        // Render Image: prioritize imageBase64, then imageUrl (scales fully without cropping)
-        // onerror handles hidden display of broken HEIC image files
-        let imageHtml = '';
-        if (track.imageBase64) {
-            imageHtml = `<img src="${track.imageBase64}" class="popup-media-image" onerror="this.style.display='none';" />`;
-        } else if (track.imageUrl) {
-            imageHtml = `<img src="${track.imageUrl}" class="popup-media-image" onerror="this.style.display='none';" />`;
+        // Populate Right Sidebar Text Details
+        document.getElementById('right-sidebar-track-num').innerText = `Track ${String(localTrackNum).padStart(2,'0')}`;
+        document.getElementById('right-sidebar-title').innerText = track.title;
+        document.getElementById('right-sidebar-desc').innerText = track.desc;
+        document.getElementById('right-sidebar-meta').innerHTML = formatMetaToHtml(track.meta);
+
+        // Show Hidden Track Details Panels
+        const titleCard = document.getElementById('right-sidebar-title-card');
+        const bodyCard = document.getElementById('right-sidebar-body-card');
+        const playerContainer = document.getElementById('right-sidebar-player-container');
+        if (titleCard) titleCard.style.display = 'block';
+        if (bodyCard) bodyCard.style.display = 'block';
+        if (playerContainer) playerContainer.style.display = 'block';
+
+        // Update Cover Image
+        const imgContainer = document.getElementById('right-sidebar-image-container');
+        const imgEl = document.getElementById('right-sidebar-image');
+        if (track.imageBase64 || track.imageUrl) {
+            imgEl.src = track.imageBase64 || track.imageUrl;
+            imgContainer.style.display = 'block';
+        } else {
+            imgContainer.style.display = 'none';
+            imgEl.src = '';
         }
 
-        // Render Audio: parse raw iframes, bandcamp direct embedded URLs, trackIds, soundcloud links, and standard file streams
+        // Render Audio Player inside Right Sidebar Container
+        playerContainer.innerHTML = ''; // Reset previous player
+
         let audioPlayerHtml = '';
         const rawAudio = track.audioUrl ? track.audioUrl.trim() : "";
         const trackId = track.id ? track.id.trim() : "";
 
         if (rawAudio.includes('<iframe') || rawAudio.includes('iframe>')) {
-            // 1. Raw iframe code snippet pasted
             const match = rawAudio.match(/src=["']([^"']+)["']/);
             if (match && match[1]) {
                 let cleanSrc = match[1];
                 if (cleanSrc.includes('bandcamp.com')) {
-                    cleanSrc = cleanSrc.replace('/size=small/', '/size=small/artwork=none/tracklist=false/');
+                    cleanSrc = cleanSrc.replace('/size=small/', '/size=small/artwork=none/tracklist=false/autoplay=true/');
                 } else if (cleanSrc.includes('soundcloud.com')) {
-                    cleanSrc += '&show_artwork=false&show_user=false&sharing=false&download=false&buying=false&show_playcount=false';
+                    cleanSrc += '&auto_play=true&show_artwork=false&show_user=false&sharing=false&download=false&buying=false&show_playcount=false';
                 }
                 const isSc = cleanSrc.includes('soundcloud.com');
-                audioPlayerHtml = `<iframe class="${isSc ? 'popup-player-sc' : 'popup-player'}" src="${cleanSrc}" style="width: 100%; border: none; height: ${isSc ? '80px' : '42px'};" seamless></iframe>`;
+                audioPlayerHtml = `<iframe class="${isSc ? 'popup-player-sc' : 'popup-player'}" src="${cleanSrc}" style="width: 100%; border: none; height: ${isSc ? '80px' : '42px'};" allow="autoplay" seamless></iframe>`;
             }
         } else if (rawAudio.includes('bandcamp.com/EmbeddedPlayer')) {
-            // 2. Direct Bandcamp embedded player link
             let bcUrl = rawAudio;
             if (!bcUrl.includes('artwork=')) {
-                bcUrl = bcUrl.replace('/size=small/', '/size=small/artwork=none/tracklist=false/');
+                bcUrl = bcUrl.replace('/size=small/', '/size=small/artwork=none/tracklist=false/autoplay=true/');
             }
-            audioPlayerHtml = `<iframe class="popup-player" src="${bcUrl}" style="width: 100%; border: none; height: 42px;" seamless></iframe>`;
+            audioPlayerHtml = `<iframe class="popup-player" src="${bcUrl}" style="width: 100%; border: none; height: 42px;" allow="autoplay" seamless></iframe>`;
         } else if (rawAudio.includes('soundcloud.com')) {
-            // 3. SoundCloud direct sharing link
-            const scUrl = `https://w.soundcloud.com/player/?url=${encodeURIComponent(rawAudio)}&color=%23ff33aa&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false&show_artwork=false&sharing=false&download=false&buying=false&show_playcount=false`;
+            const scUrl = `https://w.soundcloud.com/player/?url=${encodeURIComponent(rawAudio)}&color=%23ff33aa&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false&show_artwork=false&sharing=false&download=false&buying=false&show_playcount=false`;
             audioPlayerHtml = `<iframe class="popup-player-sc" src="${scUrl}" style="width: 100%; border: none; height: 80px;" scrolling="no" frameborder="no" allow="autoplay" seamless></iframe>`;
-        } else if (rawAudio && (rawAudio.endsWith('.wav') || rawAudio.endsWith('.mp3') || rawAudio.includes('r2.dev') || rawAudio.includes('storage'))) {
-            audioPlayerHtml = `<audio id="right-sidebar-audio-element" controls src="${rawAudio}" style="width: 100%;" autoplay></audio>`;
         } else if (trackId) {
-            // 4. Fallback to bandcamp trackId
             audioPlayerHtml = `
                 <iframe class="popup-player" 
-                    src="https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=${bgCol}/linkcol=${linkCol}/track=${trackId}/transparent=true/artwork=none/tracklist=false/autoplay=true/" 
+                    src="https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/transparent=true/artwork=none/tracklist=false/track=${trackId}/transparent=true/autoplay=true/" 
                     style="width: 100%; border: none; height: 42px;"
+                    allow="autoplay"
                     seamless>
                 </iframe>
             `;
         } else if (rawAudio) {
-            // 5. Standard stream link (.mp3, .wav) or generic site links
-            audioPlayerHtml = `<audio controls class="popup-audio-player" src="${rawAudio}" style="width: 100%;"></audio>`;
+            audioPlayerHtml = `<audio id="right-sidebar-audio-element" controls src="${rawAudio}" style="width: 100%;" autoplay></audio>`;
         } else {
             audioPlayerHtml = `
                 <div style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color); font-size: 10px; color: var(--text-sub); background: #ffffff;">
@@ -1822,60 +2032,47 @@
             `;
         }
 
-        // Sequential Popup Content: Audio Player (Top) -> Text Info (Middle) -> Photo (Bottom)
-        let popupContent = `
-            ${audioPlayerHtml}
-            <div class="diary-box">
-                <span class="track-num" style="color: var(--text-accent); font-size: 10px; font-weight: bold; display: block; margin-bottom: 4px;">Track ${String(localTrackNum).padStart(2,'0')}</span>
-                <h2>${track.title}</h2>
-                <p>${track.desc}</p>
-                <span class="meta-text">${track.meta}</span>
-            </div>
-            ${imageHtml}
-        `;
+        playerContainer.innerHTML = audioPlayerHtml;
 
-        if (isAdminMode) {
-            popupContent += `
-                <div class="popup-admin-actions">
-                    <button class="bbs-btn" onclick="openEditModal(${idx})">[E] EDIT</button>
-                    <button class="bbs-btn" onclick="deleteTrack(${idx})" style="color: var(--text-accent);">[D] DELETE</button>
-                </div>
-            `;
-        }
-
-        // Bind popup to marker IMMEDIATELY to prevent Leaflet registration bypass
-        markers[idx].bindPopup(popupContent, { 
-            className: 'custom-popup', 
-            closeButton: false,
-            offset: [0, -6]
-        });
-
-        // Determine if map fly-to transition is necessary (bypass fly-to if already centered)
-        const currentCenter = map.getCenter();
-        const dist = currentCenter.distanceTo([track.lat, track.lng]);
-
-        // Fly to and open popup using robust fallback trigger mechanism
-        if (dist < 50 && map.getZoom() === targetZoom) {
-            map.panTo([track.lat, track.lng]);
-            markers[idx].openPopup();
-        } else {
-            map.flyTo([track.lat, track.lng], targetZoom, { animate: true, duration: 1.0 });
-            
-            let triggerPopupCalled = false;
-            const triggerPopup = () => {
-                if (triggerPopupCalled) return;
-                triggerPopupCalled = true;
-                if (markers[idx]) {
-                    markers[idx].openPopup();
+        // Auto-spin logic based on player types
+        // Use a slight setTimeout buffer to let the browser parse DOM HTML and register audio stream buffer
+        setTimeout(() => {
+            const audEl = document.getElementById('right-sidebar-audio-element');
+            if (audEl) {
+                audEl.addEventListener('play', () => setMarkerPlayingState(idx, true));
+                audEl.addEventListener('pause', () => setMarkerPlayingState(idx, false));
+                audEl.addEventListener('ended', () => {
+                    setMarkerPlayingState(idx, false);
+                    const nextIdx = idx + 1;
+                    if (nextIdx < soundData.length) {
+                        selectTrack(nextIdx);
+                    }
+                });
+                // Force immediate play trigger under user click interaction context
+                audEl.play().catch(err => console.log("Standard stream play prevented:", err));
+                setMarkerPlayingState(idx, true);
+            } else {
+                // 2. If Embed (iframe) players are loaded, trigger rotation immediately (as cross-origin prevent monitoring play states)
+                if (rawAudio || trackId) {
+                    setMarkerPlayingState(idx, true);
+                } else {
+                    setMarkerPlayingState(idx, false);
                 }
-                map.off('moveend', triggerPopup);
-            };
-            
-            map.once('moveend', triggerPopup);
-            setTimeout(triggerPopup, 1200); // Fail-safe trigger if moveend does not fire
+            }
+        }, 100);
+
+        // Show Admin actions inside sidebar if in Admin Mode
+        const adminActions = document.getElementById('right-sidebar-admin-actions');
+        if (adminActions) {
+            adminActions.style.display = isAdminMode ? 'flex' : 'none';
+            const editBtn = document.getElementById('right-sidebar-edit-btn');
+            const deleteBtn = document.getElementById('right-sidebar-delete-btn');
+            if (editBtn) editBtn.onclick = () => openEditModal(idx);
+            if (deleteBtn) deleteBtn.onclick = () => deleteTrack(idx);
         }
 
         // Set active in tracklist
+        const isMobile = window.innerWidth <= 768;
         const items = document.querySelectorAll('.track-item');
         items.forEach((item, i) => {
             item.classList.toggle('active', i === idx);
@@ -1883,6 +2080,89 @@
                 item.scrollIntoView({ behavior: 'smooth', block: isMobile ? 'center' : 'nearest', inline: 'center' });
             }
         });
+
+        // Set active in left calligraphy tracklist
+        const leftItems = document.querySelectorAll('.left-track-item');
+        leftItems.forEach((item, i) => {
+            item.classList.toggle('active', i === idx);
+            if (i === idx) {
+                item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
+    }
+
+    // Helper function to animate marker pins spinning on the map
+    function setMarkerPlayingState(idx, isPlaying) {
+        // Reset playing state on all markers first
+        markers.forEach((m, i) => {
+            const el = m.getElement();
+            if (el) {
+                el.classList.remove('playing');
+            }
+        });
+
+        if (isPlaying && markers[idx]) {
+            currentPlayingTrackIndex = idx;
+            const activeEl = markers[idx].getElement();
+            if (activeEl) {
+                activeEl.classList.add('playing');
+            }
+        } else {
+            if (currentPlayingTrackIndex === idx) {
+                currentPlayingTrackIndex = -1;
+            }
+        }
+
+        // Sync and refresh left sidebar retro track list indicators dynamically
+        renderTracklist();
+    }
+
+    // Right Sidebar Drawer Controls
+    function openRightSidebar() {
+        const sb = document.getElementById("sidebar-right");
+        if (sb) {
+            sb.classList.remove("collapsed");
+            const btn = document.getElementById("sidebar-toggle-tab");
+            if (btn) btn.innerText = "▸";
+        }
+    }
+
+    function closeRightSidebar() {
+        const sb = document.getElementById("sidebar-right");
+        if (sb) {
+            sb.classList.add("collapsed");
+            const btn = document.getElementById("sidebar-toggle-tab");
+            if (btn) btn.innerText = "◂";
+            
+            // Stop any active audio when right sidebar is closed
+            const audEl = document.getElementById('right-sidebar-audio-element');
+            if (audEl) {
+                audEl.pause();
+            }
+            // Stop marker rotating animations
+            setMarkerPlayingState(-1, false);
+
+            // Hide track details and player
+            const titleCard = document.getElementById('right-sidebar-title-card');
+            const bodyCard = document.getElementById('right-sidebar-body-card');
+            const playerContainer = document.getElementById('right-sidebar-player-container');
+            const imgContainer = document.getElementById('right-sidebar-image-container');
+            if (titleCard) titleCard.style.display = 'none';
+            if (bodyCard) bodyCard.style.display = 'none';
+            if (playerContainer) playerContainer.style.display = 'none';
+            if (imgContainer) imgContainer.style.display = 'none';
+        }
+    }
+
+    function toggleRightSidebar() {
+        const sb = document.getElementById("sidebar-right");
+        if (sb) {
+            if (sb.classList.contains("collapsed")) {
+                openRightSidebar();
+            } else {
+                closeRightSidebar();
+            }
+        }
     }
 
     // Open dedicated Edit Modal Dialog (새창)
@@ -1899,8 +2179,28 @@
         updateEditCategoryColorPicker();
         document.getElementById('modal-edit-title').value = track.title || '';
         document.getElementById('modal-edit-desc').value = track.desc || '';
-        document.getElementById('modal-edit-meta').value = track.meta || '';
-        document.getElementById('modal-edit-id').value = track.id || '';
+        
+        let dateVal = track.date || '';
+        let gearVal = track.gear || '';
+        if (!dateVal && !gearVal && track.meta) {
+            const raw = track.meta;
+            if (raw.includes('Date:') && raw.includes('Recording:')) {
+                const parts = raw.split('Recording:');
+                dateVal = parts[0].replace('Date:', '').replace('/', '').trim();
+                gearVal = parts[1].trim();
+            } else if (raw.includes('Date:')) {
+                dateVal = raw.replace('Date:', '').trim();
+            } else if (raw.includes('/')) {
+                const parts = raw.split('/');
+                dateVal = parts[0].trim();
+                gearVal = parts[1].trim();
+            } else {
+                dateVal = raw;
+            }
+        }
+        document.getElementById('modal-edit-date').value = dateVal;
+        document.getElementById('modal-edit-gear').value = gearVal;
+
         document.getElementById('modal-edit-audio-url').value = track.audioUrl || '';
         document.getElementById('modal-edit-lat').value = track.lat;
         document.getElementById('modal-edit-lng').value = track.lng;
@@ -2026,8 +2326,9 @@
         const idx = parseInt(document.getElementById('edit-idx').value);
         const title = document.getElementById('modal-edit-title').value.trim();
         const desc = document.getElementById('modal-edit-desc').value.trim();
-        const meta = document.getElementById('modal-edit-meta').value.trim();
-        const id = document.getElementById('modal-edit-id').value.trim();
+        const date = document.getElementById('modal-edit-date').value.trim();
+        const gear = document.getElementById('modal-edit-gear').value.trim();
+        const meta = (date || gear) ? `Date: ${date} / Recording: ${gear}` : '';
         const audioUrl = document.getElementById('modal-edit-audio-url').value.trim();
         const lat = parseFloat(document.getElementById('modal-edit-lat').value);
         const lng = parseFloat(document.getElementById('modal-edit-lng').value);
@@ -2072,9 +2373,10 @@
         const previousImageBase64 = soundData[idx] ? soundData[idx].imageBase64 : "";
 
         soundData[idx] = {
-            id,
             title,
             desc,
+            date,
+            gear,
             meta,
             lat,
             lng,
@@ -2272,39 +2574,43 @@
         }
     }
 
-    // Helper functions
-    function escapeHtml(text) {
-        if (!text) return '';
-        return text
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
-
     // Initialization
-    const initIsMobile = window.innerWidth <= 768;
-    document.getElementById('sidebar-toggle-tab').innerText = initIsMobile ? '▾' : '▸';
-    
     // Set initial Admin Mode state dynamically
     if (isAdminMode) {
-        document.getElementById('admin-toggle').innerText = "[A] Admin: ON";
         document.querySelectorAll('.admin-only').forEach(el => {
-            el.style.display = 'inline-flex';
+            el.style.display = 'block';
         });
-        const adminActionsPanel = document.getElementById('admin-actions-panel');
-        if (adminActionsPanel) adminActionsPanel.style.display = 'block';
+        const adminPanel = document.getElementById('floating-admin-panel');
+        if (adminPanel) adminPanel.style.display = 'block';
+        const catAdminActions = document.getElementById('category-admin-actions');
+        if (catAdminActions) catAdminActions.style.display = 'block';
+        
+        const triggerLink = document.getElementById('admin-trigger-link');
+        if (triggerLink) triggerLink.innerText = "[Admin Mode: ON]";
+        
         map.doubleClickZoom.disable();
     } else {
-        document.getElementById('admin-toggle').innerText = "[A] Admin: OFF";
         document.querySelectorAll('.admin-only').forEach(el => {
             el.style.display = 'none';
         });
-        const adminActionsPanel = document.getElementById('admin-actions-panel');
-        if (adminActionsPanel) adminActionsPanel.style.display = 'none';
+        const adminPanel = document.getElementById('floating-admin-panel');
+        if (adminPanel) adminPanel.style.display = 'none';
+        const catAdminActions = document.getElementById('category-admin-actions');
+        if (catAdminActions) catAdminActions.style.display = 'none';
+        
+        const triggerLink = document.getElementById('admin-trigger-link');
+        if (triggerLink) triggerLink.innerText = "[Admin Mode]";
+        
         map.doubleClickZoom.enable();
     }
+
+    // Bind keyboard shortcut Alt+A / Option+A for Admin Mode toggling (Felix Blume style hidden gate)
+    window.addEventListener('keydown', (e) => {
+        if (e.altKey && e.key.toLowerCase() === 'a') {
+            e.preventDefault();
+            toggleAdminMode();
+        }
+    });
 
     renderCategories();
     renderTracklist();
