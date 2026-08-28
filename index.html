@@ -28,10 +28,7 @@
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
-    <!-- Google Web Fonts Calligraphy Link (Resolves file:// CORS block) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Yeon+Sung&display=swap" rel="stylesheet">
+
     
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
@@ -847,12 +844,7 @@
             font-weight: bold;
         }
 
-        /* Calligraphy typeface for Track Detail title */
-        #right-sidebar-title {
-            font-family: 'Yeon Sung', 'Gungsuh', '궁서', serif !important;
-            font-size: 18px !important;
-            font-weight: bold !important;
-        }
+
 
         /* 📖 Felix Blume Inspired Modern Accordions */
         .retro-accordion {
@@ -1394,7 +1386,7 @@
     const soundData = [];
     
     // Force reset local database if caching version has changed (cleans corrupted structures)
-    const APP_VERSION = "2026-08-29-v1000";
+    const APP_VERSION = "2026-08-29-v2000";
     if (localStorage.getItem('gangwha_app_version') !== APP_VERSION) {
         localStorage.removeItem('gangwha_sound_data');
         localStorage.removeItem('gangwha_deleted_defaults');
