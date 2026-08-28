@@ -1059,7 +1059,7 @@
 
             <!-- Sidebar Footer -->
             <div class="sidebar-footer" style="margin-top: 24px; border-top: 1px dashed #663366; padding-top: 12px; font-size: 9.5px; color: #663366; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono);">
-                <span>Ganghwa Soundscape © 2026 <span id="app-version-label" style="opacity: 0.6; margin-left: 6px;">[v8000]</span></span>
+                <span>Ganghwa Soundscape © 2026 <span id="app-version-label" style="opacity: 0.6; margin-left: 6px;">[v9000]</span></span>
                 <button class="track-item-btn" onclick="toggleAdminMode()" id="admin-trigger-link" style="font-size: 9.5px; padding: 2px 6px;">[E] ADMIN</button>
             </div>
         </div>
@@ -1429,7 +1429,7 @@
     const soundData = [];
     
     // Force reset local database if caching version has changed (cleans corrupted structures)
-    const APP_VERSION = "2026-08-29-v8000";
+    const APP_VERSION = "2026-08-29-v9000";
     if (localStorage.getItem('gangwha_app_version') !== APP_VERSION) {
         localStorage.removeItem('gangwha_sound_data');
         localStorage.removeItem('gangwha_deleted_defaults');
@@ -1476,17 +1476,17 @@
     // Custom flat grid layout bounds matching original portrait ratio (733x1024)
     const bounds = [[0, 0], [1000, 715]];
 
-    // Leaflet map setup - Static frozen grid layout bounds (fully locked, non-draggable, non-zoomable)
+    // Leaflet map setup - Zoomable flat overlay on top of fixed background (Unified dragging/zooming enabled)
     const map = L.map('map', { 
         crs: L.CRS.Simple,
         zoomControl: false, 
         attributionControl: false,
-        dragging: false,        // Disable map dragging
-        scrollWheelZoom: false,  // Disable wheel zoom
-        doubleClickZoom: false, // Disable dblclick zoom
-        boxZoom: false,
-        keyboard: false,
-        touchZoom: false,       // Disable mobile pinch zoom
+        dragging: true,         // Enable map dragging
+        scrollWheelZoom: true,   // Enable wheel zoom
+        doubleClickZoom: true,  // Enable dblclick zoom
+        boxZoom: true,
+        keyboard: true,
+        touchZoom: true,        // Enable mobile pinch zoom
         maxZoom: 2
     });
 
@@ -2000,8 +2000,12 @@
             catAdminActions.style.display = isAdminMode ? 'block' : 'none';
         }
 
-        // Map is frozen globally, double-click zoom is always disabled
-        map.doubleClickZoom.disable();
+        // Toggle map double-click zoom (Disable in Admin Mode to allow double-click pin placement without zooming)
+        if (isAdminMode) {
+            map.doubleClickZoom.disable();
+        } else {
+            map.doubleClickZoom.enable();
+        }
 
         renderMarkers();
         renderCategories();
