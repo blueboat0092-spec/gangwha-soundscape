@@ -1,0 +1,2340 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Pocket dream's soundmap</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+        :root {
+            --font-mono: ui-monospace, 'SFMono-Regular', Consolas, Menlo, Monaco, 'Courier New', monospace;
+            --bg-main: #ffffff;
+            --bg-panel: #fafafa;
+            --bg-popup: #ffffff;
+            --bg-hover: #f3f4f6;
+            --bg-active: #ffeef8;
+            --text-main: #1f2937;
+            --text-sub: #8c92ac;
+            --text-accent: #ff33aa;  /* Hot Pink */
+            --border-color: #d1d5db;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+            --btn-bg: #ffffff;
+            --btn-border: #d1d5db;
+            --btn-text: #1f2937;
+            --marker-bg: #ff33aa;    /* Pink pin */
+            --marker-text: #ffffff;
+            --map-filter: grayscale(0.8) contrast(1.05) brightness(1.02); /* Bright, clean, gray-toned map */
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: var(--font-mono);
+            background-color: var(--bg-main);
+            color: var(--text-main);
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* Top Header Status Bar */
+        .bbs-header {
+            height: 38px;
+            background-color: var(--bg-panel);
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            box-sizing: border-box;
+            font-size: 12px;
+            z-index: 3000;
+            box-shadow: 0 1px 3px var(--shadow-color);
+        }
+
+        .bbs-title {
+            font-weight: bold;
+            color: var(--text-accent);
+            letter-spacing: 0.5px;
+        }
+
+        .bbs-nav {
+            display: flex;
+            gap: 6px;
+        }
+
+        .bbs-btn {
+            background: var(--btn-bg);
+            color: var(--btn-text);
+            border: 1px solid var(--btn-border);
+            padding: 3px 8px;
+            cursor: pointer;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            transition: all 0.1s;
+            box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.05);
+        }
+
+        .bbs-btn:active {
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px rgba(0, 0, 0, 0.05);
+        }
+
+        .bbs-btn:hover {
+            background-color: var(--bg-hover);
+            color: var(--text-accent);
+            border-color: var(--text-accent);
+        }
+
+        #app-body {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 38px);
+            position: relative;
+            flex-direction: row;
+        }
+
+        /* Leaflet Map */
+        #map {
+            flex: 1;
+            height: 100%;
+            z-index: 1;
+            background-color: #fafafa;
+        }
+
+        .leaflet-tile-container {
+            filter: var(--map-filter);
+        }
+
+        /* Custom Pin Placement Mode Cursor overrides */
+        .add-spot-cursor,
+        .add-spot-cursor .leaflet-container,
+        .add-spot-cursor .leaflet-grab,
+        .add-spot-cursor .leaflet-interactive,
+        .add-spot-cursor .leaflet-pane {
+            cursor: url('marker-icon.jpg') 18 18, crosshair !important;
+        }
+
+        /* Sidebar container */
+        #sidebar-right {
+            width: 320px;
+            background-color: var(--bg-panel);
+            border-left: 2px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+            box-sizing: border-box;
+            position: relative;
+            transition: width 0.3s ease;
+        }
+
+        /* Sidebar Toggle Tab */
+        #sidebar-toggle-tab {
+            position: absolute;
+            left: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 50px;
+            background-color: var(--bg-panel);
+            border: 2px solid var(--border-color);
+            border-right: none;
+            cursor: pointer;
+            z-index: 1005;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            box-shadow: -2px 2px 4px rgba(0,0,0,0.05);
+            outline: none;
+        }
+
+        #sidebar-toggle-tab:hover {
+            color: var(--text-accent);
+            background-color: var(--bg-hover);
+        }
+
+        #sidebar-right.collapsed {
+            width: 0px;
+            border-left: none;
+        }
+
+        #sidebar-right.collapsed * {
+            display: none !important;
+        }
+
+        /* Keep toggle tab visible when collapsed */
+        #sidebar-right.collapsed #sidebar-toggle-tab {
+            display: flex !important;
+        }
+
+        .sidebar-title {
+            padding: 12px;
+            font-weight: bold;
+            border-bottom: 2px solid var(--border-color);
+            font-size: 12px;
+            color: var(--text-accent);
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.02);
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Sliding Views Layout */
+        .sidebar-views-container {
+            flex: 1;
+            overflow: hidden;
+            width: 100%;
+            position: relative;
+        }
+
+        .sidebar-views-wrapper {
+            display: flex;
+            width: 200%; /* Two pages wide */
+            height: 100%;
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .sidebar-view {
+            width: 50%; /* One page wide */
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        }
+
+        .back-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-accent);
+            padding: 2px 6px;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-right: 8px;
+            font-family: var(--font-mono);
+            box-shadow: 1px 1px 0px rgba(0,0,0,0.05);
+        }
+
+        .back-btn:hover {
+            background-color: var(--bg-hover);
+        }
+
+        /* Categories Page Grid */
+        .categories-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-sizing: border-box;
+        }
+
+        .category-card {
+            border: 2px solid var(--border-color);
+            background-color: #ffffff;
+            padding: 14px;
+            cursor: pointer;
+            box-sizing: border-box;
+            box-shadow: 3px 3px 0px var(--shadow-color);
+            transition: transform 0.1s, box-shadow 0.1s, border-color 0.1s;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .category-card:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0px var(--shadow-color);
+        }
+
+        .category-card:active {
+            transform: translate(1px, 1px);
+            box-shadow: 2px 2px 0px var(--shadow-color);
+        }
+
+        .category-card-name {
+            font-size: 12px;
+            font-weight: bold;
+            word-break: keep-all;
+        }
+
+        .category-card-count {
+            font-size: 10.5px;
+            color: var(--text-sub);
+        }
+
+        .track-list-container {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .track-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .track-item-empty {
+            padding: 10px 14px;
+            font-size: 11px;
+            color: var(--text-sub);
+            text-align: center;
+            background: #ffffff;
+            font-style: italic;
+        }
+
+        .track-item {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            font-size: 12.5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--text-main);
+            transition: background-color 0.1s;
+        }
+
+        .track-item:hover {
+            background-color: var(--bg-hover);
+        }
+
+        /* Color category specific highlights */
+        .cat-red .track-item.active {
+            background-color: #fff1f2;
+            color: #ef4444;
+            border-left: 3px solid #ef4444;
+            font-weight: bold;
+        }
+        
+        .cat-blue .track-item.active {
+            background-color: #eff6ff;
+            color: #2563eb;
+            border-left: 3px solid #2563eb;
+            font-weight: bold;
+        }
+
+        .cat-gray .track-item.active {
+            background-color: #f4f4f5;
+            color: #71717a;
+            border-left: 3px solid #71717a;
+            font-weight: bold;
+        }
+
+        .cat-red .track-item:hover {
+            color: #ef4444;
+        }
+
+        .cat-blue .track-item:hover {
+            color: #2563eb;
+        }
+
+        .cat-gray .track-item:hover {
+            color: #71717a;
+        }
+
+        .track-item-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .track-item-num {
+            opacity: 0.6;
+            font-size: 11px;
+        }
+
+        .track-item-title {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .track-item-actions {
+            display: flex;
+            gap: 4px;
+            margin-left: 8px;
+        }
+
+        .track-item-btn {
+            font-size: 10px;
+            padding: 1px 4px;
+            border: 1px solid var(--border-color);
+            background: #ffffff;
+            color: var(--text-main);
+            cursor: pointer;
+            font-family: var(--font-mono);
+            box-shadow: 1px 1px 0px rgba(0,0,0,0.05);
+        }
+
+        .track-item-btn:hover {
+            background: var(--bg-hover);
+            border-color: currentColor;
+        }
+
+        /* Admin Control Panel inside Sidebar */
+        #admin-actions-panel {
+            padding: 12px;
+            border-bottom: 2px solid var(--border-color);
+            background-color: rgba(255, 51, 170, 0.03);
+            box-sizing: border-box;
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f3f4f6;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ff33aa;
+        }
+
+        /* Album Info and Edit Modal Dialogs */
+        #info-modal, #edit-modal, #category-modal {
+            position: fixed;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 95%;
+            max-width: 480px;
+            max-height: calc(100vh - 80px);
+            background: var(--bg-popup);
+            border: 2px solid var(--text-accent); /* Bold pink border */
+            box-shadow: 6px 6px 0px var(--shadow-color);
+            z-index: 4000;
+            display: none;
+            flex-direction: column;
+            color: var(--text-main);
+            box-sizing: border-box;
+        }
+        
+        #edit-modal {
+            z-index: 4100; /* Layer on top of info-modal */
+        }
+
+        #category-modal {
+            z-index: 4200; /* Layer on top of edit-modal */
+            max-width: 400px;
+        }
+
+        .modal-header {
+            padding: 10px 14px;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+
+        .modal-title {
+            font-weight: bold;
+            color: var(--text-accent);
+            font-size: 13px;
+        }
+
+        .modal-close {
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 16px;
+            font-family: var(--font-mono);
+            font-weight: bold;
+        }
+
+        .modal-close:hover {
+            color: var(--text-accent);
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            font-size: 12.5px;
+            line-height: 1.6;
+        }
+
+        /* Custom Leaflet Popup */
+        .custom-popup .leaflet-popup-content-wrapper {
+            background: transparent !important;
+            color: var(--text-main) !important;
+            border: none !important;
+            border-radius: 0px !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            font-family: var(--font-mono) !important;
+        }
+
+        .custom-popup .leaflet-popup-content {
+            margin: 0 !important;
+            width: 320px !important;
+        }
+
+        .custom-popup .leaflet-popup-tip-container {
+            display: none;
+        }
+
+        .sound-note-card {
+            background: var(--bg-popup) !important;
+            color: var(--text-main) !important;
+            border-radius: 0px !important;
+            box-shadow: 4px 4px 0px var(--shadow-color) !important;
+            font-family: var(--font-mono) !important;
+            background-image: radial-gradient(rgba(0,0,0,0.04) 1px, transparent 0); /* Subtle grid pattern */
+            background-size: 16px 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Removed global player styles */
+
+        /* Custom Marker Icons (Circular note drawing) */
+        .custom-marker-icon {
+            background: #ffffff;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+            box-sizing: border-box;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .custom-marker-icon img {
+            border-radius: 50%;
+            transition: border-width 0.1s;
+        }
+
+        .custom-marker-icon:hover {
+            transform: scale(1.15);
+        }
+
+        /* Active selected marker icon styling */
+        .custom-marker-icon.active {
+            transform: scale(1.2);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25) !important;
+        }
+
+        .custom-marker-icon.active img {
+            border-width: 3px !important;
+        }
+
+        /* Popup content box */
+        .diary-box {
+            padding: 16px;
+            font-size: 12px;
+            line-height: 1.6;
+            box-sizing: border-box;
+        }
+
+        .diary-box h2 {
+            font-size: 13.5px;
+            font-weight: bold;
+            color: var(--text-accent);
+            margin: 0 0 8px 0;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 6px;
+            word-break: keep-all;
+        }
+
+        .diary-box p {
+            margin: 0 0 12px 0;
+            color: var(--text-main);
+            word-break: keep-all;
+        }
+
+        .diary-box .meta-text {
+            font-size: 11px;
+            color: var(--text-sub);
+            display: block;
+            margin-bottom: 8px;
+            border-top: 1px dotted rgba(0, 0, 0, 0.08);
+            padding-top: 6px;
+        }
+
+        .popup-player {
+            width: 100%;
+            height: 80px;
+            border: none;
+            border-bottom: 1px solid var(--border-color); /* Bottom border dividing from content below */
+            display: block;
+            background: #ffffff;
+        }
+        
+        .popup-audio-player {
+            width: 100%;
+            display: block;
+            border: none;
+            border-bottom: 1px solid var(--border-color); /* Bottom border dividing from content below */
+            background: #ffffff;
+            box-sizing: border-box;
+            padding: 8px 6px;
+        }
+
+        /* Popup Media Image styling - full size contain without cutting/cropping */
+        .popup-media-image {
+            width: 100%;
+            height: auto;
+            max-height: 220px;
+            object-fit: contain;
+            background-color: #fafafa;
+            display: block;
+            border-bottom: 1px solid var(--border-color);
+            box-sizing: border-box;
+        }
+
+        .popup-admin-actions {
+            padding: 0 16px 12px;
+            display: flex;
+            gap: 6px;
+        }
+
+        /* Forms inside Edit Modal */
+        .edit-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .form-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-row label {
+            font-size: 11px;
+            color: var(--text-accent);
+            font-weight: bold;
+        }
+
+        .bbs-input, .bbs-textarea {
+            background-color: #ffffff;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 6px 8px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .bbs-input:focus, .bbs-textarea:focus {
+            outline: none;
+            border-color: var(--text-accent);
+        }
+
+        .coords-inputs {
+            display: flex;
+            gap: 6px;
+        }
+
+        .coords-inputs input {
+            flex: 1;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            justify-content: flex-end;
+        }
+
+        #img-preview-container {
+            margin-top: 8px;
+            border: 1px solid var(--border-color);
+            padding: 6px;
+            background: #fafafa;
+            text-align: center;
+        }
+
+        /* Zoom Controls */
+        .leaflet-control-zoom {
+            border: 1px solid var(--border-color) !important;
+            border-radius: 4px !important;
+            box-shadow: 0 2px 4px var(--shadow-color) !important;
+            margin: 12px !important;
+            overflow: hidden;
+        }
+
+        .leaflet-control-zoom-in, .leaflet-control-zoom-out {
+            background-color: #ffffff !important;
+            color: var(--text-main) !important;
+            border: none !important;
+            font-family: var(--font-mono) !important;
+            font-weight: bold !important;
+        }
+
+        .leaflet-control-zoom-in {
+            border-bottom: 1px solid var(--border-color) !important;
+        }
+
+        .leaflet-control-zoom-in:hover, .leaflet-control-zoom-out:hover {
+            background-color: var(--bg-hover) !important;
+            color: var(--text-accent) !important;
+        }
+
+        /* Mobile View Response */
+        @media (max-width: 768px) {
+            #app-body {
+                flex-direction: column;
+            }
+
+            #map {
+                height: calc(100% - 90px);
+            }
+
+            #sidebar-right {
+                width: 100%;
+                height: 90px;
+                border-left: none;
+                border-top: 2px solid var(--border-color);
+                flex-direction: row;
+                transition: height 0.3s ease;
+            }
+
+            #sidebar-right.collapsed {
+                height: 0px;
+                border-top: none;
+            }
+
+            #sidebar-toggle-tab {
+                left: 50%;
+                top: -20px;
+                transform: translateX(-50%);
+                width: 50px;
+                height: 20px;
+                border-left: 2px solid var(--border-color);
+                border-right: 2px solid var(--border-color);
+                border-top: 2px solid var(--border-color);
+                border-bottom: none;
+            }
+
+            .sidebar-views-container {
+                height: 100%;
+            }
+
+            .categories-container {
+                flex-direction: row;
+                overflow-x: auto;
+                overflow-y: hidden;
+                padding: 8px;
+                gap: 8px;
+            }
+
+            .category-card {
+                flex-direction: column;
+                min-width: 150px;
+                padding: 8px 12px;
+                justify-content: center;
+                height: calc(100% - 16px);
+                box-shadow: 2px 2px 0px var(--shadow-color);
+            }
+
+            .track-list-container {
+                flex-direction: row;
+                width: 100%;
+                overflow-x: auto;
+                overflow-y: hidden;
+            }
+
+            #track-list {
+                display: flex;
+                flex-direction: row;
+                gap: 8px;
+                padding: 8px;
+            }
+
+            .track-item {
+                border-bottom: none;
+                border-right: 1px solid rgba(0, 0, 0, 0.05);
+                padding: 0 12px;
+                height: 100%;
+                min-width: 140px;
+                box-sizing: border-box;
+                justify-content: center;
+                text-align: center;
+            }
+
+            .track-item:last-child {
+                border-right: none;
+            }
+
+            .track-item.active {
+                border-left: none;
+                border-bottom: 3px solid currentColor;
+            }
+
+            .track-item-empty {
+                border-bottom: none;
+                padding: 0 12px;
+            }
+
+            #admin-actions-panel {
+                display: none !important;
+            }
+
+            #info-modal, #edit-modal {
+                width: 95%;
+                height: calc(100vh - 60px);
+                top: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <!-- Top Header Status Bar -->
+    <div class="bbs-header">
+        <div class="bbs-title">■ Pocket dream's soundmap</div>
+        <div class="bbs-nav">
+            <button class="bbs-btn" onclick="toggleInfo()">[H] Info</button>
+            <button class="bbs-btn" id="admin-toggle" onclick="toggleAdminMode()">[A] Admin: OFF</button>
+            <button class="bbs-btn admin-only" id="download-btn" onclick="downloadHtml()" style="display: none; color: var(--text-accent);">[S] Export HTML</button>
+            <button class="bbs-btn admin-only" id="reset-btn" onclick="resetData()" style="display: none;">[R] Reset</button>
+        </div>
+    </div>
+
+    <div id="app-body">
+        <!-- Leaflet Map Container -->
+        <div id="map"></div>
+
+        <!-- Sidebar Right Container -->
+        <div id="sidebar-right">
+            <!-- Sidebar Toggle Tab -->
+            <button id="sidebar-toggle-tab" onclick="toggleSidebar()">▸</button>
+
+            <!-- Admin Controls panel -->
+            <div id="admin-actions-panel" style="display: none;">
+                <div style="font-weight: bold; font-size: 11px; margin-bottom: 6px; color: var(--text-accent);">[ADMIN ACTIONS]</div>
+                <button id="add-spot-btn" class="bbs-btn" onclick="toggleAddSpotMode()" style="width: 100%;">[+] Add Spot (Click on Map)</button>
+            </div>
+
+            <!-- Sliding Views Wrapper Container -->
+            <div class="sidebar-views-container">
+                <div class="sidebar-views-wrapper" id="sidebar-views-wrapper">
+                    
+                    <!-- View 1: Categories Panel -->
+                    <div class="sidebar-view" id="view-categories">
+                        <div class="sidebar-title">┌─── [ SOUND CATEGORIES ] ───┐</div>
+                        <div id="category-admin-actions" style="padding: 10px 12px 0px; display: none;">
+                            <button class="bbs-btn" onclick="promptCreateCategory()" style="width: 100%;">[+] Create New Category</button>
+                        </div>
+                        <div class="categories-container" id="categories-container"></div>
+                    </div>
+
+                    <!-- View 2: Tracklist Panel -->
+                    <div class="sidebar-view" id="view-tracks">
+                        <div class="sidebar-title">
+                            <button class="back-btn" onclick="slideBackToCategories()">◂ BACK</button>
+                            <span id="active-category-title">[TRACKLIST]</span>
+                        </div>
+                        <div class="track-list-container">
+                            <div id="track-list" class="track-list"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Album Info modal -->
+<div id="info-modal">
+    <div class="modal-header">
+        <span class="modal-title">[ALBUM INFORMATION]</span>
+        <button class="modal-close" onclick="toggleInfo()">[X]</button>
+    </div>
+    
+    <div class="modal-body">
+        <div style="width: 100%; margin-bottom: 20px; border: 1px solid var(--border-color); box-shadow: 3px 3px 0 var(--shadow-color); box-sizing: border-box; overflow: hidden; background-color: #fafafa;">
+            <img src="https://f4.bcbits.com/img/a2885868170_1x1_700.avif" alt="Cover" style="width: 100%; height: auto; display: block;">
+        </div>
+
+        <div style="font-size: 12.5px; line-height: 1.7; word-break: keep-all;">
+            <div style="font-weight: bold; border-bottom: 1px dashed var(--border-color); padding-bottom: 4px; margin-bottom: 10px; color: var(--text-accent);">ABOUT</div>
+            Ganghwa Island is the place where I spent the most important years of my childhood. <br><br>
+            Living in a dormitory back then, Ganghwa felt like a boring rural island, and all I wanted was to escape to the bustling city of Seoul on weekends. <br><br>
+            Later in my twenties, I moved to the city to pursue music, playing in bands, but I lost my own rhythm amidst the fast pace of urban life. <br><br>
+            When I felt I could no longer endure it, I left everything behind and fled back here to Ganghwa. <br><br>
+            Returning to the island, I recorded the deep evening bells of Jeondeungsa temple harmonizing with insects, the Angelus bell of Onsuri church, and the changing faces of the sea shaped by the tides. <br><br>
+            This process became a time of reflection and healing for my weary mind.
+        </div>
+
+        <div style="margin-top: 30px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+            <div style="font-weight: bold; border-bottom: 1px dashed var(--border-color); padding-bottom: 4px; margin-bottom: 10px; color: var(--text-accent);">CREDITS</div>
+            <p style="margin: 4px 0; font-size: 11.5px;">Produced by Chulmin Lee</p>
+            <p style="margin: 4px 0; font-size: 11.5px;">Recorded, edited and mastered by Chulmin Lee</p>
+            <p style="margin: 4px 0; font-size: 11.5px;">Illustrations & Cover photo by Chulmin Lee</p>
+            <p style="margin: 4px 0; font-size: 11.5px;">Designed by Jaesu Lee</p>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Recording Modal (새창/다이얼로그) -->
+<div id="edit-modal">
+    <div class="modal-header">
+        <span class="modal-title">[EDIT RECORDING DETAILS]</span>
+        <button class="modal-close" onclick="closeEditModal()">[X]</button>
+    </div>
+    
+    <div class="modal-body">
+        <form id="edit-form" class="edit-form" onsubmit="submitEditForm(event)">
+            <input type="hidden" id="edit-idx" />
+            
+            <div style="font-size: 10.5px; color: var(--text-sub); border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; margin-bottom: 6px; line-height: 1.4;">
+                * Drag the pink pin on the map to precisely adjust its position. Coordinates will update in real time below.
+            </div>
+
+            <!-- Dropdown selector based category input -->
+            <div class="form-row">
+                <label>CATEGORY :</label>
+                <select id="modal-edit-category" required class="bbs-input" onchange="handleCategorySelectChange(this)" style="width: 100%; height: 32px; background: #ffffff; cursor: pointer; border: 1px solid var(--border-color); font-family: var(--font-mono); font-size: 12px;"></select>
+            </div>
+
+            <!-- Category Theme Color Selector inside Edit Modal -->
+            <div class="form-row" id="edit-category-color-row">
+                <label>CATEGORY COLOR :</label>
+                <div style="display: flex; gap: 8px; align-items: center; margin-top: 2px;">
+                    <input type="color" id="modal-edit-category-color" value="#ef4444" class="bbs-input" style="width: 50px; height: 32px; padding: 0; cursor: pointer; border: 1px solid var(--border-color);" />
+                    <div id="edit-color-swatches" style="display: flex; gap: 6px;"></div>
+                    <span style="font-size: 9.5px; color: var(--text-sub);">* The colors of markers and listings belonging to this category will also be updated.</span>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label>TITLE :</label>
+                <input type="text" id="modal-edit-title" required class="bbs-input" placeholder="Recording Location / Name" />
+            </div>
+
+            <div class="form-row">
+                <label>DESCRIPTION :</label>
+                <textarea id="modal-edit-desc" class="bbs-textarea" rows="3" placeholder="Describe the sound mood, feelings, weather conditions, etc."></textarea>
+            </div>
+
+            <div class="form-row">
+                <label>METADATA (DATE / GEAR) :</label>
+                <input type="text" id="modal-edit-meta" class="bbs-input" placeholder="e.g., 2026-07-03 / Zoom F3" />
+            </div>
+
+            <div class="form-row">
+                <label>BANDCAMP TRACK ID (OPTIONAL) :</label>
+                <input type="text" id="modal-edit-id" class="bbs-input" placeholder="Bandcamp Track ID (optional)" />
+            </div>
+
+            <!-- Custom Photo Upload/Link -->
+            <div class="form-row">
+                <label>IMAGE SOURCE (UPLOAD OR URL) :</label>
+                <input type="file" id="modal-edit-img-file" accept="image/*" class="bbs-input" onchange="handleImageUpload(this)" />
+                <div style="font-size: 9.5px; color: var(--text-sub); margin-top: 1px;">Or paste external Image URL:</div>
+                <input type="text" id="modal-edit-img-url" class="bbs-input" placeholder="https://example.com/photo.jpg" />
+                <div id="img-preview-container" style="display: none;">
+                    <img id="img-preview" src="" style="max-width: 100%; max-height: 90px; object-fit: contain;" />
+                </div>
+            </div>
+
+            <!-- Custom Audio Upload/Link -->
+            <div class="form-row">
+                <label>AUDIO SOURCE (UPLOAD OR URL) :</label>
+                <input type="file" id="modal-edit-audio-file" accept="audio/*" class="bbs-input" onchange="handleAudioUpload(this)" />
+                <div style="font-size: 9.5px; color: var(--text-sub); margin-top: 1px;">Or paste external Audio URL:</div>
+                <input type="text" id="modal-edit-audio-url" class="bbs-input" placeholder="https://example.com/sound.mp3" />
+            </div>
+
+            <div class="form-row">
+                <label>COORDINATES (LAT, LNG) :</label>
+                <div class="coords-inputs">
+                    <input type="number" step="any" id="modal-edit-lat" required class="bbs-input" placeholder="LAT" />
+                    <input type="number" step="any" id="modal-edit-lng" required class="bbs-input" placeholder="LNG" />
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="bbs-btn" style="background-color: var(--text-accent); color: #ffffff; border-color: var(--text-accent);">[S] SAVE</button>
+                <button type="button" class="bbs-btn" onclick="closeEditModal()">[C] CANCEL</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Dedicated Create Category Modal Dialog (새창) -->
+<div id="category-modal">
+    <div class="modal-header">
+        <span class="modal-title">[CREATE NEW CATEGORY]</span>
+        <button class="modal-close" onclick="closeCategoryModal()">[X]</button>
+    </div>
+    <div class="modal-body">
+        <div class="edit-form">
+            <div class="form-row">
+                <label>CATEGORY NAME :</label>
+                <input type="text" id="modal-cat-name" required class="bbs-input" placeholder="New Category Name" />
+            </div>
+            <div class="form-row">
+                <label>CHOOSE THEME COLOR :</label>
+                <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
+                    <input type="color" id="modal-cat-color" value="#ff33aa" class="bbs-input" style="width: 50px; height: 32px; padding: 0; cursor: pointer; border: 1px solid var(--border-color);" />
+                    <div id="color-swatches" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
+                </div>
+            </div>
+            <div class="form-actions" style="margin-top: 12px;">
+                <button type="button" class="bbs-btn" onclick="saveNewCategory()" style="background-color: var(--text-accent); color: #ffffff; border-color: var(--text-accent);">[S] CREATE</button>
+                <button type="button" class="bbs-btn" onclick="closeCategoryModal()">[C] CANCEL</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet Library -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, doc, setDoc, addDoc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // ==========================================
+    // 🔗 FIREBASE SHARING CONFIGURATION
+    // ==========================================
+    // To enable real-time sharing across devices:
+    // 1. Create a Firebase project at https://console.firebase.google.com/
+    // 2. Enable "Firestore Database" in Test Mode.
+    // 3. Register a Web App and paste your firebaseConfig object below:
+    const firebaseConfig = {
+        apiKey: "",
+        authDomain: "",
+        projectId: "",
+        storageBucket: "",
+        messagingSenderId: "",
+        appId: ""
+    };
+
+    const isFirebaseEnabled = !!(firebaseConfig && firebaseConfig.apiKey && firebaseConfig.projectId);
+    let db = null;
+    if (isFirebaseEnabled) {
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+        } catch (err) {
+            console.error("Firebase init failed, falling back to local storage:", err);
+        }
+    }
+
+    // Hardcoded initial data source
+    const DEFAULT_SOUND_DATA = [
+        { id: "2989378636", title: "In front of Bookstore", lat: 37.652175, lng: 126.440529, desc: "", meta: "2025-11-20 / Zoom F3 / Clippy EM272", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "753759855", title: "Minmeoru Beach, Seokmodo", lat: 37.651298, lng: 126.333199, desc: "", meta: "2026-02-04", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "1719650266", title: "Jeongjoksan 14 Stations Path (Day)", lat: 37.636524, lng: 126.487527, desc: "", meta: "2025-08-06", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "843445286", title: "Jeongjoksanseong Entrance (Night)", lat: 37.631870, lng: 126.477204, desc: "", meta: "2025-08-20", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "372803100", title: "Jeondeungsa Temple Service Drumming", lat: 37.631830, lng: 126.484682, desc: "", meta: "2025-09-22", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "1394143868", title: "Jeondeungsa Temple Service Bell", lat: 37.631493, lng: 126.483674, desc: "", meta: "2025-09-22", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "925560464", title: "Donggeurang Island, Donggeomdo", lat: 37.589020, lng: 126.525597, desc: "", meta: "2025-10-08", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "1588339098", title: "Reed Wind at Daesan Reservoir", lat: 37.785945, lng: 126.479647, desc: "", meta: "2025-12-08", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "224371653", title: "Raindrops at Gwangseongbo", lat: 37.665276, lng: 126.530615, desc: "", meta: "2025-11-19", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "4164866312", title: "Rising Tide at Namsan Port, Gyodongdo", lat: 37.763106, lng: 126.290747, desc: "", meta: "2025-11-21", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "519450696", title: "Bugilgot Dondae Coastline", lat: 37.611408, lng: 126.375040, desc: "", meta: "2025-11-20", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "64694152", title: "Low Tide at Wolseon Port, Gyodongdo", lat: 37.774263, lng: 126.316992, desc: "", meta: "2026-02-12", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "2110564066", title: "First Snow of Ganghwa", lat: 37.638092, lng: 126.490264, desc: "", meta: "2026-01-24", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "2505151801", title: "Onsuri Anglican Church Bells", lat: 37.640278, lng: 126.489879, desc: "", meta: "2025-11-22", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "3520696282", title: "Sounds North of Peace Observatory", lat: 37.820137, lng: 126.444672, desc: "", meta: "2026-01-14", category: "Soundscape in ganghwa island 2025-2026" },
+        { id: "3411754260", title: "Dawn at Gyodong Island House", lat: 37.768691, lng: 126.290418, desc: "", meta: "2025-11-22", category: "Soundscape in ganghwa island 2025-2026" }
+    ];
+
+    // Color Swatches presets for quick selection
+    const PRESET_COLORS = ["#ef4444", "#2563eb", "#71717a", "#ff33aa", "#10b981", "#f59e0b", "#8b5cf6"];
+
+    // Data array that changes in memory
+    const soundData = [];
+    
+    // Load from localStorage or fallback if Firebase is disabled
+    if (!isFirebaseEnabled) {
+        const APP_VERSION = "2026-07-07-v1";
+        if (localStorage.getItem('gangwha_app_version') !== APP_VERSION) {
+            localStorage.removeItem('gangwha_sound_data');
+            localStorage.removeItem('gangwha_custom_categories');
+            localStorage.removeItem('gangwha_category_colors');
+            localStorage.removeItem('gangwha_deleted_defaults');
+            localStorage.setItem('gangwha_app_version', APP_VERSION);
+        }
+
+        const localData = localStorage.getItem('gangwha_sound_data');
+        if (localData) {
+            try {
+                const parsed = JSON.parse(localData);
+                if (Array.isArray(parsed)) {
+                    soundData.push(...parsed);
+                } else {
+                    soundData.push(...DEFAULT_SOUND_DATA);
+                }
+            } catch(e) {
+                console.error("Local data parse error. Falling back to default", e);
+                soundData.push(...DEFAULT_SOUND_DATA);
+            }
+        } else {
+            soundData.push(...DEFAULT_SOUND_DATA);
+        }
+    }
+
+    // Leaflet map setup
+    const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([37.68, 126.43], 11);
+    
+    // Clean bright light gray map tiles
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+    L.control.zoom({ position: 'topleft' }).addTo(map);
+
+    const markers = [];
+    let currentTrackIndex = -1;
+    let isAdminMode = false;
+    let selectedCategoryName = "";
+    let isAddSpotMode = false;
+    
+    // File upload local variables (stores base64 data)
+    let uploadedImageBase64 = "";
+    let uploadedAudioBase64 = "";
+
+    // Toggle Sidebar Panel (Fold / Unfold)
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar-right');
+        const tab = document.getElementById('sidebar-toggle-tab');
+        sidebar.classList.toggle('collapsed');
+        
+        const isCollapsed = sidebar.classList.contains('collapsed');
+        const isMobile = window.innerWidth <= 768;
+        
+        if (isMobile) {
+            tab.innerText = isCollapsed ? '▴' : '▾';
+        } else {
+            tab.innerText = isCollapsed ? '◂' : '▸';
+        }
+        
+        // Notify leaflet map to update sizing after sliding transition ends
+        setTimeout(() => {
+            map.invalidateSize({ animate: true });
+        }, 300);
+    }
+
+    // Toggle Modal dialogs
+    function toggleInfo() {
+        const modal = document.getElementById('info-modal');
+        modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+    }
+
+    // Toggle admin mode
+    function toggleAdminMode() {
+        isAdminMode = !isAdminMode;
+        
+        const adminToggleBtn = document.getElementById('admin-toggle');
+        adminToggleBtn.innerText = isAdminMode ? "[A] Admin: ON" : "[A] Admin: OFF";
+        
+        // Show/hide admin panels
+        document.querySelectorAll('.admin-only').forEach(el => {
+            el.style.display = isAdminMode ? 'inline-flex' : 'none';
+        });
+        document.getElementById('admin-actions-panel').style.display = isAdminMode ? 'block' : 'none';
+
+        // Toggle category list admin action panel (Create Category button)
+        const catAdminActions = document.getElementById('category-admin-actions');
+        if (catAdminActions) {
+            catAdminActions.style.display = isAdminMode ? 'block' : 'none';
+        }
+
+        // Toggle map double-click zoom
+        if (isAdminMode) {
+            map.doubleClickZoom.disable();
+        } else {
+            map.doubleClickZoom.enable();
+        }
+
+        // Cancel placement mode if turning off admin mode
+        if (!isAdminMode && isAddSpotMode) {
+            cancelAddSpotMode();
+        }
+
+        renderMarkers();
+        renderCategories();
+        if (selectedCategoryName) {
+            renderTracklistForCategory(selectedCategoryName);
+        }
+    }
+
+    // Load category color map from localStorage or assign fallbacks
+    function getCategoryColor(name) {
+        const colors = JSON.parse(localStorage.getItem('gangwha_category_colors') || '{}');
+        if (colors[name]) return colors[name];
+        
+        // Preset Fallbacks
+        if (name === "Soundscape in ganghwa island 2025-2026") return "#ef4444";
+        if (name === "Field Recordings / Live Notes") return "#2563eb";
+        if (name === "Drafts & Miscellaneous") return "#71717a";
+        
+        // Cyclic Hash fallback color generator
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const idx = Math.abs(hash) % PRESET_COLORS.length;
+        return PRESET_COLORS[idx];
+    }
+
+    // Get unique categories present in soundData + presets + customCategories
+    function getCategories() {
+        const uniqueNames = new Set();
+        
+        // Load deleted defaults
+        const deletedDefaults = JSON.parse(localStorage.getItem('gangwha_deleted_defaults') || '[]');
+
+        // Load custom categories with 0 tracks from local storage
+        const customCats = JSON.parse(localStorage.getItem('gangwha_custom_categories') || '[]');
+        customCats.forEach(cat => uniqueNames.add(cat.trim()));
+        
+        // Load active categories from soundData
+        soundData.forEach(track => {
+            if (track.category) {
+                uniqueNames.add(track.category.trim());
+            }
+        });
+        
+        // Always ensure standard presets exist (unless deleted)
+        if (!deletedDefaults.includes("Soundscape in ganghwa island 2025-2026")) uniqueNames.add("Soundscape in ganghwa island 2025-2026");
+        if (!deletedDefaults.includes("Field Recordings / Live Notes")) uniqueNames.add("Field Recordings / Live Notes");
+        if (!deletedDefaults.includes("Drafts & Miscellaneous")) uniqueNames.add("Drafts & Miscellaneous");
+        
+        const list = Array.from(uniqueNames);
+        
+        return list.map((name) => {
+            const color = getCategoryColor(name);
+            let className = "cat-custom";
+            if (name === "Soundscape in ganghwa island 2025-2026") {
+                className = "cat-red";
+            } else if (name === "Field Recordings / Live Notes") {
+                className = "cat-blue";
+            } else if (name === "Drafts & Miscellaneous") {
+                className = "cat-gray";
+            }
+            return { name, color, class: className };
+        });
+    }
+
+    // Render clickable color circles in category selectors
+    function renderSwatches(containerId, colorInputId) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        PRESET_COLORS.forEach(color => {
+            const sw = document.createElement('div');
+            sw.style = `
+                width: 20px; height: 20px; border-radius: 50%; background-color: ${color};
+                cursor: pointer; border: 1px solid rgba(0,0,0,0.15); box-sizing: border-box;
+                box-shadow: 1px 1px 2px rgba(0,0,0,0.1); transition: transform 0.1s;
+            `;
+            sw.onmouseenter = () => sw.style.transform = 'scale(1.15)';
+            sw.onmouseleave = () => sw.style.transform = 'none';
+            sw.onclick = () => {
+                document.getElementById(colorInputId).value = color;
+            };
+            container.appendChild(sw);
+        });
+    }
+
+    // Open dedicated Create Category modal
+    function promptCreateCategory() {
+        if (!isAdminMode) return;
+        
+        document.getElementById('modal-cat-name').value = '';
+        document.getElementById('modal-cat-color').value = '#ff33aa';
+        
+        renderSwatches('color-swatches', 'modal-cat-color');
+        
+        document.getElementById('category-modal').style.display = 'flex';
+    }
+
+    // Close Category creator Modal
+    function closeCategoryModal() {
+        document.getElementById('category-modal').style.display = 'none';
+    }
+
+    // Save newly created category
+    function saveNewCategory() {
+        const name = document.getElementById('modal-cat-name').value.trim();
+        const color = document.getElementById('modal-cat-color').value;
+        if (!name) {
+            alert("Please enter a category name!");
+            return;
+        }
+
+        if (isFirebaseEnabled) {
+            setDoc(doc(db, "gangwha_custom_categories", name), { name: name });
+            setDoc(doc(db, "gangwha_category_colors", name), { color: color });
+        } else {
+            let customCats = JSON.parse(localStorage.getItem('gangwha_custom_categories') || '[]');
+            if (!customCats.includes(name)) {
+                customCats.push(name);
+                localStorage.setItem('gangwha_custom_categories', JSON.stringify(customCats));
+            }
+
+            // Save Color
+            const colors = JSON.parse(localStorage.getItem('gangwha_category_colors') || '{}');
+            colors[name] = color;
+            localStorage.setItem('gangwha_category_colors', JSON.stringify(colors));
+        }
+
+        alert(`Category "${name}" has been created successfully.`);
+        closeCategoryModal();
+        
+        if (!isFirebaseEnabled) {
+            renderCategories();
+            renderMarkers();
+        }
+
+        // Auto-select in the Edit Modal if it is open
+        const editModal = document.getElementById('edit-modal');
+        if (editModal && editModal.style.display === 'flex') {
+            const select = document.getElementById('modal-edit-category');
+            if (select) {
+                select.innerHTML = '';
+                const categories = getCategories();
+                categories.forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = cat.name;
+                    opt.innerText = cat.name;
+                    select.appendChild(opt);
+                });
+                const newOpt = document.createElement('option');
+                newOpt.value = "__new__";
+                newOpt.innerText = "➕ Add New Category...";
+                select.appendChild(newOpt);
+
+                select.value = name;
+                updateEditCategoryColorPicker();
+            }
+        }
+    }
+
+    // Dynamic input observer updating category color picker in Edit Modal
+    function updateEditCategoryColorPicker() {
+        const catName = document.getElementById('modal-edit-category').value.trim();
+        if (!catName) return;
+        const color = getCategoryColor(catName);
+        document.getElementById('modal-edit-category-color').value = color;
+    }
+
+    function handleCategorySelectChange(selectEl) {
+        if (selectEl.value === "__new__") {
+            promptCreateCategory();
+            // Revert value to whatever was stored
+            selectEl.value = (soundData[currentTrackIndex] && soundData[currentTrackIndex].category) || 'Soundscape in ganghwa island 2025-2026';
+        } else {
+            updateEditCategoryColorPicker();
+        }
+    }
+
+    // Render Markers on Map with Custom Category Color Border
+    function renderMarkers() {
+        // Clear previous markers
+        markers.forEach(m => {
+            m.off('popupclose'); // Unbind to prevent recursive re-entrancy crashes during re-render
+            m.remove();
+        });
+        markers.length = 0;
+
+        soundData.forEach((data, idx) => {
+            // Get category color
+            const category = data.category || "Soundscape in ganghwa island 2025-2026";
+            const color = getCategoryColor(category);
+
+            // Use the registered image for the pin itself, fallback to marker-icon.jpg
+            const imgSource = data.imageBase64 || data.imageUrl || 'marker-icon.jpg';
+
+            // Leaflet Custom Icon utilizing marker-icon.jpg inside HTML wrapper
+            // Styled with 2px category color border on the image
+            const icon = L.divIcon({ 
+                className: 'custom-marker-icon' + (idx === currentTrackIndex ? ' active' : ''), 
+                html: `<img src="${imgSource}" style="width: 100%; height: 100%; border-radius: 50%; display: block; border: 2px solid ${color}; box-sizing: border-box; object-fit: cover;" onerror="this.src='marker-icon.jpg';" />`, 
+                iconSize: [36, 36],
+                iconAnchor: [18, 18],
+                popupAnchor: [0, -18]
+            });
+            
+            const marker = L.marker([data.lat, data.lng], { icon }).addTo(map);
+            markers.push(marker);
+            
+            marker.on('click', () => selectTrack(idx));
+            
+            // Clean up dragging state if popup closes naturally
+            marker.on('popupclose', () => {
+                marker.dragging.disable();
+                marker.off('drag');
+                
+                // If it was an unsaved temporary track, remove it
+                if (soundData[idx] && soundData[idx].isTemporary) {
+                    soundData.splice(idx, 1);
+                    renderMarkers();
+                    renderCategories();
+                    if (selectedCategoryName) {
+                        renderTracklistForCategory(selectedCategoryName);
+                    }
+                    currentTrackIndex = -1;
+                }
+            });
+        });
+    }
+
+    // Render category cards inside the Category View Panel
+    function renderCategories() {
+        const container = document.getElementById('categories-container');
+        container.innerHTML = '';
+        
+        const categories = getCategories();
+
+        categories.forEach(cat => {
+            const catTracks = soundData.filter(t => {
+                const trackCat = t.category || "Soundscape in ganghwa island 2025-2026";
+                return trackCat === cat.name;
+            });
+
+            // Do not render empty categories in viewer mode
+            if (catTracks.length === 0 && !isAdminMode) {
+                return;
+            }
+
+            const card = document.createElement('div');
+            card.className = 'category-card';
+            card.style.borderLeft = `4px solid ${cat.color}`;
+            
+            card.onmouseenter = () => { card.style.borderColor = cat.color; };
+            card.onmouseleave = () => { card.style.borderColor = 'var(--border-color)'; };
+
+            const deleteBtnHtml = isAdminMode
+                ? `<button class="bbs-btn delete-cat-btn" onclick="event.stopPropagation(); deleteCategory('${escapeHtml(cat.name)}')" style="color: var(--text-accent); font-size: 10px; padding: 2px 6px;">delete</button>` 
+                : '';
+
+            card.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div>
+                        <div class="category-card-name" style="color: ${cat.color};">${cat.name}</div>
+                        <div class="category-card-count">${catTracks.length} recordings</div>
+                    </div>
+                    ${deleteBtnHtml}
+                </div>
+            `;
+            
+            card.onclick = () => {
+                slideIntoCategory(cat.name);
+            };
+
+            container.appendChild(card);
+        });
+    }
+
+    // Transition sidebar wrapper to category tracklist view
+    function slideIntoCategory(catName) {
+        selectedCategoryName = catName;
+        
+        document.getElementById('active-category-title').innerText = catName;
+        renderTracklistForCategory(catName);
+        
+        // Slide right panel into view
+        document.getElementById('sidebar-views-wrapper').style.transform = 'translateX(-50%)';
+    }
+
+    // Transition sidebar wrapper back to category overview cards view
+    function slideBackToCategories() {
+        document.getElementById('sidebar-views-wrapper').style.transform = 'translateX(0%)';
+    }
+
+    // Render tracks of specific selected category inside track list panel
+    function renderTracklistForCategory(catName) {
+        const listEl = document.getElementById('track-list');
+        listEl.innerHTML = '';
+
+        const categories = getCategories();
+        const cat = categories.find(c => c.name === catName) || { color: "#71717a", class: "cat-gray" };
+
+        const catTracks = soundData.map((data, idx) => ({ data, idx })).filter(item => {
+            const trackCat = item.data.category || "Soundscape in ganghwa island 2025-2026";
+            return trackCat === catName;
+        });
+
+        if (catTracks.length === 0) {
+            const emptyItem = document.createElement('div');
+            emptyItem.className = 'track-item-empty';
+            emptyItem.innerText = "[EMPTY CATEGORY]";
+            listEl.appendChild(emptyItem);
+            return;
+        }
+
+        catTracks.forEach(item => {
+            const data = item.data;
+            const idx = item.idx;
+
+            const trackItem = document.createElement('div');
+            trackItem.className = 'track-item';
+            if (idx === currentTrackIndex) trackItem.classList.add('active');
+            
+            // Set category color border-left on the active element
+            if (idx === currentTrackIndex) {
+                trackItem.style.borderLeft = `3px solid ${cat.color}`;
+                trackItem.style.color = cat.color;
+            }
+
+            let actionsHtml = '';
+            if (isAdminMode) {
+                actionsHtml = `
+                    <div class="track-item-actions">
+                        <button class="track-item-btn" onclick="event.stopPropagation(); openEditModal(${idx})">Edit</button>
+                        <button class="track-item-btn" onclick="event.stopPropagation(); deleteTrack(${idx})" style="color: var(--text-accent);">Del</button>
+                    </div>
+                `;
+            }
+
+            trackItem.innerHTML = `
+                <div class="track-item-content">
+                    <b class="track-item-num">${String(idx+1).padStart(2,'0')}</b>
+                    <span class="track-item-title">${data.title}</span>
+                </div>
+                ${actionsHtml}
+            `;
+            
+            // Clicking item selects the track
+            trackItem.onclick = () => selectTrack(idx);
+            
+            // Custom hover colors
+            trackItem.onmouseenter = () => trackItem.style.color = cat.color;
+            trackItem.onmouseleave = () => {
+                if (idx !== currentTrackIndex) {
+                    trackItem.style.color = 'var(--text-main)';
+                }
+            };
+            
+            listEl.appendChild(trackItem);
+        });
+    }
+
+    // Select track and fly to view - Ordered: Player -> Image -> Text Content
+    function selectTrack(idx) {
+        if (idx < 0 || idx >= soundData.length) return;
+        const track = soundData[idx];
+        currentTrackIndex = idx;
+
+        // Auto-navigate sidebar views to match map click selections
+        const trackCat = track.category || "Soundscape in ganghwa island 2025-2026";
+        const color = getCategoryColor(trackCat);
+        slideIntoCategory(trackCat);
+
+        // Close active popups and set active status on DOM markers
+        markers.forEach((m, i) => {
+            m.closePopup();
+            const el = m.getElement();
+            if (el) {
+                el.classList.toggle('active', i === idx);
+            }
+        });
+
+        const isMobile = window.innerWidth <= 768;
+        const targetZoom = isMobile ? 12 : 13;
+
+        const embedHtml = getEmbedHtml(track);
+
+        let imageHtml = '';
+        if (track.imageBase64) {
+            imageHtml = `<div style="padding: 0 14px 14px;"><img src="${track.imageBase64}" style="width: 100%; height: auto; border: 1px solid var(--border-color); display: block;" onerror="this.style.display='none';" /></div>`;
+        } else if (track.imageUrl) {
+            imageHtml = `<div style="padding: 0 14px 14px;"><img src="${track.imageUrl}" style="width: 100%; height: auto; border: 1px solid var(--border-color); display: block;" onerror="this.style.display='none';" /></div>`;
+        }
+
+        // Sequential Popup Content: Header -> Audio Player (Top) -> Text Info (Bottom) -> Photo (Bottom)
+        let popupContent = `
+            <div class="sound-note-card" style="border: 2px solid ${color};">
+                <div class="sound-note-card-header" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; border-bottom: 1px dashed var(--border-color); background: rgba(0,0,0,0.02); font-size: 10px; font-weight: bold;">
+                    <span style="color: ${color};">📝 SOUND NOTE #${String(idx+1).padStart(2,'0')}</span>
+                    <button onclick="map.closePopup()" style="background: none; border: none; cursor: pointer; color: var(--text-sub); font-family: var(--font-mono); font-weight: bold; font-size: 11px; padding: 0 4px;">[X]</button>
+                </div>
+                <div class="popup-embed-wrapper">
+                    ${embedHtml}
+                </div>
+                <div class="diary-box" style="padding: 12px 14px 14px;">
+                    <h2 style="font-size: 13.5px; font-weight: bold; margin: 0 0 6px 0; line-height: 1.4;">${track.title}</h2>
+                    ${track.desc ? `<p style="font-size: 11.5px; margin: 0 0 10px 0; line-height: 1.6; color: var(--text-main); font-family: var(--font-mono);">${track.desc}</p>` : ''}
+                    <span class="meta-text" style="font-size: 9.5px; color: var(--text-sub); border-top: 1px dashed var(--border-color); padding-top: 6px; display: block;">⚙️ ${track.meta}</span>
+                </div>
+                ${imageHtml}
+        `;
+
+        if (isAdminMode) {
+            popupContent += `
+                <div class="popup-admin-actions" style="display: flex; border-top: 1px solid var(--border-color); background: rgba(0,0,0,0.02); padding: 6px 10px; gap: 8px; justify-content: flex-end;">
+                    <button class="bbs-btn" onclick="openEditModal(${idx})" style="font-size: 10px; padding: 2px 6px;">[E] EDIT</button>
+                    <button class="bbs-btn" onclick="deleteTrack(${idx})" style="color: var(--text-accent); font-size: 10px; padding: 2px 6px;">[D] DELETE</button>
+                </div>
+            `;
+        }
+
+        popupContent += `</div>`;
+
+        // Bind popup to marker IMMEDIATELY to prevent Leaflet registration bypass
+        markers[idx].bindPopup(popupContent, { 
+            className: 'custom-popup', 
+            closeButton: false,
+            offset: [0, -6],
+            autoPan: false, // Disable Leaflet secondary pan to prevent camera jitter/alignment offset
+            closeOnClick: false // Clicking map doesn't close popup to keep audio playing
+        });
+
+        // Determine if map fly-to transition is necessary (bypass fly-to if already centered)
+        const currentCenter = map.getCenter();
+        const dist = currentCenter.distanceTo([track.lat, track.lng]);
+
+        if (dist < 10 && map.getZoom() === targetZoom) {
+            markers[idx].openPopup();
+        } else {
+            map.flyTo([track.lat, track.lng], targetZoom, { animate: true, duration: 1.2 });
+            map.once('moveend', () => {
+                markers[idx].openPopup();
+            });
+        }
+
+        // Set active in tracklist (re-run list selection class updates)
+        const items = document.querySelectorAll('.track-item');
+        items.forEach((item, i) => {
+            item.classList.toggle('active', i === idx);
+            if (i === idx) {
+                item.scrollIntoView({ behavior: 'smooth', block: isMobile ? 'center' : 'nearest', inline: 'center' });
+            }
+        });
+    }
+
+    // Toggle custom pin placement mode on map click
+    function toggleAddSpotMode() {
+        if (!isAdminMode) return;
+        isAddSpotMode = !isAddSpotMode;
+        
+        const btn = document.getElementById('add-spot-btn');
+        const mapEl = document.getElementById('map');
+
+        if (isAddSpotMode) {
+            btn.innerText = "[ESC] Cancel Pin Placement";
+            btn.style.backgroundColor = "var(--text-accent)";
+            btn.style.color = "#ffffff";
+            mapEl.classList.add('add-spot-cursor');
+            
+            // Temporarily disable dblclick to prevent double-placing
+            map.doubleClickZoom.disable();
+            
+            // Listen to keyboard Escape key to cancel
+            window.addEventListener('keydown', handleEscKey);
+        } else {
+            cancelAddSpotMode();
+        }
+    }
+
+    // Cancel pin placement mode and restore default cursor
+    function cancelAddSpotMode() {
+        isAddSpotMode = false;
+        const btn = document.getElementById('add-spot-btn');
+        const mapEl = document.getElementById('map');
+        if (btn) {
+            btn.innerText = "[+] Add Spot (Click on Map)";
+            btn.style.backgroundColor = "";
+            btn.style.color = "";
+        }
+        if (mapEl) {
+            mapEl.classList.remove('add-spot-cursor');
+        }
+
+        if (isAdminMode) {
+            map.doubleClickZoom.disable();
+        } else {
+            map.doubleClickZoom.enable();
+        }
+        window.removeEventListener('keydown', handleEscKey);
+    }
+
+    function handleEscKey(e) {
+        if (e.key === 'Escape') {
+            cancelAddSpotMode();
+        }
+    }
+
+    // Intercept map click to place pin when Add Spot Mode is active
+    map.on('click', (e) => {
+        if (isAddSpotMode) {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            const newIdx = soundData.length;
+
+            soundData.push({
+                id: "",
+                title: "New Recording Spot",
+                desc: "Add your recording description here.",
+                meta: new Date().toISOString().split('T')[0],
+                lat: lat,
+                lng: lng,
+                category: selectedCategoryName || "Field Recordings / Live Notes",
+                isTemporary: true
+            });
+
+            renderMarkers();
+            renderCategories();
+            if (selectedCategoryName) {
+                renderTracklistForCategory(selectedCategoryName);
+            }
+
+            // Show details editor modal
+            setTimeout(() => {
+                openEditModal(newIdx);
+            }, 100);
+
+            // Clean up cursor state
+            cancelAddSpotMode();
+        }
+    });
+
+    // Open dedicated Edit Modal Dialog (새창)
+    function openEditModal(idx) {
+        const track = soundData[idx];
+        currentTrackIndex = idx;
+
+        // Set form fields in modal
+        document.getElementById('edit-idx').value = idx;
+
+        const select = document.getElementById('modal-edit-category');
+        select.innerHTML = '';
+        const categories = getCategories();
+        categories.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat.name;
+            opt.innerText = cat.name;
+            select.appendChild(opt);
+        });
+        const newOpt = document.createElement('option');
+        newOpt.value = "__new__";
+        newOpt.innerText = "➕ Add New Category...";
+        select.appendChild(newOpt);
+
+        select.value = track.category || 'Soundscape in ganghwa island 2025-2026';
+
+        document.getElementById('modal-edit-title').value = track.title || '';
+        document.getElementById('modal-edit-desc').value = track.desc || '';
+        document.getElementById('modal-edit-meta').value = track.meta || '';
+        document.getElementById('modal-edit-id').value = track.id || '';
+        document.getElementById('modal-edit-img-url').value = track.imageUrl || '';
+        document.getElementById('modal-edit-audio-url').value = track.audioUrl || '';
+        document.getElementById('modal-edit-lat').value = track.lat;
+        document.getElementById('modal-edit-lng').value = track.lng;
+
+        // Clear file inputs
+        document.getElementById('modal-edit-img-file').value = '';
+        document.getElementById('modal-edit-audio-file').value = '';
+
+        // Render swatches inside Edit Modal
+        renderSwatches('edit-color-swatches', 'modal-edit-category-color');
+
+        // Set category color in picker
+        updateEditCategoryColorPicker();
+
+        uploadedImageBase64 = track.imageBase64 || "";
+        uploadedAudioBase64 = track.audioBase64 || "";
+
+        // Image Preview configuration
+        const previewImg = document.getElementById('img-preview');
+        const container = document.getElementById('img-preview-container');
+        if (previewImg && container) {
+            if (uploadedImageBase64) {
+                previewImg.src = uploadedImageBase64;
+                container.style.display = 'block';
+            } else if (track.imageUrl) {
+                previewImg.src = track.imageUrl;
+                container.style.display = 'block';
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        // Enable Leaflet marker dragging for geographical selection
+        const marker = markers[idx];
+        if (marker) {
+            marker.dragging.enable();
+            marker.on('drag', (e) => {
+                document.getElementById('modal-edit-lat').value = e.latlng.lat.toFixed(6);
+                document.getElementById('modal-edit-lng').value = e.latlng.lng.toFixed(6);
+            });
+        }
+
+        // Close any active popups
+        markers.forEach(m => m.closePopup());
+
+        // Show Modal Window
+        document.getElementById('edit-modal').style.display = 'flex';
+    }
+
+    // Close Edit Modal and disable marker dragging
+    function closeEditModal() {
+        const idx = parseInt(document.getElementById('edit-idx').value);
+        const marker = markers[idx];
+        if (marker) {
+            marker.dragging.disable();
+            marker.off('drag');
+        }
+
+        document.getElementById('edit-modal').style.display = 'none';
+
+        // If it was an unsaved temporary track, clean it up
+        if (soundData[idx] && soundData[idx].isTemporary) {
+            soundData.splice(idx, 1);
+            renderMarkers();
+            renderCategories();
+            if (selectedCategoryName) {
+                renderTracklistForCategory(selectedCategoryName);
+            }
+            currentTrackIndex = -1;
+        }
+    }
+
+    // Handle Image file uploading converting it to Base64 with canvas-based size compression (Max 800px width/height, 70% JPEG quality)
+    // Cautions users uploading unsupported iOS HEIC / HEIF file formats.
+    function handleImageUpload(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        // Verify image formats compatible with web browsers (Reject HEIC/HEIF)
+        const fileName = file.name.toLowerCase();
+        if (fileName.endsWith('.heic') || fileName.endsWith('.heif')) {
+            alert("⚠️ Apple HEIC photo format is not supported directly in web browsers!\n\nSolutions:\n1. Change formats to 'Most Compatible' under iPhone Settings > Camera > Formats, or\n2. Share it on an app like Slack/WhatsApp and download the converted JPG to upload.");
+            input.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                // Initialize canvas compressor
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                const maxDim = 800; // Limit image dimensions to maintain quota
+
+                if (width > maxDim || height > maxDim) {
+                    if (width > height) {
+                        height = Math.round((height * maxDim) / width);
+                        width = maxDim;
+                    } else {
+                        width = Math.round((width * maxDim) / height);
+                        height = maxDim;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Compress to compact JPEG Base64
+                uploadedImageBase64 = canvas.toDataURL('image/jpeg', 0.7);
+
+                const previewImg = document.getElementById('img-preview');
+                const container = document.getElementById('img-preview-container');
+                if (previewImg && container) {
+                    previewImg.src = uploadedImageBase64;
+                    container.style.display = 'block';
+                }
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Handle Audio file uploading converting it to Base64 with file size ceiling checks (Max 2.5MB)
+    function handleAudioUpload(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const maxAudioSize = 2.5 * 1024 * 1024; // 2.5MB ceiling to avoid QuotaExceededError
+        if (file.size > maxAudioSize) {
+            alert("⚠️ The selected audio file size (" + (file.size / 1024 / 1024).toFixed(1) + "MB) is too large!\n\nDue to local browser storage limits (5MB), only files smaller than 2.5MB can be stored. Please register via external Audio URL instead, or reduce/trim the file size before uploading.");
+            input.value = '';
+            uploadedAudioBase64 = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            uploadedAudioBase64 = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Submit Edit Form and save modifications
+    function submitEditForm(event) {
+        event.preventDefault();
+
+        const idx = parseInt(document.getElementById('edit-idx').value);
+        const category = document.getElementById('modal-edit-category').value.trim() || 'Soundscape in ganghwa island 2025-2026';
+        const title = document.getElementById('modal-edit-title').value.trim();
+        const desc = document.getElementById('modal-edit-desc').value.trim();
+        const meta = document.getElementById('modal-edit-meta').value.trim();
+        const id = document.getElementById('modal-edit-id').value.trim();
+        const imageUrl = document.getElementById('modal-edit-img-url').value.trim();
+        const audioUrl = document.getElementById('modal-edit-audio-url').value.trim();
+        const lat = parseFloat(document.getElementById('modal-edit-lat').value);
+        const lng = parseFloat(document.getElementById('modal-edit-lng').value);
+        
+        // Save the chosen Category Theme Color
+        const catColor = document.getElementById('modal-edit-category-color').value;
+
+        if (isNaN(lat) || isNaN(lng)) {
+            alert("Valid latitude and longitude coordinates are required!");
+            return;
+        }
+
+        // Lock marker coordinate & disable dragging
+        const marker = markers[idx];
+        if (marker) {
+            marker.dragging.disable();
+            marker.off('drag');
+            marker.setLatLng([lat, lng]);
+        }
+
+        if (isFirebaseEnabled) {
+            const trackObj = {
+                id,
+                title,
+                desc,
+                meta,
+                lat,
+                lng,
+                imageUrl,
+                audioUrl,
+                category,
+                imageBase64: uploadedImageBase64 || (soundData[idx] && soundData[idx].imageBase64) || "",
+                audioBase64: uploadedAudioBase64 || (soundData[idx] && soundData[idx].audioBase64) || ""
+            };
+
+            const docId = soundData[idx] ? soundData[idx].docId : null;
+            if (docId) {
+                updateDoc(doc(db, "gangwha_sounds", docId), trackObj);
+            } else {
+                addDoc(collection(db, "gangwha_sounds"), trackObj);
+            }
+
+            setDoc(doc(db, "gangwha_category_colors", category), { color: catColor });
+            setDoc(doc(db, "gangwha_custom_categories", category), { name: category });
+        } else {
+            delete soundData[idx].isTemporary;
+
+            soundData[idx] = {
+                id,
+                title,
+                desc,
+                meta,
+                lat,
+                lng,
+                imageUrl,
+                audioUrl,
+                category,
+                imageBase64: uploadedImageBase64,
+                audioBase64: uploadedAudioBase64
+            };
+
+            // Update category color configuration mapping
+            const colors = JSON.parse(localStorage.getItem('gangwha_category_colors') || '{}');
+            colors[category] = catColor;
+            localStorage.setItem('gangwha_category_colors', JSON.stringify(colors));
+
+            // Save custom category to empty cards tracking as well
+            let customCats = JSON.parse(localStorage.getItem('gangwha_custom_categories') || '[]');
+            if (!customCats.includes(category)) {
+                customCats.push(category);
+                localStorage.setItem('gangwha_custom_categories', JSON.stringify(customCats));
+            }
+
+            saveToLocalStorage();
+            renderMarkers();
+            renderCategories();
+            
+            // Refresh tracklist view if active category was open
+            if (selectedCategoryName) {
+                renderTracklistForCategory(selectedCategoryName);
+            }
+            // Select the saved pin to display updated popup
+            selectTrack(idx);
+        }
+
+        document.getElementById('edit-modal').style.display = 'none';
+    }
+
+    // Delete track
+    function deleteTrack(idx) {
+        if (confirm(`Are you sure you want to delete track "${soundData[idx].title}"?`)) {
+            const marker = markers[idx];
+            if (marker) {
+                marker.dragging.disable();
+                marker.off('drag');
+            }
+
+            if (isFirebaseEnabled) {
+                const docId = soundData[idx] ? soundData[idx].docId : null;
+                if (docId) {
+                    deleteDoc(doc(db, "gangwha_sounds", docId));
+                }
+            } else {
+                soundData.splice(idx, 1);
+                saveToLocalStorage();
+                renderMarkers();
+                renderCategories();
+                if (selectedCategoryName) {
+                    renderTracklistForCategory(selectedCategoryName);
+                }
+            }
+            currentTrackIndex = -1;
+            map.closePopup();
+        }
+    }
+
+    // Delete Category
+    function deleteCategory(catName) {
+        const allCats = getCategories();
+        if (allCats.length <= 1) {
+            alert("You must keep at least one category!");
+            return;
+        }
+
+        const remainingCats = allCats.filter(c => c.name !== catName);
+        const fallbackCat = remainingCats[0].name;
+
+        if (!confirm(`Are you sure you want to delete the category "${catName}"?\nAll sound notes in this category will be moved to "${fallbackCat}".`)) {
+            return;
+        }
+
+        if (isFirebaseEnabled) {
+            // Remove from custom categories collection
+            deleteDoc(doc(db, "gangwha_custom_categories", catName));
+
+            // Set in deleted defaults if it's default
+            const defaultPresets = ["Soundscape in ganghwa island 2025-2026", "Field Recordings / Live Notes", "Drafts & Miscellaneous"];
+            if (defaultPresets.includes(catName)) {
+                setDoc(doc(db, "gangwha_deleted_defaults", catName), {});
+            }
+
+            // Reassign tracks
+            soundData.forEach(track => {
+                if ((track.category || "Soundscape in ganghwa island 2025-2026") === catName) {
+                    if (track.docId) {
+                        updateDoc(doc(db, "gangwha_sounds", track.docId), { category: fallbackCat });
+                    }
+                }
+            });
+        } else {
+            // Check if it's a default preset category
+            const defaultPresets = ["Soundscape in ganghwa island 2025-2026", "Field Recordings / Live Notes", "Drafts & Miscellaneous"];
+            if (defaultPresets.includes(catName)) {
+                let deletedDefaults = JSON.parse(localStorage.getItem('gangwha_deleted_defaults') || '[]');
+                if (!deletedDefaults.includes(catName)) {
+                    deletedDefaults.push(catName);
+                    localStorage.setItem('gangwha_deleted_defaults', JSON.stringify(deletedDefaults));
+                }
+            }
+
+            // Remove from custom categories list in local storage
+            let customCats = JSON.parse(localStorage.getItem('gangwha_custom_categories') || '[]');
+            customCats = customCats.filter(c => c !== catName);
+            localStorage.setItem('gangwha_custom_categories', JSON.stringify(customCats));
+
+            // Reassign tracks
+            soundData.forEach(track => {
+                if ((track.category || "Soundscape in ganghwa island 2025-2026") === catName) {
+                    track.category = fallbackCat;
+                }
+            });
+            saveToLocalStorage();
+
+            alert(`Category "${catName}" has been successfully deleted.`);
+            renderCategories();
+            renderMarkers();
+            slideBackToCategories();
+        }
+    }
+
+    // Reset modifications back to default list
+    async function resetData() {
+        if (confirm("Are you sure you want to reset all modifications back to the default tracklist? This deletes all additions, edits, category colors, and custom categories.")) {
+            if (isFirebaseEnabled) {
+                try {
+                    // Delete all sounds
+                    const soundsSnap = await getDocs(collection(db, "gangwha_sounds"));
+                    for (const docEl of soundsSnap.docs) {
+                        await deleteDoc(doc(db, "gangwha_sounds", docEl.id));
+                    }
+                    
+                    // Delete all custom categories
+                    const catsSnap = await getDocs(collection(db, "gangwha_custom_categories"));
+                    for (const docEl of catsSnap.docs) {
+                        await deleteDoc(doc(db, "gangwha_custom_categories", docEl.id));
+                    }
+
+                    // Delete all colors
+                    const colorsSnap = await getDocs(collection(db, "gangwha_category_colors"));
+                    for (const docEl of colorsSnap.docs) {
+                        await deleteDoc(doc(db, "gangwha_category_colors", docEl.id));
+                    }
+
+                    // Delete all deleted defaults
+                    const delSnap = await getDocs(collection(db, "gangwha_deleted_defaults"));
+                    for (const docEl of delSnap.docs) {
+                        await deleteDoc(doc(db, "gangwha_deleted_defaults", docEl.id));
+                    }
+
+                    // Seed default sound data
+                    for (const track of DEFAULT_SOUND_DATA) {
+                        await addDoc(collection(db, "gangwha_sounds"), track);
+                    }
+
+                    alert("Database reset and seeded with default templates successfully.");
+                } catch (err) {
+                    console.error("Firebase reset failed:", err);
+                    alert("Error resetting database: " + err.message);
+                }
+            } else {
+                localStorage.removeItem('gangwha_sound_data');
+                localStorage.removeItem('gangwha_custom_categories');
+                localStorage.removeItem('gangwha_category_colors');
+                localStorage.removeItem('gangwha_deleted_defaults');
+                soundData.length = 0;
+                soundData.push(...DEFAULT_SOUND_DATA);
+                renderMarkers();
+                renderCategories();
+                slideBackToCategories();
+                currentTrackIndex = -1;
+                map.closePopup();
+                alert("Data reset successfully.");
+            }
+        }
+    }
+
+    // Build the dynamic updated index.html for download
+    async function downloadHtml() {
+        try {
+            const resp = await fetch(window.location.href);
+            if (!resp.ok) throw new Error("Fetch failed");
+            let html = await resp.text();
+
+            // Clear temporary draft tracks that weren't saved
+            const cleanSoundData = soundData.filter(t => !t.isTemporary).map(t => {
+                const { isTemporary, docId, ...rest } = t;
+                return rest;
+            });
+
+            // Replace soundData array definition
+            const dataRegex = /const\s+DEFAULT_SOUND_DATA\s*=\s*\[[\s\S]*?\]\s*;/;
+            const newBlock = `const DEFAULT_SOUND_DATA = ${JSON.stringify(cleanSoundData, null, 8)};`;
+            html = html.replace(dataRegex, newBlock);
+
+            // Create blob and trigger browser download
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'index.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (e) {
+            console.error("Local download failed. Offering copy-paste option.", e);
+            
+            const cleanSoundData = soundData.filter(t => !t.isTemporary).map(t => {
+                const { isTemporary, docId, ...rest } = t;
+                return rest;
+            });
+            const jsonStr = JSON.stringify(cleanSoundData, null, 8);
+
+            // Show a simple copy dialog overlay
+            const copyModal = document.createElement('div');
+            copyModal.id = "fallback-copy-modal";
+            copyModal.style = `
+                position: fixed; top: 12%; left: 50%; transform: translateX(-50%);
+                width: 90%; max-width: 500px; max-height: 80vh; background: var(--bg-panel);
+                border: 2px solid var(--border-color); box-shadow: 6px 6px 0px var(--shadow-color);
+                padding: 16px; z-index: 5000; color: var(--text-main); font-family: var(--font-mono);
+                box-sizing: border-box; display: flex; flex-direction: column;
+            `;
+            copyModal.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 10px; color: var(--text-accent);">[CORS PROTOCOL RESTRICTION]</div>
+                <div style="font-size: 11.5px; line-height: 1.5; margin-bottom: 12px;">
+                    Local <code>file://</code> files cannot be downloaded automatically due to browser sandbox security.<br><br>
+                    Please copy the updated track data block below and overwrite the <code>const DEFAULT_SOUND_DATA = [...]</code> block inside your local <code>index.html</code> code:
+                </div>
+                <textarea style="width: 100%; height: 250px; font-family: var(--font-mono); font-size: 10px; background: rgba(0,0,0,0.05); color: var(--text-main); border: 1px solid var(--border-color); box-sizing: border-box; margin-bottom: 12px; padding: 8px;" readonly onclick="this.select()">${jsonStr}</textarea>
+                <div style="text-align: right;">
+                    <button class="bbs-btn" onclick="document.getElementById('fallback-copy-modal').remove()">[C] CLOSE</button>
+                </div>
+            `;
+            document.body.appendChild(copyModal);
+        }
+    }
+
+    // Helper functions
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function getEmbedHtml(track) {
+        if (track.audioBase64) {
+            return `<audio controls autoplay class="popup-audio-player" src="${track.audioBase64}"></audio>`;
+        }
+        
+        let audioUrl = track.audioUrl ? track.audioUrl.trim() : "";
+        if (audioUrl) {
+            // Auto-wrap SoundCloud Links
+            if (audioUrl.includes("soundcloud.com/")) {
+                return `<iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=${encodeURIComponent(audioUrl)}&color=%23ff33aa&auto_play=true&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"></iframe>`;
+            }
+            
+            // Auto-wrap Freesound Links
+            if (audioUrl.includes("freesound.org/")) {
+                const matches = audioUrl.match(/sounds\/(\d+)/);
+                if (matches && matches[1]) {
+                    return `<iframe src="https://freesound.org/embed/sound/iframe/${matches[1]}/simple/medium/" width="100%" height="86" frameborder="0" scrolling="no"></iframe>`;
+                }
+            }
+            
+            // Plain direct audio link URL
+            if (audioUrl.startsWith("http")) {
+                return `<audio controls autoplay class="popup-audio-player" src="${audioUrl}"></audio>`;
+            }
+        }
+        
+        if (track.id) {
+            const bgCol = "ffffff";
+            const linkCol = "ff33aa";
+            return `
+                <iframe class="popup-player" 
+                    src="https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/bgcol=${bgCol}/linkcol=${linkCol}/track=${track.id}/transparent=true/autoplay=true/" 
+                    seamless style="width: 100%; border: none;">
+                </iframe>
+            `;
+        }
+        return `<div style="padding: 15px; text-align: center; font-size: 11px; color: var(--text-sub); background: #ffffff;">[NO PLAYER OR AUDIO SOURCE CONNECTED]</div>`;
+    }
+
+    // Expose module functions to global window scope
+    window.toggleInfo = toggleInfo;
+    window.toggleAdminMode = toggleAdminMode;
+    window.downloadHtml = downloadHtml;
+    window.resetData = resetData;
+    window.toggleSidebar = toggleSidebar;
+    window.toggleAddSpotMode = toggleAddSpotMode;
+    window.exportDataString = exportDataString;
+    window.importDataString = importDataString;
+    window.promptCreateCategory = promptCreateCategory;
+    window.slideBackToCategories = slideBackToCategories;
+    window.closeEditModal = closeEditModal;
+    window.closeCategoryModal = closeCategoryModal;
+    window.saveNewCategory = saveNewCategory;
+    window.deleteCategory = deleteCategory;
+    window.openEditModal = openEditModal;
+    window.deleteTrack = deleteTrack;
+    window.selectTrack = selectTrack;
+    window.handleCategorySelectChange = handleCategorySelectChange;
+    window.handleImageUpload = handleImageUpload;
+    window.handleAudioUpload = handleAudioUpload;
+    window.submitEditForm = submitEditForm;
+
+    // Initialization
+    const initIsMobile = window.innerWidth <= 768;
+    document.getElementById('sidebar-toggle-tab').innerText = initIsMobile ? '▾' : '▸';
+    
+    if (isFirebaseEnabled) {
+        // 1. Real-time Sounds Listener
+        onSnapshot(collection(db, "gangwha_sounds"), (snapshot) => {
+            if (snapshot.empty) {
+                // Seed database with defaults
+                DEFAULT_SOUND_DATA.forEach(track => {
+                    addDoc(collection(db, "gangwha_sounds"), track);
+                });
+                return;
+            }
+            soundData.length = 0;
+            snapshot.forEach(doc => {
+                soundData.push({ docId: doc.id, ...doc.data() });
+            });
+            renderMarkers();
+            renderCategories();
+            if (selectedCategoryName) {
+                renderTracklistForCategory(selectedCategoryName);
+            }
+        });
+
+        // 2. Real-time Colors Listener
+        onSnapshot(collection(db, "gangwha_category_colors"), (snapshot) => {
+            const colors = {};
+            snapshot.forEach(doc => {
+                colors[doc.id] = doc.data().color;
+            });
+            localStorage.setItem('gangwha_category_colors', JSON.stringify(colors));
+            renderCategories();
+            renderMarkers();
+        });
+
+        // 3. Real-time Custom Categories Listener
+        onSnapshot(collection(db, "gangwha_custom_categories"), (snapshot) => {
+            const customCats = [];
+            snapshot.forEach(doc => {
+                customCats.push(doc.data().name);
+            });
+            localStorage.setItem('gangwha_custom_categories', JSON.stringify(customCats));
+            renderCategories();
+        });
+
+        // 4. Real-time Deleted Defaults Listener
+        onSnapshot(collection(db, "gangwha_deleted_defaults"), (snapshot) => {
+            const deleted = [];
+            snapshot.forEach(doc => {
+                deleted.push(doc.id);
+            });
+            localStorage.setItem('gangwha_deleted_defaults', JSON.stringify(deleted));
+            renderCategories();
+        });
+    } else {
+        renderCategories();
+        renderMarkers();
+    }
+</script>
+</body>
+</html>
