@@ -1403,9 +1403,14 @@
     const soundData = [];
     
     // Force reset local database if caching version has changed (cleans corrupted structures)
-    const APP_VERSION = "2026-08-29-v3000";
-        // Force reset local database if caching version has changed (cleans corrupted structures)
-    localStorage.clear();
+    const APP_VERSION = "2026-08-29-v4000";
+    if (localStorage.getItem('gangwha_app_version') !== APP_VERSION) {
+        localStorage.removeItem('gangwha_sound_data');
+        localStorage.removeItem('gangwha_deleted_defaults');
+        localStorage.removeItem('gangwha_custom_categories');
+        localStorage.removeItem('gangwha_category_colors');
+        localStorage.setItem('gangwha_app_version', APP_VERSION);
+    }
 
     // Initialize category fallback defaults in localStorage if missing
     if (!localStorage.getItem('gangwha_custom_categories')) {
