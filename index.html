@@ -948,6 +948,22 @@
         .menu-close-btn:hover {
             color: var(--text-accent);
         }
+
+        /* Floating Admin Action Panel */
+        #floating-admin-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 4500;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: none;
+            border-radius: 4px;
+            width: 180px;
+            font-family: var(--font-mono);
+        }
     </style>
 </head>
 <body>
@@ -1191,23 +1207,183 @@
 <script>
     // Hardcoded initial data source
     const DEFAULT_SOUND_DATA = [
-        { id: "2989378636", title: "In Front of Ladle & Spatula Bookstore", lat: 37.652175, lng: 126.440529, desc: "Sitting on the bookstore floorboards, recording the wind chimes, a cat approaches to converse. The rhythm of a working carpenter and the postman's motorcycle sketch the peace of a Ganghwa afternoon.", meta: "2025-11-20 / Zoom F3 / Clippy EM272", category: "Soundscape in ganghwa island 2025-2026" },
-        { id: "753759855", title: "Seokmodo Minmeoru Beach", lat: 37.651298, lng: 126.333199, desc: "Soundwalking. Walking along the sandy beach, focusing on my footsteps and the waves, experiencing my own pace.", meta: "2026-02-04", category: "Soundscape in ganghwa island 2025-2026" },
-        { id: "1719650266", title: "Jeongjoksan 14 Stations Road (Day)", lat: 37.636524, lng: 126.487527, desc: "The burning heat of summer in Ganghwa, harmonized with the lively cicada chorus slicing through it.", meta: "2025-08-06", category: "Soundscape in ganghwa island 2025-2026" },
-        { id: "843445286", title: "Jeongjoksanseong Entrance (Night)", lat: 37.631870, lng: 126.477204, desc: "At the gate of Jeongjoksanseong fortress, the orchestra of nocturnal insects begins as darkness settles.", meta: "2025-08-20", category: "Soundscape in ganghwa island 2025-2026" },
-        { id: "372803100", title: "Jeondeungsa Temple Evening Worship Drum", lat: 37.631830, lng: 126.484682, desc: "The Dharma drum of Jeondeungsa. Heart-throbbing low vibrations spread across the mountain sanctuary.", meta: "2025-09-22", category: "Soundscape in ganghwa island 2025-2026" },
-        { id: "1394143868", title: "Jeondeungsa Temple Evening Worship Bell", lat: 37.631493, lng: 126.483674, desc: "The deep resonance of the Brahma bell. The lingering echo after the sound fades fills the Ganghwa night.", meta: "2025-09-22", category: "Soundscape in ganghwa island 2025-2026" },
-        { id: "925560464", title: "Donggeomdo Donggeorang Island", lat: 37.589020, lng: 126.525597, desc: "The subtle breathing of the tidal flats. Movements of creatures revealed after the seawater recedes.", meta: "2025-10-08", category: "Soundscape in ganghwa island 2025-2026" },
-        { id: "1588339098", title: "Daesan Reservoir Reed Wind", lat: 37.785945, lng: 126.479647, desc: "Daesan Reservoir in winter. The lonely yet warm whisper of the wind brushing through dry reeds.", meta: "2025-12-08", category: "Soundscape in ganghwa island 2025-2026" },
-        { id: "224371653", title: "Gwangseongbo Raindrops", lat: 37.665276, lng: 126.530615, desc: "Raindrops flowing down the drainpipe. The spatial echo transforms the sound of rain into a musical instrument.", meta: "2025-11-19", category: "Soundscape in ganghwa island 2025-2026" },
-        { id: "4164866312", title: "Gyodongdo Namsanpo Port High Tide", lat: 37.763106, lng: 126.290747, desc: "Seawater rising at Namsanpo Port. The heavy presence of the incoming tide slowly makes its way.", meta: "2025-11-21", category: "Soundscape in ganghwa island 2025-2026" },
-        { id: "519450696", title: "Bugilgot Dondae Coast", lat: 37.611408, lng: 126.375040, desc: "Rough waves breaking against rocks below the historical fort. The sheer force of the Ganghwa sea is felt.", meta: "2025-11-20", category: "Soundscape in ganghwa island 2025-2026" },
-        { id: "64694152", title: "Gyodongdo Wolseonpo Port Low Tide", lat: 37.774263, lng: 126.316992, desc: "The silence of the port as water recedes, filled with the delicate murmurs of the mudflat.", meta: "2026-02-12", category: "Soundscape in ganghwa island 2025-2026" },
-        { id: "2110564066", title: "First Snow of Ganghwa", lat: 37.638092, lng: 126.490264, desc: "Sound of falling snow. The Ganghwa winter deepens inside a silence that absorbs all ambient noise.", meta: "2026-01-24", category: "Soundscape in ganghwa island 2025-2026" },
-        { id: "2505151801", title: "Onsu-ri Church Angelus Bell", lat: 37.640278, lng: 126.489879, desc: "The Angelus bell tolling from the historic Onsu-ri Anglican Church, blessing the daily routines of the village.", meta: "2025-11-22", category: "Soundscape in ganghwa island 2025-2026" },
-        { id: "3520696282", title: "Peace Observatory Northward Sound", lat: 37.820137, lng: 126.444672, desc: "Faint sounds drifting on the wind from the north. A close yet distant tension lingers in the air.", meta: "2026-01-14", category: "Soundscape in ganghwa island 2025-2026" },
-        { id: "3411754260", title: "Gyodongdo Dawn at a Farmhouse", lat: 37.768691, lng: 126.290418, desc: "The gusty wind waking the island dawn, accompanied by the distant crowing of a rooster.", meta: "2025-11-22", category: "Soundscape in ganghwa island 2025-2026" }
-    ];
+        {
+                "id": "2989378636",
+                "title": "강화도 국자와 주걱 책방 앞",
+                "lat": 389,
+                "lng": 422,
+                "desc": "책방 처마 끝 풍경 소리가 맑아 조용히 녹음기를 꺼내 들었다.\n어디선가 동네 고양이 한 마리가 다가와 빤히 말을 건넨다.\n\"인간, 내 허락도 없이 여기서 뭐 하는 거냐?\"\n녹음 하나를 하려 해도 이 작은 마을 주인님의 결재를 받아야 할 모양이다.\n조심스레 손을 내밀자, 녀석은 기다렸다는 듯 머리를 비비며 제 체취를 묻혀온다.\n합격이라는 뜻일까.\n멀리서 들려오는 개 짖는 소리, 바람결에 섞인 새들의 지저귐.\n불협화음 같던 소리들이 자연스레 엉기며 하나의 음악이 된다.\n우연히 마주친, 한 편의 영화 같던 소리풍경",
+                "meta": "Date: 2025-11-20 ☁️ / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
+                "category": "Soundscape in ganghwa island 2025-2026",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/01%20%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%E1%84%83%E1%85%A9%20%E1%84%80%E1%85%AE%E1%86%A8%E1%84%8C%E1%85%A1%E1%84%8B%E1%85%AA%20%E1%84%8C%E1%85%AE%E1%84%80%E1%85%A5%E1%86%A8%20%E1%84%8E%E1%85%A2%E1%86%A8%E1%84%87%E1%85%A1%E1%86%BC%20%E1%84%8B%E1%85%A1%E1%87%81_251120.wav",
+                "imageBase64": "data:image/jpeg;base64,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"
+        },
+        {
+                "id": "753759855",
+                "title": "사운드워킹-석모도 민머루해변",
+                "lat": 428.5,
+                "lng": 187,
+                "desc": "맨발로 모래사장을 걸으면 기분이 좋다.\n까끌까끌 따가운 감촉, 모래 사이 사이 알록달록 유리조각을 피해 파도를 향해 걷는다. 시원한 파도소리를 뚫고 비행기가 항해한다.\n3분에 한대씩 비행기가 지나간다. \n이 수많은 비행기는 어디로 가는걸까..",
+                "meta": "Date: 2026-02-04 17:10  🌤️ / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
+                "category": "Soundscape in ganghwa island 2025-2026",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/02%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%8B%E1%85%AF%E1%84%8F%E1%85%B5%E1%86%BC-%E1%84%89%E1%85%A5%E1%86%A8%E1%84%86%E1%85%A9%E1%84%83%E1%85%A9%20%E1%84%86%E1%85%B5%E1%86%AB%E1%84%86%E1%85%A5%E1%84%85%E1%85%AE%E1%84%92%E1%85%A2%E1%84%87%E1%85%A7%E1%86%AB_260204.wav",
+                "imageBase64": ""
+        },
+        {
+                "id": "1719650266",
+                "title": "강화도 정족산 14처길 낮",
+                "lat": 331,
+                "lng": 535,
+                "desc": "한여름 매미소리가 숲을 가득 채우고 있다.\n햇볕은 뜨겁고, 바람도 불지않는 정족산의 낮.\n14처길을 따라 땀을 흘리며 걷다보면 자연스레 명상에 잠기게 된다.",
+                "meta": "Date: 2025-08-06 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
+                "category": "Soundscape in ganghwa island 2025-2026",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/03%20%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%E1%84%83%E1%85%A9%20%E1%84%8C%E1%85%A5%E1%86%BC%E1%84%8C%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A1%E1%86%AB%2014%E1%84%8E%E1%85%A5%E1%84%80%E1%85%B5%E1%86%AF%20%E1%84%82%E1%85%A1%E1%86%B5_250806.wav",
+                "imageBase64": ""
+        },
+        {
+                "id": "843445286",
+                "title": "강화도 정족산 입구 밤",
+                "lat": 308,
+                "lng": 521,
+                "desc": "해질녘 정족산성 동문 아래에 서서 녹음기를 켠다.\n여름 밤벌레 소리가 파도처럼 밀려온다.\n간간히 지나가는 자동차 소리가 밤하늘을 가른다.",
+                "meta": "Date: 2025-08-20 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
+                "category": "Soundscape in ganghwa island 2025-2026",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/04%20%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%E1%84%83%E1%85%A9%20%E1%84%8C%E1%85%A5%E1%86%BC%E1%84%8C%E1%85%A9%E1%86%A8%E1%84%89%E1%85%A1%E1%86%AB%E1%84%89%E1%85%A5%E1%86%A8%20%E1%84%8B%E1%85%B5%E1%86%B8%E1%84%80%E1%85%AE%20%E1%84%87%E1%85%A1%E1%86%B7_250820.wav",
+                "imageBase64": ""
+        },
+        {
+                "id": "372803100",
+                "title": "전등사 저녁예불 대고",
+                "lat": 310,
+                "lng": 551,
+                "desc": "어스름해지는 저녁, Jeondeungsa(전등사)의 법고(Dharma Drum) 소리가 울려 퍼진다.\n북소리는 묵직하게 가슴을 울리며, 온 산으로 퍼져나간다.\n바쁜 일상을 잠시 멈추고 귀를 기울여본다.",
+                "meta": "Date: 2025-09-22 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
+                "category": "Soundscape in ganghwa island 2025-2026",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/05%20%E1%84%8C%E1%85%A5%E1%86%AB%E1%84%83%E1%85%B5%E1%86%BC%E1%84%89%E1%85%A1%20%E1%84%8C%E1%85%A5%E1%86%AB%E1%84%82%E1%85%A7%E1%86%A8%E1%84%80%E1%85%A5%E1%84%87%E1%85%AE%E1%86%AF%20%E1%84%83%E1%85%A2%E1%84%80%E1%85%A9_250922.wav",
+                "imageBase64": ""
+        },
+        {
+                "id": "1394143868",
+                "title": "전등사 저녁예불 범종",
+                "lat": 321,
+                "lng": 546,
+                "desc": "법고 소리가 멎고, 이어서 범종(Brahma Bell)이 울린다.\n깊은 울림이 공기를 진동시키며, 번뇌를 씻어내듯 길게 꼬리를 남긴다.\n산사(Mountain Temple)의 저녁이 깊어간다.",
+                "meta": "Date: 2025-09-22 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
+                "category": "Soundscape in ganghwa island 2025-2026",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/06%20%E1%84%8C%E1%85%A5%E1%86%AB%E1%84%83%E1%85%B5%E1%86%BC%E1%84%89%E1%85%A1%20%E1%84%8C%E1%85%A5%E1%86%AB%E1%84%82%E1%85%A7%E1%86%A8%E1%84%80%E1%85%A5%E1%84%87%E1%85%AE%E1%86%AF%20%E1%84%87%E1%85%A5%E1%86%B7%E1%84%8C%E1%85%A9%E1%86%BC_250922.wav",
+                "imageBase64": ""
+        },
+        {
+                "id": "925560464",
+                "title": "동검도 동그랑섬",
+                "lat": 303,
+                "lng": 625,
+                "desc": "썰물 때가 되어 동검도 앞 갯벌이 광활하게 드러났다.\n갯벌 속 생명체들이 숨 쉬는 소리, 미세한 바람 소리가 고요하게 펼쳐진다.\n자연의 거대한 호흡을 엿듣는 듯한 느낌.",
+                "meta": "Date: 2025-10-08 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
+                "category": "Soundscape in ganghwa island 2025-2026",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/07%20%E1%84%83%E1%85%A9%E1%86%BC%E1%84%80%E1%85%A5%E1%86%B7%E1%84%83%E1%85%A9%20%E1%84%83%E1%85%A9%E1%86%BC%E1%84%80%E1%85%B3%E1%84%85%E1%85%A1%E1%86%BC%E1%84%89%E1%85%A5%E1%86%B7_251008.wav",
+                "imageBase64": ""
+        },
+        {
+                "id": "1588339098",
+                "title": "대산저수지 갈대바람",
+                "lat": 381,
+                "lng": 566,
+                "desc": "겨울의 초입, Daesan Reservoir(대산저수지)의 갈대밭에 바람이 분다.\n갈대들이 서로 부대끼며 바스락거리는 마른 소리가 차가운 공기를 가득 채운다.\n쓸쓸하지만 따뜻한 울림이 있는 소리.",
+                "meta": "Date: 2025-12-08 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
+                "category": "Soundscape in ganghwa island 2025-2026",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/08%20%E1%84%83%E1%85%A2%E1%84%89%E1%85%A1%E1%86%AB%E1%84%8C%E1%85%A5%E1%84%89%E1%85%AE%E1%84%8C%E1%85%B5%20%E1%84%80%E1%85%A1%E1%86%AF%E1%84%83%E1%85%A2%E1%84%87%E1%85%A1%E1%84%85%E1%85%A1%E1%86%B7_251208.wav",
+                "imageBase64": ""
+        },
+        {
+                "id": "224371653",
+                "title": "광성보 빗방울",
+                "lat": 381,
+                "lng": 591,
+                "desc": "비 내리는 오후, Gwangseongbo(광성보) 성벽 아래서 빗소리를 녹음한다.\n기와와 배수관을 통해 떨어지는 물방울 소리가 맑게 튀어 오른다.\n조용한 유적지에 떨어지는 빗물 소리가 마음을 차분하게 한다.",
+                "meta": "Date: 2025-11-19 ☔️ / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
+                "category": "Soundscape in ganghwa island 2025-2026",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/09%20%E1%84%80%E1%85%AA%E1%86%BC%E1%84%89%E1%85%A5%E1%86%BD%E1%84%87%E1%85%A9%20%E1%84%87%E1%85%B5%E1%86%BA%E1%84%87%E1%85%A1%E1%86%BC%E1%84%8B%E1%85%AE%E1%86%AF_251119.wav",
+                "imageBase64": ""
+        },
+        {
+                "id": "4164866312",
+                "title": "교동도 남산포 만조",
+                "lat": 381,
+                "lng": 105,
+                "desc": "밀물 때가 된 Gyodongdo(교동도) Namsanpo(남산포) 포구.\n바닷물이 포구를 가득 채우며 출렁이는 소리, 갈매기 소리가 섞인다.\n서해 바다의 역동성과 적막함이 공존하는 순간.",
+                "meta": "Date: 2025-11-21 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
+                "category": "Soundscape in ganghwa island 2025-2026",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/10%20%E1%84%80%E1%85%A5%E1%84%83%E1%85%A9%E1%86%BD%E1%84%83%E1%85%A9%20%E1%84%82%E1%85%A1%E1%86%B7%E1%84%89%E1%85%A1%E1%86%AB%E1%84%87%E1%85%A9%20%E1%84%86%E1%85%A1%E1%86%AB%E1%84%8C%E1%85%A5_251121.wav",
+                "imageBase64": ""
+        },
+        {
+                "id": "519450696",
+                "title": "부길ᄀ 돈대 해안 파도",
+                "lat": 447,
+                "lng": 251,
+                "desc": "Bugilgot Dondae(부길곶돈대) 해안가의 거친 파도소리.\n바위에 부딪혀 부서지는 파도 소리가 웅장하게 울려 퍼진다.\n자연의 강인한 생명력을 느낄 수 있는 소리풍경.",
+                "meta": "Date: 2025-11-20 ☁️ / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
+                "category": "Soundscape in ganghwa island 2025-2026",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/11%20%E1%84%87%E1%85%AE%E1%84%80%E1%85%B5%E1%86%AF%E1%84%80%E1%85%A9%E1%86%BE%20%E1%84%83%E1%85%A9%E1%86%AB%E1%84%83%E1%85%A2%20%E1%84%92%E1%85%A2%E1%84%8B%E1%85%A1%E1%86%AB%20%E1%84%91%E1%85%A1%E1%84%83%E1%85%A5_251120.wav",
+                "imageBase64": ""
+        },
+        {
+                "id": "64694152",
+                "title": "교동도 월선포 간조",
+                "lat": 328,
+                "lng": 155,
+                "desc": "밀려 나간 바닷물, 침묵에 잠긴 Wolseonpo(월선포) 항구.\n갯벌이 남긴 젖은 숨소리만이 고요한 포구의 빈자리를 채우고 있다.\n적막하지만 깊은 평화로움.",
+                "meta": "Date: 2026-02-12 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
+                "category": "Soundscape in ganghwa island 2025-2026",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/12%20%E1%84%80%E1%85%A5%E1%84%83%E1%85%A9%E1%86%BD%E1%84%83%E1%85%A9%20%E1%84%8B%E1%85%AF%E1%86%AF%E1%84%89%E1%85%A5%E1%86%AB%E1%84%87%E1%85%A9%20%E1%84%80%E1%85%A1%E1%86%AB%E1%84%8C%E1%85%A5_260212.wav",
+                "imageBase64": ""
+        },
+        {
+                "id": "2110564066",
+                "title": "강ᄒ의 첫눈",
+                "lat": 321,
+                "lng": 529,
+                "desc": "소리 없이 내리는 첫눈, 모든 소음을 흡수하는 하얀 적막.\n강화의 겨울이 침묵 속에서 더 깊어져 간다.\n눈 밟는 소리, 고요한 겨울의 소리.",
+                "meta": "Date: 2026-01-24 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
+                "category": "Soundscape in ganghwa island 2025-2026",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/13%20%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%E1%84%9C%E1%85%B5%20%E1%84%8E%E1%85%A5%E1%86%BA%E1%84%82%E1%85%AE%E1%86%AB_260124.wav",
+                "imageBase64": ""
+        },
+        {
+                "id": "2505151801",
+                "title": "온수리성당 삼종",
+                "lat": 313,
+                "lng": 530,
+                "desc": "100년 넘는 역사의 온수리 한옥성당에서 종소리가 울린다.\n마을의 평화로운 일상을 축복하듯 울리는 깊은 타종 소리.\n종소리가 주는 마음의 평온.",
+                "meta": "Date: 2025-11-22 ☁️ / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
+                "category": "Soundscape in ganghwa island 2025-2026",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/14%20%E1%84%8B%E1%85%A9%E1%86%AB%E1%84%89%E1%85%AE%E1%84%85%E1%85%B5%E1%84%89%E1%85%A5%E1%86%BC%E1%84%83%E1%85%A3%E1%86%BC%20%E1%84%89%E1%85%A1%E1%86%B7%E1%84%8C%E1%85%A9%E1%86%BC_251122.wav",
+                "imageBase64": ""
+        },
+        {
+                "id": "3520696282",
+                "title": "평화전망대 북향의 소리",
+                "lat": 319,
+                "lng": 482,
+                "desc": "평화전망대에서 바람을 타고 들려오는 북녘의 소리.\n가깝지만 닿을 수 없는 분단의 거리감이 소리로 전해진다.\n고요함 속에 팽팽한 긴장감이 흐른다.",
+                "meta": "Date: 2026-01-14 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
+                "category": "Soundscape in ganghwa island 2025-2026",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/15%20%E1%84%91%E1%85%A7%E1%86%BC%E1%84%92%E1%85%AA%E1%84%8C%E1%85%A5%E1%86%AB%E1%84%86%E1%85%A1%E1%86%BD%E1%84%83%E1%85%A2%20%E1%84%87%E1%85%AE%E1%86%A5%E1%84%92%E1%85%A3%E1%86%BC%E1%84%8B%E1%85%AE%E1%86%B5%20%E1%84%89%E1%85%A5%E1%84%85%E1%85%B5_260114.wav",
+                "imageBase64": ""
+        },
+        {
+                "id": "3411754260",
+                "title": "교동도 농가의 새벽",
+                "lat": 313,
+                "lng": 182,
+                "desc": "교동도의 새벽을 깨우는 바람 소리와 먼 닭 울음소리.\n적막한 농가의 마당을 쓸고 가는 바람이 섬의 아침을 연다.\n소박하고 아련한 삶의 소리.",
+                "meta": "Date: 2025-11-22 ☁️ / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
+                "category": "Soundscape in ganghwa island 2025-2026",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/16%20%E1%84%80%E1%85%A5%E1%84%83%E1%85%A9%E1%86%BD%E1%84%83%E1%85%A9%20%E1%84%82%E1%85%A5%E1%86%BD%E1%84%80%E1%85%A1%E1%86%B5%20%E1%84%89%E1%85%A4%E1%84%8B%E1%85%B5%E1%86%A8_251122.wav",
+                "imageBase64": ""
+        }
+];
 
     // Hardcoded default categories configuration (Populated dynamically on HTML export)
     const DEFAULT_CATEGORY_COLORS = {};
