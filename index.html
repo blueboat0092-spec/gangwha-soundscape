@@ -181,6 +181,23 @@
             animation: marker-spin 3s linear infinite !important;
         }
 
+        /* 🌟 Pulse Glow effect for playing marker */
+        @keyframes marker-glow {
+            0% {
+                box-shadow: 0 0 0 0px rgba(74, 123, 176, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 12px rgba(74, 123, 176, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0px rgba(74, 123, 176, 0);
+            }
+        }
+        .custom-marker-icon.playing {
+            animation: marker-glow 1.6s infinite ease-in-out !important;
+            border-color: var(--text-accent) !important;
+        }
+
         .sidebar-title {
             padding: 12px;
             font-weight: bold;
@@ -271,9 +288,10 @@
             outline: none;
         }
 
+        /* 300% 로고 이미지 스케일업 */
         .left-brand-panel .logo-btn img {
             display: block;
-            max-height: 52px;
+            max-height: 156px; 
             image-rendering: -webkit-optimize-contrast;
             image-rendering: crisp-edges;
         }
@@ -293,7 +311,7 @@
             background: transparent;
             padding: 0;
             border: none;
-            max-height: calc(100vh - 160px);
+            max-height: calc(100vh - 240px);
             overflow-y: auto;
             width: 240px;
             text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.9), -1px -1px 2px rgba(255, 255, 255, 0.9);
@@ -714,7 +732,7 @@
                 "desc": "100년 넘는 역사의 온수리 한옥성당에서 종소리가 울린다.\n마을의 평화로운 일상을 축복하듯 울리는 깊은 타종 소리.\n종소리가 주는 마음의 평온.",
                 "meta": "Date: 2025-11-22 ☁️ / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
                 "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/14%20%E1%84%8B%E1%85%A9%E1%86%AB%E1%84%89%E1%85%AE%E1%86%AB%E1%84%85%E1%85%B5%E1%84%89%E1%85%A5%E1%86%BC%E1%84%83%E1%85%A3%E1%86%BC%20%E1%84%89%E1%85%A1%E1%86%B7%E1%84%8C%E1%85%A9%E1%86%BC_251122.wav",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/14%20%E1%84%8B%E1%85%A9%E1%86%AB%E1%84%89%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/14%20%E1%84%8B%E1%85%A9%E1%86%AB%E1%84%89%E1%85%AE%E1%86%AB%E1%84%85%E1%85%B5%E1%84%89%E1%85%A5%E1%86%BC%E1%84%83%E1%85%A3%E1%86%BC%20%E1%84%89%E1%85%A1%E1%86%B7%E1%84%8C%E1%85%A9%E1%86%BC_251122.wav",
                 "imageBase64": "",
                 "imageUrl": ""
         },
@@ -881,88 +899,120 @@
             imgEl.src = '';
         }
 
-        playerContainer.innerHTML = '';
-        let audioPlayerHtml = '';
         const rawAudio = track.audioUrl ? track.audioUrl.trim() : "";
         const trackId = track.id ? track.id.trim() : "";
 
-        if (rawAudio.includes('<iframe') || rawAudio.includes('iframe>')) {
-            const match = rawAudio.match(/src=["']([^"']+)["']/);
-            if (match && match[1]) {
-                let cleanSrc = match[1];
-                if (cleanSrc.includes('bandcamp.com')) {
-                    cleanSrc = cleanSrc.replace('/size=small/', '/size=small/artwork=none/tracklist=false/autoplay=true/');
-                } else if (cleanSrc.includes('soundcloud.com')) {
-                    cleanSrc += '&auto_play=true&show_artwork=false&show_user=false&sharing=false&download=false&buying=false&show_playcount=false';
-                }
-                const isSc = cleanSrc.includes('soundcloud.com');
-                audioPlayerHtml = `<iframe class="${isSc ? 'popup-player-sc' : 'popup-player'}" src="${cleanSrc}" allow="autoplay" seamless></iframe>`;
-            }
-        } else if (rawAudio.includes('bandcamp.com/EmbeddedPlayer')) {
-            let bcUrl = rawAudio;
-            if (!bcUrl.includes('artwork=')) {
-                bcUrl = bcUrl.replace('/size=small/', '/size=small/artwork=none/tracklist=false/autoplay=true/');
-            }
-            audioPlayerHtml = `<iframe class="popup-player" src="${bcUrl}" allow="autoplay" seamless></iframe>`;
-        } else if (rawAudio.includes('soundcloud.com')) {
-            const scUrl = `https://w.soundcloud.com/player/?url=${encodeURIComponent(rawAudio)}&color=%234a7bb0&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false&show_artwork=false&sharing=false&download=false&buying=false&show_playcount=false`;
-            audioPlayerHtml = `<iframe class="popup-player-sc" src="${scUrl}" scrolling="no" frameborder="no" allow="autoplay" seamless></iframe>`;
-        } else if (rawAudio && (rawAudio.endsWith('.wav') || rawAudio.endsWith('.mp3') || rawAudio.includes('r2.dev') || rawAudio.includes('storage'))) {
-            audioPlayerHtml = `<audio id="right-sidebar-audio-element" controls src="${rawAudio}" style="width: 100%;" autoplay></audio>`;
-        } else if (trackId) {
-            audioPlayerHtml = `
-                <iframe class="popup-player" 
-                    src="https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/transparent=true/artwork=none/tracklist=false/track=${trackId}/transparent=true/autoplay=true/" 
-                    allow="autoplay"
-                    seamless>
-                </iframe>
-            `;
-        } else if (rawAudio) {
-            audioPlayerHtml = `<audio id="right-sidebar-audio-element" controls src="${rawAudio}" style="width: 100%;" autoplay></audio>`;
+        // 🌟 Autoplay optimization: if audio tag already exists, reuse it to bypass browser autoplay blocks
+        const existingAud = document.getElementById('right-sidebar-audio-element');
+        const isNativeStream = rawAudio && (rawAudio.endsWith('.wav') || rawAudio.endsWith('.mp3') || rawAudio.includes('r2.dev') || rawAudio.includes('storage'));
+
+        if (existingAud && isNativeStream) {
+            existingAud.src = rawAudio;
+            existingAud.play().catch(err => console.log("Continuous play prevented:", err));
+            setMarkerPlayingState(idx, true);
         } else {
-            audioPlayerHtml = `
-                <div style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color); font-size: 10px; color: var(--text-sub); background: #ffffff;">
-                    [NO PLAYER OR AUDIO SOURCE CONNECTED]
-                </div>
-            `;
-        }
+            playerContainer.innerHTML = '';
+            let audioPlayerHtml = '';
 
-        playerContainer.innerHTML = audioPlayerHtml;
-
-        setTimeout(() => {
-            const audEl = document.getElementById('right-sidebar-audio-element');
-            if (audEl) {
-                audEl.addEventListener('play', () => setMarkerPlayingState(idx, true));
-                audEl.addEventListener('pause', () => setMarkerPlayingState(idx, false));
-                audEl.addEventListener('ended', () => {
-                    setMarkerPlayingState(idx, false);
-                    const nextIdx = idx + 1;
-                    if (nextIdx < soundData.length) selectTrack(nextIdx);
-                });
-                audEl.play().catch(err => console.log("Play prevented:", err));
-                setMarkerPlayingState(idx, true);
+            if (rawAudio.includes('<iframe') || rawAudio.includes('iframe>')) {
+                const match = rawAudio.match(/src=["']([^"']+)["']/);
+                if (match && match[1]) {
+                    let cleanSrc = match[1];
+                    if (cleanSrc.includes('bandcamp.com')) {
+                        cleanSrc = cleanSrc.replace('/size=small/', '/size=small/artwork=none/tracklist=false/autoplay=true/');
+                    } else if (cleanSrc.includes('soundcloud.com')) {
+                        cleanSrc += '&auto_play=true&show_artwork=false&show_user=false&sharing=false&download=false&buying=false&show_playcount=false';
+                    }
+                    const isSc = cleanSrc.includes('soundcloud.com');
+                    audioPlayerHtml = `<iframe class="${isSc ? 'popup-player-sc' : 'popup-player'}" src="${cleanSrc}" allow="autoplay" seamless></iframe>`;
+                }
+            } else if (rawAudio.includes('bandcamp.com/EmbeddedPlayer')) {
+                let bcUrl = rawAudio;
+                if (!bcUrl.includes('artwork=')) {
+                    bcUrl = bcUrl.replace('/size=small/', '/size=small/artwork=none/tracklist=false/autoplay=true/');
+                }
+                audioPlayerHtml = `<iframe class="popup-player" src="${bcUrl}" allow="autoplay" seamless></iframe>`;
+            } else if (rawAudio.includes('soundcloud.com')) {
+                const scUrl = `https://w.soundcloud.com/player/?url=${encodeURIComponent(rawAudio)}&color=%234a7bb0&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false&show_artwork=false&sharing=false&download=false&buying=false&show_playcount=false`;
+                audioPlayerHtml = `<iframe class="popup-player-sc" src="${scUrl}" scrolling="no" frameborder="no" allow="autoplay" seamless></iframe>`;
+            } else if (isNativeStream) {
+                audioPlayerHtml = `<audio id="right-sidebar-audio-element" controls src="${rawAudio}" style="width: 100%;" autoplay></audio>`;
+            } else if (trackId) {
+                audioPlayerHtml = `
+                    <iframe class="popup-player" 
+                        src="https://bandcamp.com/EmbeddedPlayer/album=1457254492/size=small/transparent=true/artwork=none/tracklist=false/track=${trackId}/transparent=true/autoplay=true/" 
+                        allow="autoplay"
+                        seamless>
+                    </iframe>
+                `;
+            } else if (rawAudio) {
+                audioPlayerHtml = `<audio id="right-sidebar-audio-element" controls src="${rawAudio}" style="width: 100%;" autoplay></audio>`;
             } else {
-                if (rawAudio || trackId) {
+                audioPlayerHtml = `
+                    <div style="padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color); font-size: 10px; color: var(--text-sub); background: #ffffff;">
+                        [NO PLAYER OR AUDIO SOURCE CONNECTED]
+                    </div>
+                `;
+            }
+
+            playerContainer.innerHTML = audioPlayerHtml;
+
+            // Bind new audio element listeners
+            setTimeout(() => {
+                const audEl = document.getElementById('right-sidebar-audio-element');
+                if (audEl) {
+                    // Bind ended handler for automatic sequential playback
+                    audEl.addEventListener('ended', playNextTrack);
+                    audEl.addEventListener('play', () => setMarkerPlayingState(idx, true));
+                    audEl.addEventListener('pause', () => setMarkerPlayingState(idx, false));
+                    audEl.play().catch(err => console.log("Play prevented:", err));
                     setMarkerPlayingState(idx, true);
                 } else {
-                    setMarkerPlayingState(idx, false);
+                    if (rawAudio || trackId) {
+                        setMarkerPlayingState(idx, true);
+                    } else {
+                        setMarkerPlayingState(idx, false);
+                    }
                 }
-            }
-        }, 100);
+            }, 100);
+        }
 
         renderTracklist();
+    }
+
+    // Re-bind ended event after src change to continue automatic loop
+    function playNextTrack() {
+        const nextIdx = currentTrackIndex + 1;
+        if (nextIdx < soundData.length) {
+            selectTrack(nextIdx);
+            
+            // Re-registerended listener on new src element
+            setTimeout(() => {
+                const audEl = document.getElementById('right-sidebar-audio-element');
+                if (audEl) {
+                    audEl.removeEventListener('ended', playNextTrack);
+                    audEl.addEventListener('ended', playNextTrack);
+                }
+            }, 150);
+        } else {
+            setMarkerPlayingState(currentTrackIndex, false);
+        }
     }
 
     function setMarkerPlayingState(idx, isPlaying) {
         markers.forEach(m => {
             const el = m.getElement();
-            if (el) el.classList.remove('playing');
+            if (el) {
+                el.classList.remove('playing');
+            }
         });
 
         if (isPlaying && markers[idx]) {
             currentPlayingTrackIndex = idx;
             const activeEl = markers[idx].getElement();
-            if (activeEl) activeEl.classList.add('playing');
+            if (activeEl) {
+                activeEl.classList.add('playing');
+            }
         } else {
             if (currentPlayingTrackIndex === idx) currentPlayingTrackIndex = -1;
         }
