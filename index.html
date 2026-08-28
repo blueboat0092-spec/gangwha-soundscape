@@ -1307,7 +1307,7 @@
                 "id": "519450696",
                 "lat": 447,
                 "lng": 251,
-                "title": "북일곶 돈대 해안 파도",
+                "title": "부길ᄀ 돈대 해안 파도",
                 "desc": "Bugilgot Dondae(부길곶돈대) 해안가의 거친 파도소리.\n바위에 부딪혀 부서지는 파도 소리가 웅장하게 울려 퍼진다.\n자연의 강인한 생명력을 느낄 수 있는 소리풍경.",
                 "meta": "Date: 2025-11-20 ☁️ / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
                 "category": "Soundscape in ganghwa island 2025-2026",
@@ -1386,14 +1386,9 @@
     const soundData = [];
     
     // Force reset local database if caching version has changed (cleans corrupted structures)
-    const APP_VERSION = "2026-08-29-v2000";
-    if (localStorage.getItem('gangwha_app_version') !== APP_VERSION) {
-        localStorage.removeItem('gangwha_sound_data');
-        localStorage.removeItem('gangwha_deleted_defaults');
-        localStorage.removeItem('gangwha_custom_categories');
-        localStorage.removeItem('gangwha_category_colors');
-        localStorage.setItem('gangwha_app_version', APP_VERSION);
-    }
+    const APP_VERSION = "2026-08-29-v3000";
+        // Force reset local database if caching version has changed (cleans corrupted structures)
+    localStorage.clear();
 
     // Initialize category fallback defaults in localStorage if missing
     if (!localStorage.getItem('gangwha_custom_categories')) {
