@@ -268,12 +268,14 @@
             transition: opacity 0.15s ease-in-out;
             pointer-events: auto;
             text-align: left;
-            font-family: 'Yeon Sung', 'Gungsuh', '궁서', serif;
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--text-main);
-            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.9), -1px -1px 2px rgba(255, 255, 255, 0.9);
             outline: none;
+        }
+
+        .left-brand-panel .logo-btn img {
+            display: block;
+            max-height: 52px;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
         }
 
         .left-brand-panel .logo-btn:hover {
@@ -313,6 +315,102 @@
         .left-track-item.active {
             color: var(--text-accent);
             font-weight: bold;
+        }
+
+        /* Slide-out Navigation Drawer (Left Side) */
+        .sidebar-drawer {
+            height: 100%;
+            width: 0; /* Hidden by default */
+            position: fixed;
+            z-index: 5000; /* Over Leaflet map */
+            top: 0;
+            left: 0;
+            background-color: #ffffff;
+            border-right: 1px solid var(--border-color);
+            overflow-x: hidden;
+            transition: 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.05);
+        }
+
+        .sidebar-content-drawer {
+            padding: 20px;
+            width: 320px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .sidebar-scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        /* 📖 Felix Blume Inspired Modern Accordions */
+        .retro-accordion {
+            margin-bottom: 10px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-panel);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .accordion-trigger {
+            width: 100%;
+            text-align: left;
+            padding: 10px 14px;
+            background-color: #ffffff;
+            border: none;
+            color: var(--text-main);
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: inherit;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.15s;
+        }
+
+        .accordion-trigger:hover {
+            background-color: var(--bg-hover);
+        }
+
+        .accordion-content {
+            display: none; /* Collapsed by default */
+            padding: 14px;
+            background-color: #ffffff;
+            border-top: 1px solid var(--border-color);
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .acc-chevron {
+            font-size: 9px;
+            color: var(--text-sub);
+        }
+
+        /* Close Button inside Sidebar */
+        .menu-close-btn {
+            position: absolute;
+            top: 10px;
+            right: 14px;
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            font-weight: bold;
+            z-index: 5100;
+        }
+
+        .menu-close-btn:hover {
+            color: var(--text-accent);
         }
 
         /* Diary Cards styling inside right sidebar */
@@ -359,9 +457,56 @@
 
 <!-- Left Brand & Track List Panel (Fixed Top Left) -->
 <div class="left-brand-panel">
-    <button class="logo-btn" onclick="resetView()">江華 소리</button>
+    <button class="logo-btn" onclick="openSidebar()"><img src="logo.png" alt="江華 소리" /></button>
     <div id="left-track-list" class="left-track-list">
         <!-- Populated dynamically via JS -->
+    </div>
+</div>
+
+<!-- Slide-out Navigation Drawer (Left Side) -->
+<div id="mySidebar" class="sidebar-drawer" style="width: 0;">
+    <button class="menu-close-btn" onclick="closeSidebar()">×</button>
+    <div class="sidebar-content-drawer">
+        <div class="sidebar-scroll-area">
+            <!-- 1. ABOUT ALBUM SECTION -->
+            <div class="retro-accordion">
+                <button class="accordion-trigger" onclick="toggleAccordion('acc-album')">📖 ABOUT ALBUM <span class="acc-chevron">▾</span></button>
+                <div id="acc-album" class="accordion-content" style="display: block;"> <!-- Open by default -->
+                    <div class="sidebar-logo-container" style="text-align: center; margin-bottom: 12px;">
+                        <img src="https://f4.bcbits.com/img/a2885868170_1x1_700.avif" alt="Cover" class="sidebar-cover-art" style="width: 100%; max-width: 160px; border: 1px solid #000000;" />
+                    </div>
+                    <div style="font-size: 11px; line-height: 1.6; color: #663366; text-align: justify; word-break: keep-all; font-family: var(--font-mono);">
+                        Ganghwadae Island is where I spent the most defining years of my childhood.<br><br>
+                        For my teenage self boarding here, Ganghwa was merely a monotonous rural island, and every weekend, I yearned to escape to the bustling noise of Seoul.<br><br>
+                        Later in my 20s, I moved to the capital to pursue music and played in bands, losing my own rhythm amidst the city's frantic velocity.<br><br>
+                        When I felt I could endure it no longer, I packed up everything and fled back here to Ganghwa.<br><br>
+                        Back on the island, I met and recorded the deep resonance of the evening bell from Jeondeungsa Temple blending with the hum of grass insects, the Angelus bell of Onsu-ri Cathedral, and the shifting faces of the sea shaped by the ebb and flow of the tide.<br><br>
+                        This process has become a quiet window to look back upon my weary soul.
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. ABOUT ARTIST SECTION -->
+            <div class="retro-accordion">
+                <button class="accordion-trigger" onclick="toggleAccordion('acc-artist')">👤 ABOUT ARTIST <span class="acc-chevron">▸</span></button>
+                <div id="acc-artist" class="accordion-content">
+                    <div style="font-size: 11px; line-height: 1.6; color: #663366; font-family: var(--font-mono); text-align: justify; word-break: keep-all;">
+                        <strong>Chulmin Lee (전철민)</strong><br><br>
+                        An artist and sound recordist exploring the auditory landscapes of rural borders and historical memories. Based in Ganghwa Island.<br><br>
+                        <strong>CREDITS:</strong><br>
+                        Produced by Chulmin Lee<br>
+                        Recorded, edited and mastered by Chulmin Lee<br>
+                        Illustrations & Cover photo by Chulmin Lee<br>
+                        Designed by Jaesoo Lee
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar Footer -->
+            <div class="sidebar-footer" style="margin-top: 24px; border-top: 1px dashed #663366; padding-top: 12px; font-size: 9.5px; color: #663366; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono);">
+                <span>Ganghwa Soundscape © 2026</span>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -461,7 +606,7 @@
                 "desc": "어스름해지는 저녁, Jeondeungsa(전등사)의 법고(Dharma Drum) 소리가 울려 퍼진다.\n북소리는 묵직하게 가슴을 울리며, 온 산으로 퍼져나간다.\n바쁜 일상을 잠시 멈추고 귀를 기울여본다.",
                 "meta": "Date: 2025-09-22 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
                 "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/05%20%E1%84%8C%E1%85%A5%E1%86%AB%E1%84%83%E1%85%B5%E1%86%BC%E1%84%89%E1%85%A1%20%E1%84%8C%E1%85%A5%E1%86%AB%E1%84%82%E1%85%A7%E1%86%A8%E1%84%80%E1%85%A5%E1%84%87%E1%85%AE%E1%86%AF%20%E1%84%83%E1%85%A2%E1%84%80%E1%85%A9_250922.wav",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/05%20%E1%84%8C%E1%85%A5%E1%86%AB%E1%84%83%E1%85%B3%E1%85%A5%E1%86%BC%E1%84%89%E1%85%A1%20%E1%84%8C%E1%85%A5%E1%86%AB%E1%84%82%E1%85%A7%E1%86%A8%E1%84%80%E1%85%A5%E1%84%87%E1%85%AE%E1%86%AF%20%E1%84%83%E1%85%A2%E1%84%80%E1%85%A9_250922.wav",
                 "imageBase64": "",
                 "imageUrl": ""
         },
@@ -485,7 +630,7 @@
                 "desc": "썰물 때가 되어 동검도 앞 갯벌이 광활하게 드러났다.\n갯벌 속 생명체들이 숨 쉬는 소리, 미세한 바람 소리가 고요하게 펼쳐진다.\n자연의 거대한 호흡을 엿듣는 듯한 느낌.",
                 "meta": "Date: 2025-10-08 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
                 "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/07%20%E1%84%83%E1%85%A9%E1%86%BC%E1%84%80%E1%85%A5%E1%86%B7%E1%84%83%E1%85%A9%20%E1%84%83%E1%85%A9%E1%86%BC%E1%84%80%E1%85%B3%E1%84%85%E1%85%A1%E1%86%BC%E1%84%89%E1%85%A5%E1%86%B7_251008.wav",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/07%20%E1%84%90%E1%85%A9%E1%86%BC%E1%84%80%E1%85%B5%E1%86%B7%E1%84%83%E1%85%A9%20%E1%84%83%E1%85%A9%E1%86%BC%E1%84%80%E1%85%B3%E1%84%85%E1%85%A1%E1%86%BC%E1%84%89%E1%85%A5%E1%86%B7_251008.wav",
                 "imageBase64": "",
                 "imageUrl": ""
         },
@@ -497,7 +642,7 @@
                 "desc": "겨울의 초입, Daesan Reservoir(대산저수지)의 갈대밭에 바람이 분다.\n갈대들이 서로 부대끼며 바스락거리는 마른 소리가 차가운 공기를 가득 채운다.\n쓸쓸하지만 따뜻한 울림이 있는 소리.",
                 "meta": "Date: 2025-12-08 / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
                 "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/08%20%E1%84%83%E1%85%A2%E1%84%89%E1%85%A1%E1%86%AB%E1%84%8C%E1%85%A5%E1%84%89%E1%85%AE%E1%84%8C%E1%85%B5%20%E1%84%80%E1%85%A1%E1%86%AF%E1%84%83%E1%85%A2%E1%84%87%E1%85%A1%E1%86%B7_251208.wav",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/08%20%E1%84%83%E1%85%A2%E1%84%89%E1%85%A1%E1%86%AB%E1%84%8C%E1%85%A5%E1%84%89%E1%85%AE%E1%84%8C%E1%85%B5%20%E1%84%80%E1%85%A1%E1%86%AF%E1%84%83%E1%85%A2%E1%84%87%E1%85%A1%E1%84%85%E1%85%A1%E1%86%B7_251208.wav",
                 "imageBase64": "",
                 "imageUrl": ""
         },
@@ -509,7 +654,7 @@
                 "desc": "비 내리는 오후, Gwangseongbo(광성보) 성벽 아래서 빗소리를 녹음한다.\n기와와 배수관을 통해 떨어지는 물방울 소리가 맑게 튀어 오른다.\n조용한 유적지에 떨어지는 빗물 소리가 마음을 차분하게 한다.",
                 "meta": "Date: 2025-11-19 ☔️ / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
                 "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/09%20%E1%84%80%E1%85%AA%E1%86%BC%E1%84%99%E1%85%A5%E1%86%BD%E1%84%87%E1%85%A9%20%E1%84%87%E1%85%B5%E1%86%BA%E1%84%87%E1%85%A1%E1%86%BC%E1%84%8B%E1%85%AE%E1%86%AF_251119.wav",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/09%20%E1%84%80%E1%85%AA%E1%86%BC%E1%84%9B%E1%85%A5%E1%86%BD%E1%84%87%E1%85%A9%20%E1%84%87%E1%85%B5%E1%86%BA%E1%84%87%E1%85%A1%E1%86%BC%E1%84%8B%E1%85%AE%E1%86%AF_251119.wav",
                 "imageBase64": "",
                 "imageUrl": ""
         },
@@ -593,7 +738,7 @@
                 "desc": "교동도의 새벽을 깨우는 바람 소리와 먼 닭 울음소리.\n적막한 농가의 마당을 쓸고 가는 바람이 섬의 아침을 연다.\n소박하고 아련한 삶의 소리.",
                 "meta": "Date: 2025-11-22 ☁️ / Recording: Zoom F3 / Clippy EM272 pair / AB Stereo",
                 "category": "Soundscape in ganghwa island 2025-2026",
-                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/16%20%E1%84%80%E1%85%A5%E1%84%83%E1%85%A9%E1%86%BD%E1%84%83%E1%85%A9%20%E1%84%82%E1%85%A5%E1%86%BD%E1%84%83%E1%85%A0%20%E1%84%89%E1%85%A4%E1%84%8B%E1%85%B5%E1%86%A8_251122.wav",
+                "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/%E1%84%80%E1%85%A1%E1%86%BC%E1%84%92%E1%85%AA%20%E1%84%89%E1%85%A1%E1%84%8B%E1%85%AE%E1%86%AB%E1%84%83%E1%85%B3%E1%84%89%E1%85%B3%E1%84%8F%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%91%E1%85%B3%20DVD%3A44.1%2024%3ACD%20/16%20%E1%84%80%E1%85%A5%E1%84%83%E1%85%A9%E1%86%BD%E1%84%83%E1%85%A0%20%E1%84%82%E1%85%A5%E1%86%BD%E1%84%83%E1%85%A0%20%E1%84%89%E1%85%A4%E1%84%8B%E1%85%B5%E1%86%A8_251122.wav",
                 "imageBase64": "",
                 "imageUrl": ""
         }
@@ -865,9 +1010,36 @@
         }
     }
 
+    // Left Drawer Sidebar Controls
+    function openSidebar() {
+        const sb = document.getElementById("mySidebar");
+        if (sb) sb.style.width = "320px";
+    }
+
+    function closeSidebar() {
+        const sb = document.getElementById("mySidebar");
+        if (sb) sb.style.width = "0";
+    }
+
+    function toggleAccordion(id) {
+        const content = document.getElementById(id);
+        if (content) {
+            const isHidden = content.style.display === "none" || content.style.display === "";
+            content.style.display = isHidden ? "block" : "none";
+            const trigger = content.previousElementSibling;
+            if (trigger) {
+                const chevron = trigger.querySelector('.acc-chevron');
+                if (chevron) {
+                    chevron.innerText = isHidden ? "▾" : "▸";
+                }
+            }
+        }
+    }
+
     function resetView() {
         map.fitBounds(bounds);
         closeRightSidebar();
+        closeSidebar();
         currentTrackIndex = -1;
         markers.forEach(m => {
             const el = m.getElement();
