@@ -816,7 +816,7 @@
         /* Left Brand & Track List Panel */
         .left-brand-panel {
             position: fixed;
-            top: 16px;
+            top: 6px;
             left: 20px;
             z-index: 4500;
             display: flex;
@@ -1059,7 +1059,7 @@
 
             <!-- Sidebar Footer -->
             <div class="sidebar-footer" style="margin-top: 24px; border-top: 1px dashed #663366; padding-top: 12px; font-size: 9.5px; color: #663366; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono);">
-                <span>Ganghwa Soundscape © 2026 <span id="app-version-label" style="opacity: 0.6; margin-left: 6px;">[v9000]</span></span>
+                <span>Ganghwa Soundscape © 2026 <span id="app-version-label" style="opacity: 0.6; margin-left: 6px;">[v10000]</span></span>
                 <button class="track-item-btn" onclick="toggleAdminMode()" id="admin-trigger-link" style="font-size: 9.5px; padding: 2px 6px;">[E] ADMIN</button>
             </div>
         </div>
@@ -1429,7 +1429,7 @@
     const soundData = [];
     
     // Force reset local database if caching version has changed (cleans corrupted structures)
-    const APP_VERSION = "2026-08-29-v9000";
+    const APP_VERSION = "2026-08-29-v10000";
     if (localStorage.getItem('gangwha_app_version') !== APP_VERSION) {
         localStorage.removeItem('gangwha_sound_data');
         localStorage.removeItem('gangwha_deleted_defaults');
