@@ -1403,7 +1403,7 @@
     const soundData = [];
     
     // Force reset local database if caching version has changed (cleans corrupted structures)
-    const APP_VERSION = "2026-08-29-v5000";
+    const APP_VERSION = "2026-08-29-v6000";
     if (localStorage.getItem('gangwha_app_version') !== APP_VERSION) {
         localStorage.removeItem('gangwha_sound_data');
         localStorage.removeItem('gangwha_deleted_defaults');
@@ -2747,6 +2747,10 @@
             html = html.replace(/const\s+DEFAULT_CUSTOM_CATEGORIES\s*=\s*\[[\s\S]*?\]\s*;/, `const DEFAULT_CUSTOM_CATEGORIES = ${JSON.stringify(customCats)};`);
             html = html.replace(/const\s+DEFAULT_CATEGORY_COLORS\s*=\s*\{[\s\S]*?\}\s*;/, `const DEFAULT_CATEGORY_COLORS = ${JSON.stringify(catColors)};`);
             html = html.replace(/const\s+DEFAULT_DELETED_DEFAULTS\s*=\s*\[[\s\S]*?\]\s*;/, `const DEFAULT_DELETED_DEFAULTS = ${JSON.stringify(deletedDefs)};`);
+
+            // 🌟 Auto-bump APP_VERSION dynamically with timestamp to clear previous localStorage conflicts on next visit
+            const newVersion = `v-${Date.now()}`;
+            html = html.replace(/const\s+APP_VERSION\s*=\s*["'][^"']+["']\s*;/, `const APP_VERSION = "${newVersion}";`);
 
             // Create blob and trigger browser download
             const blob = new Blob([html], { type: 'text/html' });
