@@ -929,90 +929,164 @@
             }
         }
 
+        /* Exhibition invitation — follows the printed poster: centered, airy, light sans */
         .invite {
-            margin-top: 32px;
-            font-family: 'Noto Serif KR', 'Cormorant Garamond', serif;
-            color: var(--text-main);
+            margin-top: 40px;
+            text-align: center;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+            font-weight: 300;
+            color: #3a3a3a;
+        }
+
+        .invite-kicker {
+            margin: 0 0 28px;
+            font-size: 14px;
+            letter-spacing: 0.18em;
+            line-height: 1.6;
+        }
+
+        .invite-kicker span {
+            display: block;
+            font-size: 13px;
+            letter-spacing: 0.12em;
         }
 
         .invite-photo {
             display: block;
-            width: 100%;
+            width: 78%;
             height: auto;
+            margin: 0 auto;
             aspect-ratio: 902 / 896;
             filter: grayscale(1);
         }
 
         .invite-title {
-            margin: 22px 0 6px;
-            font-family: 'Noto Serif KR', serif;
-            font-weight: 500;
-            font-size: 28px;
-            line-height: 1.25;
-            letter-spacing: -0.01em;
+            margin: 36px 0 10px;
+            line-height: 0;
+        }
+
+        .invite-title img {
+            width: 72%;
+            height: auto;
         }
 
         .invite-subtitle {
-            margin: 0 0 20px;
-            font-family: 'Cormorant Garamond', 'Times New Roman', serif;
-            font-size: 17px;
-            letter-spacing: 0.02em;
-            color: var(--text-sub);
+            margin: 0 0 34px;
+            font-size: 12px;
+            letter-spacing: 0.2em;
+            color: #8a8a8a;
         }
 
-        .invite-address {
-            font-size: 12px;
-            color: var(--text-sub);
+        .invite-info p {
+            margin: 0 0 4px;
+            font-size: 13px;
+            letter-spacing: 0.06em;
+            line-height: 1.6;
+        }
+
+        .invite-info .invite-date {
+            font-size: 16px;
+            letter-spacing: 0.1em;
+        }
+
+        .invite-info .invite-venue {
+            margin-top: 6px;
+            font-size: 14px;
+            letter-spacing: 0.18em;
+        }
+
+        .invite-muted {
+            font-size: 11.5px;
+            color: #8a8a8a;
         }
 
         .invite-maplink {
-            font-size: 12px;
-            color: var(--text-accent);
-            text-decoration: none;
-        }
-
-        .invite-maplink:hover {
+            color: inherit;
             text-decoration: underline;
-        }
-
-        .invite-info {
-            display: grid;
-            grid-template-columns: 56px 1fr;
-            row-gap: 6px;
-            margin: 0;
-            padding: 14px 0;
-            border-top: 1px solid var(--border-color);
-            border-bottom: 1px solid var(--border-color);
-            font-size: 13px;
-            line-height: 1.5;
-        }
-
-        .invite-info dt {
-            color: var(--text-sub);
-        }
-
-        .invite-info dd {
-            margin: 0;
+            text-underline-offset: 3px;
         }
 
         .invite-cta {
-            display: block;
-            width: 100%;
-            margin-top: 20px;
-            padding: 14px 0;
-            font-family: 'Noto Serif KR', serif;
-            font-size: 15px;
-            letter-spacing: 0.02em;
-            color: #ffffff;
-            background: var(--text-main);
-            border: none;
-            border-radius: 2px;
+            display: inline-block;
+            margin-top: 30px;
+            padding: 11px 28px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 400;
+            letter-spacing: 0.16em;
+            color: #3a3a3a;
+            background: transparent;
+            border: 1px solid #3a3a3a;
+            border-radius: 0;
             cursor: pointer;
-            transition: opacity 0.15s ease-in-out;
+            transition: background 0.15s ease-in-out, color 0.15s ease-in-out;
         }
 
         .invite-cta:hover {
-            opacity: 0.85;
+            color: #ffffff;
+            background: #3a3a3a;
+        }
+
+        .invite-note {
+            margin: 16px auto 0;
+            max-width: 280px;
+            font-size: 11px;
+            line-height: 1.7;
+            color: #8a8a8a;
+            word-break: keep-all;
+        }
+
+        /* Menu and footer follow the poster tone: centered, light, spaced */
+        .sidebar-drawer .drawer-menu {
+            align-items: center;
+            gap: 2px;
+            margin-top: 44px;
+            padding-top: 28px;
+            border-top: 1px solid #e4e4e4;
+        }
+
+        .sidebar-drawer .drawer-menu a {
+            font-size: 14px;
+            font-weight: 300;
+            letter-spacing: 0.14em;
+            line-height: 1.9;
+            color: #3a3a3a;
+        }
+
+        .sidebar-drawer .drawer-menu-sub {
+            margin-top: 18px;
+            padding-top: 0;
+            border-top: none;
+        }
+
+        .sidebar-drawer .drawer-menu-sub a {
+            font-size: 12px;
+            color: #8a8a8a;
+        }
+
+        .sidebar-drawer .sidebar-footer {
+            justify-content: center !important;
+            gap: 10px;
+            border-top: none !important;
+            font-family: 'Pretendard', -apple-system, sans-serif !important;
+            font-size: 10.5px !important;
+            letter-spacing: 0.08em;
+            color: #a0a0a0 !important;
+        }
+
+        .sidebar-drawer .sidebar-footer #admin-trigger-link {
+            border: none;
+            background: none;
+            color: #c0c0c0;
+        }
+
+        .invite-sponsors {
+            display: block;
+            flex-shrink: 0;
+            width: 96px;
+            height: auto;
+            margin: 14px auto 4px;
+            opacity: 0.28;
         }
 
         /* Mobile: the invitation is a full-screen cover; the CTA reveals the map underneath */
@@ -1028,11 +1102,7 @@
             }
 
             .invite {
-                margin-top: 28px;
-            }
-
-            .invite-title {
-                font-size: 30px;
+                margin-top: 36px;
             }
 
             #mobile-track-select {
@@ -1045,12 +1115,6 @@
                 border-radius: 2px;
                 box-shadow: none !important;
             }
-        }
-
-        .invite-note {
-            margin: 14px 0 0;
-            font-size: 12px;
-            color: var(--text-sub);
         }
 
         .drawer-menu {
@@ -1349,16 +1413,18 @@
         <div class="sidebar-scroll-area">
             <!-- Exhibition Invitation -->
             <section class="invite">
-                <img class="invite-photo" src="images/invitation.webp" alt="섬을 걷는 귀" />
-                <h1 class="invite-title">섬을 걷는 귀</h1>
-                <p class="invite-subtitle">2026 — Chulmin Lee</p>
-                <dl class="invite-info">
-                    <dt>기간</dt><dd>2026. 11. 07 – 11. 26</dd>
-                    <dt>시간</dt><dd>11:00 – 18:00</dd>
-                    <dt>장소</dt><dd>박진화 미술관<br><span class="invite-address">인천 강화군 강화읍 대산리 789-1</span><br><a class="invite-maplink" href="https://map.naver.com/p/search/%EB%B0%95%EC%A7%84%ED%99%94%EB%AF%B8%EC%88%A0%EA%B4%80" target="_blank" rel="noopener">지도 보기 →</a></dd>
-                </dl>
+                <p class="invite-kicker">이철민 개인전<span>Lee Cheolmin Exhibition</span></p>
+                <img class="invite-photo" src="images/invitation.webp" alt="" />
+                <h1 class="invite-title"><img src="images/title.png" alt="섬을 걷는 귀" /></h1>
+                <p class="invite-subtitle">Sound Installation · 20min</p>
+                <div class="invite-info">
+                    <p class="invite-date">2026.11.7 – 11.26</p>
+                    <p>11:00 – 17:00 <span class="invite-muted">(월요일 정기 휴무)</span></p>
+                    <p class="invite-venue">박진화미술관</p>
+                    <p class="invite-muted">인천 강화군 강화읍 대산리 789-1 · <a class="invite-maplink" href="https://map.naver.com/p/search/%EB%B0%95%EC%A7%84%ED%99%94%EB%AF%B8%EC%88%A0%EA%B4%80" target="_blank" rel="noopener">지도 보기</a></p>
+                </div>
                 <button class="invite-cta" onclick="enterMap()">▶ 소리 지도 듣기</button>
-                <p class="invite-note">이어폰을 끼고 들어 보세요. 01번부터 16번까지 이어서 재생되며, 지도 위의 점을 누르면 그 장소의 소리로 바로 옮겨 갑니다.</p>
+                <p class="invite-note">이어폰을 끼고 들어 보세요.<br>01번부터 16번까지 이어서 재생되며, 지도 위의 점을 누르면 그 장소의 소리로 옮겨 갑니다.</p>
             </section>
 
             <!-- Main Menu (links to be filled in) -->
@@ -1378,9 +1444,12 @@
 
             <!-- Sidebar Footer -->
             <div class="sidebar-footer" style="margin-top: 24px; border-top: 1px dashed #663366; padding-top: 12px; font-size: 9.5px; color: #663366; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono);">
-                <span>섬을 걷는 귀 © 2026 Chulmin Lee <span id="app-version-label" style="opacity: 0.6; margin-left: 6px;">[v11200]</span></span>
+                <span>섬을 걷는 귀 © 2026 Lee Cheolmin <span id="app-version-label" style="opacity: 0.6; margin-left: 6px;">[v11300]</span></span>
                 <button class="track-item-btn" onclick="toggleAdminMode()" id="admin-trigger-link" style="font-size: 9.5px; padding: 2px 6px; opacity: 0.35;">[E] ADMIN</button>
             </div>
+
+            <!-- Sponsor logos: last element, kept as quiet as possible -->
+            <img class="invite-sponsors" src="images/sponsors.png" alt="인천광역시 · 인천문화재단" />
         </div>
     </div>
 </div>
@@ -1765,7 +1834,7 @@
     const soundData = [];
     
     // Force reset local database if caching version has changed (cleans corrupted structures)
-    const APP_VERSION = "2026-10-21-v11200";
+    const APP_VERSION = "2026-10-21-v11300";
     if (localStorage.getItem('gangwha_app_version') !== APP_VERSION) {
         localStorage.removeItem('gangwha_sound_data');
         localStorage.removeItem('gangwha_deleted_defaults');
