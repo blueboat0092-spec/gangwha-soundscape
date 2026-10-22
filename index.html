@@ -1052,6 +1052,52 @@
             }
         }
 
+        .landing-image {
+            margin: 0 0 30px;
+        }
+
+        .landing-image img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .bg-sound-toggle {
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 12px 7px 9px;
+            font-family: 'Pretendard', -apple-system, sans-serif;
+            font-size: 12px;
+            letter-spacing: 0.06em;
+            color: #2a2a2a;
+            background: rgba(255, 255, 255, 0.88);
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            border-radius: 999px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .bg-sound-toggle svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        .bg-sound-toggle .wave { display: none; }
+        .bg-sound-toggle.is-playing .wave { display: inline; }
+        .bg-sound-toggle.is-playing .mute { display: none; }
+
+        .brand-back {
+            font-family: 'Pretendard', -apple-system, sans-serif;
+            font-size: 0.8em;
+            margin-right: 2px;
+        }
+
         /* Exhibition invitation — follows the printed poster: centered, airy, light sans */
         .invite {
             margin-top: 40px;
@@ -1062,7 +1108,7 @@
         }
 
         .invite-kicker {
-            margin: 0 0 28px;
+            margin: 12px 0 44px;
             font-size: 14px;
             letter-spacing: 0.18em;
             line-height: 1.6;
@@ -1076,15 +1122,15 @@
 
         .invite-photo {
             display: block;
-            width: 78%;
+            width: 62%;
             height: auto;
             margin: 0 auto;
-            aspect-ratio: 902 / 896;
+            aspect-ratio: 1 / 1;
             filter: grayscale(1);
         }
 
         .invite-title {
-            margin: 36px 0 10px;
+            margin: 52px 0 12px;
             line-height: 0;
         }
 
@@ -1184,6 +1230,11 @@
             letter-spacing: 0.08em;
             text-align: center;
             color: #3a3a3a;
+        }
+
+        .invite-statement .invite-cta {
+            display: block;
+            margin: 36px auto 4px;
         }
 
         .invite-statement p {
@@ -1515,7 +1566,7 @@
 
 <!-- Left Brand & Track List Panel (Fixed Top Left) -->
 <div class="left-brand-panel">
-    <button class="logo-btn" onclick="openSidebar()" aria-label="Open menu"><span class="brand-title">섬을 걷는 귀<br>2026</span></button>
+    <button class="logo-btn" onclick="goBackToLanding()" aria-label="전시 소개로 돌아가기"><span class="brand-title">섬을 걷는 귀<br>2026</span></button>
     <div id="left-track-list" class="left-track-list">
         <!-- Populated dynamically via JS -->
     </div>
@@ -1529,18 +1580,24 @@
 </div>
 
 <!-- Slide-out Navigation Drawer (Left Side) -->
-<div id="sidebar-backdrop" class="sidebar-backdrop" onclick="closeSidebar()"></div>
+<div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+<audio id="bg-audio" loop preload="none"></audio>
 <div id="mySidebar" class="sidebar-drawer">
-    <button class="menu-close-btn" onclick="closeSidebar()">×</button>
+    <button id="bg-sound-toggle" class="bg-sound-toggle" onclick="toggleBgSound()" aria-label="배경 소리 켜기">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9h4l5-4v14l-5-4H4z"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.5"/><path class="mute" d="M16 9l5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+        <span id="bg-sound-label">소리 켜기</span>
+    </button>
     <div class="sidebar-content">
-        
+
         <div class="sidebar-scroll-area">
             <!-- Exhibition Invitation -->
             <section class="invite">
                 <p class="invite-kicker">이철민 개인전<span>Lee Cheolmin Exhibition</span></p>
-                <img class="invite-photo" src="images/invitation.webp" alt="" />
+                <img class="invite-photo" src="images/scene.webp?v=2" alt="" />
                 <h1 class="invite-title"><img src="images/title.png" alt="섬을 걷는 귀" /></h1>
                 <p class="invite-subtitle">Sound Installation</p>
+                <!-- 전시 설명 위에 들어갈 이미지: hidden을 지우고 src에 파일 경로를 넣으면 보여요 -->
+                <figure class="landing-image" hidden><img src="" alt="" /></figure>
                 <div class="invite-info">
                     <p class="invite-date">2026.11.7 – 11.26</p>
                     <p>11:00 – 17:00 <span class="invite-muted">(월요일 정기 휴무)</span></p>
@@ -1548,7 +1605,6 @@
                     <p class="invite-venue">박진화미술관</p>
                     <p class="invite-muted">인천 강화군 강화읍 대산리 789-1 · <a class="invite-maplink" href="https://map.naver.com/p/search/%EB%B0%95%EC%A7%84%ED%99%94%EB%AF%B8%EC%88%A0%EA%B4%80" target="_blank" rel="noopener">지도 보기</a></p>
                 </div>
-                <button class="invite-cta" onclick="enterMap()">▶ 소리 지도 듣기</button>
 
                 <!-- 전시 서문: 아래 <p> 안에 문단별로 넣어 주세요 -->
                 <div class="invite-statement">
@@ -1558,6 +1614,7 @@
                     <p>우리는 어느 때보다 서로 연결되어 있는 듯하지만, 어느 때보다 고립감을 느낍니다. 땅과 바람과 물, 우리를 둘러싼 자연과 동물들과의 관계가 끊어졌기 때문은 아닐까 생각합니다. 듣는다는 것은 그 끊어진 관계를 다시 더듬어 가는 행위이자 길을 찾아가는 걸음과 닮아있다고 느낍니다.</p>
                     <p>이번 전시는 그렇게 모인 ‘걷는 귀’의 여정을 하나의 공간에 펼쳐 놓습니다. 그 안의 소리 하나하나는 시간과 기억과 감정으로 이루어진 섬입니다. 어떤 섬은 누군가의 외침을, 어떤 섬은 아무도 귀 기울이지 않던 작은 소리를 품고 있습니다. 어떤 섬은 북소리로, 또 어떤 섬은 물방울로만 이루어져 있습니다.</p>
                     <p>섬마다 저마다의 작은 사회가 있지만, 섬과 섬은 서로 닿지 못한 채 떨어져 있습니다. 당신이 그 사이를 걸으며 소리와 이어질 때, 비로소 소리는 당신의 경험이 됩니다. 공간에 머무르며 당신 곁의 소리에 귀 기울여 보는 시간이 되기를 바랍니다.</p>
+                    <button class="invite-cta" onclick="enterMap()">▶ 소리 지도 듣기</button>
                 </div>
             </section>
 
@@ -1569,7 +1626,7 @@
 
             <!-- Sidebar Footer -->
             <div class="sidebar-footer" style="margin-top: 24px; border-top: 1px dashed #663366; padding-top: 12px; font-size: 9.5px; color: #663366; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono);">
-                <span>섬을 걷는 귀 © 2026 Lee Cheolmin <span id="app-version-label" style="opacity: 0.6; margin-left: 6px;">[v11900]</span></span>
+                <span>섬을 걷는 귀 © 2026 Lee Cheolmin <span id="app-version-label" style="opacity: 0.6; margin-left: 6px;">[v12000]</span></span>
                 <button class="track-item-btn" onclick="toggleAdminMode()" id="admin-trigger-link" style="font-size: 9.5px; padding: 2px 6px; opacity: 0.35;">[E] ADMIN</button>
             </div>
 
@@ -1955,7 +2012,7 @@
     const soundData = [];
     
     // Force reset local database if caching version has changed (cleans corrupted structures)
-    const APP_VERSION = "2026-10-22-v11900";
+    const APP_VERSION = "2026-10-22-v12000";
     if (localStorage.getItem('gangwha_app_version') !== APP_VERSION) {
         localStorage.removeItem('gangwha_sound_data');
         localStorage.removeItem('gangwha_deleted_defaults');
@@ -2091,18 +2148,97 @@
     ];
 
     // Navigation Drawer Controls (Slide Open / Close)
+    // Main page <-> sound map. The map lives at #map so the browser back button returns to the main page.
     function openSidebar() {
         document.getElementById("mySidebar").classList.add("open");
         document.getElementById("sidebar-backdrop").classList.add("open");
         document.body.classList.add("invite-docked");
         refitMapAfterDock();
+        const trackAudio = document.getElementById('right-sidebar-audio-element');
+        if (trackAudio && !trackAudio.paused) trackAudio.pause();
+        if (bgWanted && userHasInteracted) playBgSound();
     }
 
     function closeSidebar() {
         document.getElementById("mySidebar").classList.remove("open");
         document.getElementById("sidebar-backdrop").classList.remove("open");
         document.body.classList.remove("invite-docked");
+        pauseBgSound();
         refitMapAfterDock();
+    }
+
+    function goBackToLanding() {
+        if (history.state && history.state.view === 'map') {
+            history.back();
+        } else {
+            history.replaceState(null, '', location.pathname + location.search);
+            openSidebar();
+        }
+    }
+
+    window.addEventListener('popstate', () => {
+        if (location.hash === '#map') closeSidebar(); else openSidebar();
+    });
+
+    // Background sound on the main page. Browsers only allow sound after the visitor taps,
+    // so it starts on the first tap/click (or via the toggle) and loops while the main page is open.
+    const BG_AUDIO_URL = 'https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/ganghwa-web-upload/main-bg.m4a'; // 접속: 어린시절 백화점에서 울리는 부재중 전화
+    const BG_VOLUME = 0.6;
+    let bgWanted = true;
+    let userHasInteracted = false;
+    let bgFadeTimer = null;
+
+    function fadeBgTo(target, ms, done) {
+        const a = document.getElementById('bg-audio');
+        clearInterval(bgFadeTimer);
+        const start = a.volume, steps = Math.max(1, Math.round(ms / 50));
+        let i = 0;
+        bgFadeTimer = setInterval(() => {
+            i++;
+            a.volume = Math.min(1, Math.max(0, start + (target - start) * i / steps));
+            if (i >= steps) { clearInterval(bgFadeTimer); if (done) done(); }
+        }, 50);
+    }
+
+    function playBgSound() {
+        const a = document.getElementById('bg-audio');
+        if (!a.getAttribute('src')) a.src = BG_AUDIO_URL;
+        if (!a.paused) return;
+        a.volume = 0;
+        a.play().then(() => fadeBgTo(BG_VOLUME, 1500)).catch(err => console.log("Background sound prevented:", err));
+    }
+
+    function pauseBgSound() {
+        const a = document.getElementById('bg-audio');
+        if (a.paused) return;
+        fadeBgTo(0, 600, () => a.pause());
+    }
+
+    function toggleBgSound() {
+        userHasInteracted = true;
+        const a = document.getElementById('bg-audio');
+        if (a.paused) { bgWanted = true; playBgSound(); } else { bgWanted = false; pauseBgSound(); }
+    }
+
+    function updateBgToggle(playing) {
+        const btn = document.getElementById('bg-sound-toggle');
+        btn.classList.toggle('is-playing', playing);
+        document.getElementById('bg-sound-label').innerText = playing ? '소리 끄기' : '소리 켜기';
+        btn.setAttribute('aria-label', playing ? '배경 소리 끄기' : '배경 소리 켜기');
+    }
+
+    function startBgOnFirstGesture() {
+        const bg = document.getElementById('bg-audio');
+        bg.addEventListener('play', () => updateBgToggle(true));
+        bg.addEventListener('pause', () => updateBgToggle(false));
+        const start = (e) => {
+            if (e.altKey) return;
+            ['pointerdown', 'keydown'].forEach(ev => document.removeEventListener(ev, start, true));
+            userHasInteracted = true;
+            if (e.target.closest && e.target.closest('#bg-sound-toggle')) return; // the toggle handles itself
+            if (document.getElementById('mySidebar').classList.contains('open') && bgWanted) playBgSound();
+        };
+        ['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, start, true));
     }
 
     // 📁 CATEGORY UTILITY FUNCTIONS
@@ -2919,9 +3055,10 @@
     }
 
     // Invitation CTA: start the album; on mobile also slide the cover away to reveal the map
+    // "소리 지도 듣기": open the map; the visitor picks a pin to listen
     function enterMap() {
-        if (window.innerWidth <= 768) closeSidebar();
-        if (currentTrackIndex === -1 && soundData.length > 0) selectTrack(0);
+        if (location.hash !== '#map') history.pushState({ view: 'map' }, '', '#map');
+        closeSidebar();
     }
 
     function playPrevTrack() {
@@ -3012,8 +3149,8 @@
     // SVG icons instead of ⏮⏸⏭ characters: iOS renders those as colour emoji
     const MINI_ICON_PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
     const MINI_ICON_PAUSE = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="6" width="3" height="12"/><rect x="14" y="6" width="3" height="12"/></svg>';
-    document.addEventListener('play', () => { document.getElementById('mini-play').innerHTML = MINI_ICON_PAUSE; }, true);
-    document.addEventListener('pause', () => { document.getElementById('mini-play').innerHTML = MINI_ICON_PLAY; }, true);
+    document.addEventListener('play', (e) => { if (e.target.id === 'right-sidebar-audio-element') document.getElementById('mini-play').innerHTML = MINI_ICON_PAUSE; }, true);
+    document.addEventListener('pause', (e) => { if (e.target.id === 'right-sidebar-audio-element') document.getElementById('mini-play').innerHTML = MINI_ICON_PLAY; }, true);
     document.addEventListener('timeupdate', (e) => {
         const a = e.target;
         if (a.id !== 'right-sidebar-audio-element' || !a.duration) return;
@@ -3519,7 +3656,6 @@
 
     // Bind keyboard shortcut Alt+A / Option+A for Admin Mode toggling (Felix Blume style hidden gate)
     window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeSidebar();
         if (e.altKey && e.key.toLowerCase() === 'a') {
             e.preventDefault();
             toggleAdminMode();
@@ -3529,8 +3665,8 @@
     renderCategories();
     renderTracklist();
     renderMarkers();
-    startAlbumOnFirstGesture();
-    openSidebar(); // Show the exhibition invitation first
+    startBgOnFirstGesture();
+    if (location.hash === '#map') closeSidebar(); else openSidebar(); // main page first
 </script>
 </body>
 </html>
