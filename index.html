@@ -1601,7 +1601,7 @@
                 <div class="invite-info">
                     <p class="invite-date">2026.11.7 – 11.26</p>
                     <p>11:00 – 17:00 <span class="invite-muted">(월요일 정기 휴무)</span></p>
-                    <p class="invite-opening">도깨비 소리굿 오프닝 공연 11.7 (토) 15:00 – 16:00</p>
+                    <p class="invite-opening">도깨비 소리굿 오프닝 공연 11.8 (일) 15:00 – 16:00</p>
                     <p class="invite-venue">박진화미술관</p>
                     <p class="invite-muted">인천 강화군 강화읍 대산리 789-1 · <a class="invite-maplink" href="https://map.naver.com/p/search/%EB%B0%95%EC%A7%84%ED%99%94%EB%AF%B8%EC%88%A0%EA%B4%80" target="_blank" rel="noopener">지도 보기</a></p>
                 </div>
@@ -1614,7 +1614,7 @@
                     <p>우리는 어느 때보다 서로 연결되어 있는 듯하지만, 어느 때보다 고립감을 느낍니다. 땅과 바람과 물, 우리를 둘러싼 자연과 동물들과의 관계가 끊어졌기 때문은 아닐까 생각합니다. 듣는다는 것은 그 끊어진 관계를 다시 더듬어 가는 행위이자 길을 찾아가는 걸음과 닮아있다고 느낍니다.</p>
                     <p>이번 전시는 그렇게 모인 ‘걷는 귀’의 여정을 하나의 공간에 펼쳐 놓습니다. 그 안의 소리 하나하나는 시간과 기억과 감정으로 이루어진 섬입니다. 어떤 섬은 누군가의 외침을, 어떤 섬은 아무도 귀 기울이지 않던 작은 소리를 품고 있습니다. 어떤 섬은 북소리로, 또 어떤 섬은 물방울로만 이루어져 있습니다.</p>
                     <p>섬마다 저마다의 작은 사회가 있지만, 섬과 섬은 서로 닿지 못한 채 떨어져 있습니다. 당신이 그 사이를 걸으며 소리와 이어질 때, 비로소 소리는 당신의 경험이 됩니다. 공간에 머무르며 당신 곁의 소리에 귀 기울여 보는 시간이 되기를 바랍니다.</p>
-                    <button class="invite-cta" onclick="enterMap()">▶ 소리 지도 듣기</button>
+                    <button class="invite-cta" onclick="enterMap()">소리 지도</button>
                 </div>
             </section>
 
@@ -1626,7 +1626,7 @@
 
             <!-- Sidebar Footer -->
             <div class="sidebar-footer" style="margin-top: 24px; border-top: 1px dashed #663366; padding-top: 12px; font-size: 9.5px; color: #663366; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono);">
-                <span>섬을 걷는 귀 © 2026 Yi Cheolmin <span id="app-version-label" style="opacity: 0.6; margin-left: 6px;">[v12000]</span></span>
+                <span>섬을 걷는 귀 © 2026 Yi Cheolmin <span id="app-version-label" style="opacity: 0.6; margin-left: 6px;">[v12100]</span></span>
                 <button class="track-item-btn" onclick="toggleAdminMode()" id="admin-trigger-link" style="font-size: 9.5px; padding: 2px 6px; opacity: 0.35;">[E] ADMIN</button>
             </div>
 
@@ -2012,7 +2012,7 @@
     const soundData = [];
     
     // Force reset local database if caching version has changed (cleans corrupted structures)
-    const APP_VERSION = "2026-10-22-v12000";
+    const APP_VERSION = "2026-10-23-v12100";
     if (localStorage.getItem('gangwha_app_version') !== APP_VERSION) {
         localStorage.removeItem('gangwha_sound_data');
         localStorage.removeItem('gangwha_deleted_defaults');
