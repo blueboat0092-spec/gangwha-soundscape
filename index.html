@@ -956,6 +956,86 @@
             }
         }
 
+        /* Desktop uses the same bottom sheet as mobile: no track list, the pin's note rises from below */
+        @media (min-width: 769px) {
+            :root {
+                --mobile-panel-h: 0px;
+            }
+
+            body.panel-mini {
+                --mobile-panel-h: 72px;
+            }
+
+            body.panel-expanded {
+                --mobile-panel-h: min(52vh, 520px);
+            }
+
+            .left-brand-panel .left-track-list {
+                display: none !important;
+            }
+
+            #map {
+                height: calc(100vh - var(--mobile-panel-h)) !important;
+                transition: left 0.35s cubic-bezier(0.22, 0.61, 0.36, 1), width 0.35s cubic-bezier(0.22, 0.61, 0.36, 1), height 0.3s ease;
+            }
+
+            #sidebar-right {
+                width: auto !important;
+                height: var(--mobile-panel-h) !important;
+                left: 0 !important;
+                right: 0 !important;
+                top: auto !important;
+                bottom: 0 !important;
+                border-left: none !important;
+                border-top: 1px solid var(--border-color) !important;
+                box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.06);
+                overflow: hidden;
+                z-index: 4000 !important;
+                transition: height 0.3s ease, left 0.35s cubic-bezier(0.22, 0.61, 0.36, 1) !important;
+            }
+
+            body.invite-docked #sidebar-right {
+                left: 400px !important;
+            }
+
+            #sidebar-right.collapsed {
+                height: 0 !important;
+                border-top: none !important;
+            }
+
+            #sidebar-toggle-tab,
+            #sidebar-right.collapsed #sidebar-toggle-tab,
+            #sidebar-right .sidebar-title {
+                display: none !important;
+            }
+
+            .mini-player {
+                display: flex !important;
+                padding: 0 24px 0 32px;
+            }
+
+            body.panel-mini #sidebar-right .sidebar-content {
+                display: none !important;
+            }
+
+            #sidebar-right .sidebar-content {
+                width: 100%;
+                max-width: 680px;
+                margin: 0 auto;
+                box-sizing: border-box;
+            }
+
+            /* the mini player handles play/skip, so hide the native player (audio keeps playing) */
+            #right-sidebar-player-container {
+                position: absolute !important;
+                width: 1px !important;
+                height: 1px !important;
+                overflow: hidden !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+            }
+        }
+
         /* Exhibition invitation — follows the printed poster: centered, airy, light sans */
         .invite {
             margin-top: 40px;
@@ -1014,6 +1094,18 @@
         .invite-info .invite-date {
             font-size: 16px;
             letter-spacing: 0.1em;
+        }
+
+        .invite-info .invite-opening {
+            margin: 10px 0 8px;
+            font-size: 13px;
+            letter-spacing: 0.08em;
+        }
+
+        .invite-info .invite-opening span {
+            display: block;
+            font-size: 11.5px;
+            color: #8a8a8a;
         }
 
         .invite-info .invite-venue {
@@ -1432,10 +1524,11 @@
                 <p class="invite-kicker">이철민 개인전<span>Lee Cheolmin Exhibition</span></p>
                 <img class="invite-photo" src="images/invitation.webp" alt="" />
                 <h1 class="invite-title"><img src="images/title.png" alt="섬을 걷는 귀" /></h1>
-                <p class="invite-subtitle">Sound Installation · 20min</p>
+                <p class="invite-subtitle">Sound Installation</p>
                 <div class="invite-info">
                     <p class="invite-date">2026.11.7 – 11.26</p>
                     <p>11:00 – 17:00 <span class="invite-muted">(월요일 정기 휴무)</span></p>
+                    <p class="invite-opening">오프닝 소리굿 11.7 (토) 15:00 – 16:00<span>도깨비 소리굿 오프닝 공연</span></p>
                     <p class="invite-venue">박진화미술관</p>
                     <p class="invite-muted">인천 강화군 강화읍 대산리 789-1 · <a class="invite-maplink" href="https://map.naver.com/p/search/%EB%B0%95%EC%A7%84%ED%99%94%EB%AF%B8%EC%88%A0%EA%B4%80" target="_blank" rel="noopener">지도 보기</a></p>
                 </div>
@@ -1452,24 +1545,15 @@
                 </div>
             </section>
 
-            <!-- Main Menu (links to be filled in) -->
+            <!-- Contact links -->
             <nav class="drawer-menu">
-                <a href="#">Works</a>
-                <a href="#">Videos</a>
-                <a href="#">Mixes</a>
-                <a href="#">Installation</a>
-                <a href="#">Field Recording</a>
-                <a href="#" target="_blank" rel="noopener">Soundcloud</a>
-            </nav>
-
-            <nav class="drawer-menu drawer-menu-sub">
-                <a href="#">Contact</a>
-                <a href="#" target="_blank" rel="noopener">Instagram</a>
+                <a href="mailto:blueboat0092@gmail.com?subject=%EC%84%AC%EC%9D%84%20%EA%B1%B7%EB%8A%94%20%EA%B7%80">Contact</a>
+                <a href="https://www.instagram.com/nosadon1234/" target="_blank" rel="noopener">Instagram</a>
             </nav>
 
             <!-- Sidebar Footer -->
             <div class="sidebar-footer" style="margin-top: 24px; border-top: 1px dashed #663366; padding-top: 12px; font-size: 9.5px; color: #663366; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono);">
-                <span>섬을 걷는 귀 © 2026 Lee Cheolmin <span id="app-version-label" style="opacity: 0.6; margin-left: 6px;">[v11600]</span></span>
+                <span>섬을 걷는 귀 © 2026 Lee Cheolmin <span id="app-version-label" style="opacity: 0.6; margin-left: 6px;">[v11700]</span></span>
                 <button class="track-item-btn" onclick="toggleAdminMode()" id="admin-trigger-link" style="font-size: 9.5px; padding: 2px 6px; opacity: 0.35;">[E] ADMIN</button>
             </div>
 
@@ -1855,7 +1939,7 @@
     const soundData = [];
     
     // Force reset local database if caching version has changed (cleans corrupted structures)
-    const APP_VERSION = "2026-10-22-v11600";
+    const APP_VERSION = "2026-10-22-v11700";
     if (localStorage.getItem('gangwha_app_version') !== APP_VERSION) {
         localStorage.removeItem('gangwha_sound_data');
         localStorage.removeItem('gangwha_deleted_defaults');
@@ -1930,6 +2014,14 @@
             syncMapToViewport();
         }, 380);
     }
+
+    // Also refit the moment the map's own resize transition finishes, so the timing above can't miss it
+    document.getElementById('map').addEventListener('transitionend', (e) => {
+        if (e.target.id === 'map' && ['height', 'width', 'left'].includes(e.propertyName)) {
+            map.invalidateSize();
+            syncMapToViewport();
+        }
+    });
 
     function syncMapToViewport() {
         // getBoundsZoom/fitBounds clamp to the current minZoom, so release it before measuring;
@@ -2877,7 +2969,7 @@
         document.body.classList.toggle('panel-expanded', state === 'expanded');
         const expandBtn = document.getElementById('mini-expand');
         if (expandBtn) expandBtn.classList.toggle('is-expanded', state === 'expanded');
-        if (window.innerWidth <= 768) refitMapAfterDock();
+        refitMapAfterDock();
     }
 
     function toggleMobilePanel() {
