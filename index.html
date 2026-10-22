@@ -43,16 +43,16 @@
             --bg-panel: #fafafa;
             --bg-popup: #ffffff;
             --bg-hover: #f3f4f6;
-            --bg-active: #ebf3fc;
-            --text-main: #1f2937;
-            --text-sub: #8c92ac;
-            --text-accent: #4a7bb0;  /* Water Blue */
+            --bg-active: #f0f0f0;
+            --text-main: #2f2f2f;
+            --text-sub: #8a8a8a;
+            --text-accent: #3a3a3a;  /* Poster ink grey */
             --border-color: #d1d5db;
             --shadow-color: rgba(0, 0, 0, 0.08);
             --btn-bg: #ffffff;
             --btn-border: #d1d5db;
             --btn-text: #1f2937;
-            --marker-bg: #4a7bb0;
+            --marker-bg: #b8432f;
             --marker-text: #ffffff;
             --map-filter: grayscale(0.8) contrast(1.05) brightness(1.02);
         }
@@ -236,11 +236,33 @@
             padding: 0;
             font-size: 15px;
             line-height: 1;
-            color: var(--text-main);
+            color: #3a3a3a;
             background: none;
             border: none;
             border-radius: 50%;
             cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .mini-btn svg {
+            display: block;
+            width: 18px;
+            height: 18px;
+            margin: 0 auto;
+            fill: currentColor;
+        }
+
+        .mini-btn.mini-play svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .mini-chevron {
+            transition: transform 0.25s ease;
+        }
+
+        .mini-btn.is-expanded .mini-chevron {
+            transform: rotate(180deg);
         }
 
         .mini-btn:active {
@@ -252,7 +274,7 @@
             height: 44px;
             font-size: 16px;
             color: #ffffff;
-            background: var(--text-main);
+            background: #3a3a3a;
         }
 
         .mini-btn:disabled {
@@ -271,13 +293,13 @@
         /* 🌟 Pulse Glow effect for playing marker */
         @keyframes marker-glow {
             0% {
-                box-shadow: 0 0 0 0px rgba(74, 123, 176, 0.7);
+                box-shadow: 0 0 0 0px rgba(184, 67, 47, 0.5);
             }
             70% {
-                box-shadow: 0 0 0 12px rgba(74, 123, 176, 0);
+                box-shadow: 0 0 0 12px rgba(184, 67, 47, 0);
             }
             100% {
-                box-shadow: 0 0 0 0px rgba(74, 123, 176, 0);
+                box-shadow: 0 0 0 0px rgba(184, 67, 47, 0);
             }
         }
         .custom-marker-icon.playing {
@@ -377,7 +399,7 @@
         #admin-actions-panel {
             padding: 12px;
             border-bottom: 2px solid var(--border-color);
-            background-color: rgba(255, 51, 170, 0.03);
+            background-color: rgba(0, 0, 0, 0.02);
             box-sizing: border-box;
         }
 
@@ -394,7 +416,7 @@
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #4a7bb0;
+            background: #8a8a8a;
         }
 
         /* Album Info and Edit Modal Dialogs */
@@ -500,7 +522,7 @@
         .custom-marker-icon.active {
             border: 3px solid var(--text-accent) !important;
             transform: scale(1.2);
-            box-shadow: 0 4px 8px rgba(255, 51, 170, 0.3) !important;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
         }
 
         /* Popup content box - Poetic Essay Style */
@@ -757,9 +779,14 @@
                 display: none !important;
             }
 
-            /* 미니 플레이어에 이전/다음이 있으므로 상세 패널의 버튼은 숨김 */
-            #sidebar-right .album-nav {
-                display: none !important;
+            /* 미니 플레이어가 재생·넘김을 맡으므로 노트 안의 기본 플레이어는 숨김 (오디오는 계속 재생됨) */
+            #right-sidebar-player-container {
+                position: absolute !important;
+                width: 1px !important;
+                height: 1px !important;
+                overflow: hidden !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
             }
 
             /* 모바일 하단 오버플로우 가독성 최적화 */
@@ -1027,13 +1054,32 @@
             background: #3a3a3a;
         }
 
-        .invite-note {
-            margin: 16px auto 0;
-            max-width: 280px;
-            font-size: 11px;
-            line-height: 1.7;
-            color: #8a8a8a;
+        .invite-statement {
+            margin: 30px auto 0;
+            max-width: 300px;
+            text-align: left;
+            font-size: 12.5px;
+            line-height: 1.9;
+            letter-spacing: 0.02em;
+            color: #4a4a4a;
             word-break: keep-all;
+        }
+
+        .invite-statement:empty {
+            display: none;
+        }
+
+        .invite-statement h2 {
+            margin: 0 0 18px;
+            font-size: 13px;
+            font-weight: 400;
+            letter-spacing: 0.08em;
+            text-align: center;
+            color: #3a3a3a;
+        }
+
+        .invite-statement p {
+            margin: 0 0 14px;
         }
 
         /* Menu and footer follow the poster tone: centered, light, spaced */
@@ -1261,36 +1307,6 @@
             font-weight: bold;
         }
 
-        .album-nav {
-            display: flex;
-            justify-content: space-between;
-            gap: 8px;
-            margin-top: 8px;
-        }
-
-        .album-nav button {
-            flex: 1;
-            padding: 4px 0;
-            font-size: 11px;
-            color: var(--text-main);
-            background: #ffffff;
-            border: 1px solid var(--border-color);
-            border-radius: 3px;
-            cursor: pointer;
-        }
-
-        .album-nav button:hover:not(:disabled) {
-            color: var(--text-accent);
-            border-color: var(--text-accent);
-        }
-
-        .album-nav button:disabled {
-            opacity: 0.35;
-            cursor: default;
-        }
-
-
-
         /* 📖 Felix Blume Inspired Modern Accordions */
         .retro-accordion {
             margin-bottom: 10px;
@@ -1424,7 +1440,16 @@
                     <p class="invite-muted">인천 강화군 강화읍 대산리 789-1 · <a class="invite-maplink" href="https://map.naver.com/p/search/%EB%B0%95%EC%A7%84%ED%99%94%EB%AF%B8%EC%88%A0%EA%B4%80" target="_blank" rel="noopener">지도 보기</a></p>
                 </div>
                 <button class="invite-cta" onclick="enterMap()">▶ 소리 지도 듣기</button>
-                <p class="invite-note">이어폰을 끼고 들어 보세요.<br>01번부터 16번까지 이어서 재생되며, 지도 위의 점을 누르면 그 장소의 소리로 옮겨 갑니다.</p>
+
+                <!-- 전시 서문: 아래 <p> 안에 문단별로 넣어 주세요 -->
+                <div class="invite-statement">
+                    <h2>섬을 걷는 귀 — 음악이 보이는 풍경</h2>
+                    <p>강화로 들어와 서울과 완전히 결별하지 못한 채 섬과 육지를 오가며 지냈고, 그 사이에서 두 개의 소리풍경을 번갈아 몸에 새겼습니다. 쉼 없이 밀려드는 도시의 소리와, 물이 들고 나는 속도로 흐르는 섬의 소리. 조용한 갯벌에 서서 하늘을 가르는 비행기를 올려다볼 때면, 두 세계는 한 장면 안에 겹쳐 있습니다.</p>
+                    <p>걷기는 이동의 수단이면서 그 자체로 목적이고, 매일의 여행입니다. 걸으며 듣고, 듣다가 멈춰 녹음기를 꺼냅니다. 늘 곁에 있어 당연하게 여겨온 소리들 가운데 나를 붙잡는 소리를 기록하며, 이 소리환경이 내 몸과 마음에 어떤 흔적을 남기는지 들여다보았습니다.</p>
+                    <p>우리는 어느 때보다 서로 연결되어 있는 듯하지만, 어느 때보다 고립감을 느낍니다. 땅과 바람과 물, 우리를 둘러싼 자연과 동물들과의 관계가 끊어졌기 때문은 아닐까 생각합니다. 듣는다는 것은 그 끊어진 관계를 다시 더듬어 가는 일이자, 삶을 조금 더 넓은 시야에서 바라보는 경험입니다. 귀를 열면, 나는 풍경을 바라보는 사람이 아니라 풍경의 일부가 됩니다.</p>
+                    <p>이번 전시는 그렇게 모인 ‘걷는 귀’의 여정을 하나의 공간에 펼쳐 놓습니다. 전시장 둘레를 감싼 여덟 개의 스피커는 바다가 되어 조수처럼 차오르고 빠지며, 그 안에 놓인 여섯 개의 테이블 스피커는 각각 하나의 섬이 됩니다. 시간과 기억과 감정으로 이루어진 섬입니다. 어떤 섬은 누군가의 외침을, 어떤 섬은 아무도 귀 기울이지 않던 작은 소리를 품고 있습니다. 어떤 섬은 북소리로, 또 어떤 섬은 물방울로만 이루어져 있습니다.</p>
+                    <p>섬마다 저마다의 작은 사회가 있지만, 섬과 섬은 서로 닿지 못한 채 떨어져 있습니다. 당신이 그 사이를 걸으며 소리와 이어질 때, 소리는 당신의 경험이 되고 비로소 ‘듣기’가 됩니다. 흩어진 소리들이 음악이 되고, 그 음악 속에서 풍경이 보이기를 바랍니다. 이 전시가 당신 곁의 소리에 귀 기울여 보는 시간이 되기를 바랍니다.</p>
+                </div>
             </section>
 
             <!-- Main Menu (links to be filled in) -->
@@ -1444,7 +1469,7 @@
 
             <!-- Sidebar Footer -->
             <div class="sidebar-footer" style="margin-top: 24px; border-top: 1px dashed #663366; padding-top: 12px; font-size: 9.5px; color: #663366; display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono);">
-                <span>섬을 걷는 귀 © 2026 Lee Cheolmin <span id="app-version-label" style="opacity: 0.6; margin-left: 6px;">[v11300]</span></span>
+                <span>섬을 걷는 귀 © 2026 Lee Cheolmin <span id="app-version-label" style="opacity: 0.6; margin-left: 6px;">[v11600]</span></span>
                 <button class="track-item-btn" onclick="toggleAdminMode()" id="admin-trigger-link" style="font-size: 9.5px; padding: 2px 6px; opacity: 0.35;">[E] ADMIN</button>
             </div>
 
@@ -1479,10 +1504,10 @@
             <span id="mini-num" class="mini-num">TRACK --</span>
             <span id="mini-title" class="mini-title"></span>
         </button>
-        <button id="mini-prev" class="mini-btn" onclick="playPrevTrack()" aria-label="Previous track">⏮</button>
-        <button id="mini-play" class="mini-btn mini-play" onclick="toggleAudioPlayback()" aria-label="Play or pause">⏸</button>
-        <button id="mini-next" class="mini-btn" onclick="playNextTrack()" aria-label="Next track">⏭</button>
-        <button id="mini-expand" class="mini-btn" onclick="toggleMobilePanel()" aria-label="Expand or collapse">▴</button>
+        <button id="mini-prev" class="mini-btn" onclick="playPrevTrack()" aria-label="Previous track"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="6" width="2" height="12"/><path d="M19 6v12L9 12z"/></svg></button>
+        <button id="mini-play" class="mini-btn mini-play" onclick="toggleAudioPlayback()" aria-label="Play or pause"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="6" width="3" height="12"/><rect x="14" y="6" width="3" height="12"/></svg></button>
+        <button id="mini-next" class="mini-btn" onclick="playNextTrack()" aria-label="Next track"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="17" y="6" width="2" height="12"/><path d="M5 6v12l10-6z"/></svg></button>
+        <button id="mini-expand" class="mini-btn" onclick="toggleMobilePanel()" aria-label="Expand or collapse"><svg class="mini-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
     </div>
     
     <div class="sidebar-title">Ganghwa soundscape</div>
@@ -1492,10 +1517,6 @@
         <div id="right-sidebar-title-card" class="diary-box" style="display: none; padding-bottom: 0;">
             <span id="right-sidebar-track-num" style="color: var(--text-accent); font-size: 10px; font-weight: bold; display: block; margin-bottom: 6px;">Track --</span>
             <h2 id="right-sidebar-title" style="margin: 0; font-size: 13px; font-weight: bold; border-bottom: 1px dashed var(--border-color); padding-bottom: 6px; color: var(--text-main);">Select a spot</h2>
-            <div class="album-nav">
-                <button id="album-prev-btn" onclick="playPrevTrack()">◀ 이전 트랙</button>
-                <button id="album-next-btn" onclick="playNextTrack()">다음 트랙 ▶</button>
-            </div>
         </div>
 
         <!-- Audio Player Container (Middle - Title 아래) -->
@@ -1542,7 +1563,7 @@
                 <select id="modal-edit-category" class="bbs-input" onchange="handleCategorySelectChange(this)" style="width: 100%; height: 32px; background: #ffffff; cursor: pointer; border: 1px solid var(--border-color); font-family: var(--font-mono); font-size: 12px;"></select>
                 <div id="edit-category-color-wrapper" style="display: none; align-items: center; gap: 8px; margin-top: 6px;">
                     <label style="font-size: 10px;">THEME COLOR :</label>
-                    <input type="color" id="modal-edit-category-color" value="#4a7bb0" class="bbs-input" style="width: 40px; height: 28px; padding: 0; cursor: pointer; border: 1px solid var(--border-color);" />
+                    <input type="color" id="modal-edit-category-color" value="#3a3a3a" class="bbs-input" style="width: 40px; height: 28px; padding: 0; cursor: pointer; border: 1px solid var(--border-color);" />
                     <div id="edit-color-swatches" style="display: flex; gap: 4px;"></div>
                 </div>
             </div>
@@ -1614,7 +1635,7 @@
             <div class="form-row" style="display: flex; flex-direction: column; gap: 4px;">
                 <label style="font-weight: bold; font-size: 11px;">CHOOSE THEME COLOR :</label>
                 <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
-                    <input type="color" id="modal-cat-color" value="#4a7bb0" class="bbs-input" style="width: 50px; height: 32px; padding: 0; cursor: pointer; border: 1px solid var(--border-color);" />
+                    <input type="color" id="modal-cat-color" value="#3a3a3a" class="bbs-input" style="width: 50px; height: 32px; padding: 0; cursor: pointer; border: 1px solid var(--border-color);" />
                     <div id="color-swatches" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
                 </div>
             </div>
@@ -1641,7 +1662,7 @@
                 "category": "Soundscape in ganghwa island 2025-2026",
                 "audioUrl": "https://pub-36086cf8b4d04a4d8098565e7360f0ef.r2.dev/ganghwa-web-upload/track01.m4a",
                 "imageBase64": "",
-                "imageUrl": "images/track01.png"
+                "imageUrl": ""
         },
         {
                 "id": "753759855",
@@ -1834,7 +1855,7 @@
     const soundData = [];
     
     // Force reset local database if caching version has changed (cleans corrupted structures)
-    const APP_VERSION = "2026-10-21-v11300";
+    const APP_VERSION = "2026-10-22-v11600";
     if (localStorage.getItem('gangwha_app_version') !== APP_VERSION) {
         localStorage.removeItem('gangwha_sound_data');
         localStorage.removeItem('gangwha_deleted_defaults');
@@ -1951,7 +1972,7 @@
 
     // Harmonious, curated preset colors for category tags
     const PRESET_COLORS = [
-        "#4a7bb0", // Water Blue (Default)
+        "#3a3a3a", // Poster ink grey (Default)
         "#3388ff", // Soft Blue
         "#22cc88", // Mint Green
         "#ffaa00", // Warm Orange
@@ -1982,7 +2003,7 @@
         const savedColors = JSON.parse(localStorage.getItem('gangwha_category_colors') || '{}');
         if (savedColors[cleanName]) return savedColors[cleanName];
 
-        if (cleanName === "Soundscape in ganghwa island 2025-2026") return "#4a7bb0";
+        if (cleanName === "Soundscape in ganghwa island 2025-2026") return "#b8432f"; // 인주색 (seal-ink vermilion)
         if (cleanName === "Field Recordings / Live Notes") return "#3388ff";
         if (cleanName === "Drafts & Miscellaneous") return "#9966ff";
 
@@ -2051,7 +2072,7 @@
         document.getElementById('modal-cat-original-name').value = '';
         
         document.getElementById('modal-cat-name').value = '';
-        document.getElementById('modal-cat-color').value = '#4a7bb0';
+        document.getElementById('modal-cat-color').value = '#3a3a3a';
         renderSwatches('color-swatches', 'modal-cat-color');
         document.getElementById('category-modal').style.display = 'flex';
     }
@@ -2643,8 +2664,6 @@
         document.getElementById('right-sidebar-desc').innerText = track.desc;
         document.getElementById('right-sidebar-meta').innerHTML = formatMetaToHtml(track.meta);
         updateMiniPlayer();
-        document.getElementById('album-prev-btn').disabled = idx === 0;
-        document.getElementById('album-next-btn').disabled = idx === soundData.length - 1;
 
         // Show Hidden Track Details Panels
         const titleCard = document.getElementById('right-sidebar-title-card');
@@ -2699,7 +2718,7 @@
                 }
                 audioPlayerHtml = `<iframe class="popup-player" src="${bcUrl}" style="width: 100%; border: none; height: 42px;" allow="autoplay" seamless></iframe>`;
             } else if (rawAudio.includes('soundcloud.com')) {
-                const scUrl = `https://w.soundcloud.com/player/?url=${encodeURIComponent(rawAudio)}&color=%234a7bb0&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false&show_artwork=false&sharing=false&download=false&buying=false&show_playcount=false`;
+                const scUrl = `https://w.soundcloud.com/player/?url=${encodeURIComponent(rawAudio)}&color=%233a3a3a&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false&show_artwork=false&sharing=false&download=false&buying=false&show_playcount=false`;
                 audioPlayerHtml = `<iframe class="popup-player-sc" src="${scUrl}" style="width: 100%; border: none; height: 80px;" scrolling="no" frameborder="no" allow="autoplay" seamless></iframe>`;
             } else if (isNativeStream) {
                 audioPlayerHtml = `<audio id="right-sidebar-audio-element" controls src="${rawAudio}" style="width: 100%;" autoplay></audio>`;
@@ -2857,7 +2876,7 @@
         document.body.classList.toggle('panel-mini', state === 'mini');
         document.body.classList.toggle('panel-expanded', state === 'expanded');
         const expandBtn = document.getElementById('mini-expand');
-        if (expandBtn) expandBtn.innerText = state === 'expanded' ? '▾' : '▴';
+        if (expandBtn) expandBtn.classList.toggle('is-expanded', state === 'expanded');
         if (window.innerWidth <= 768) refitMapAfterDock();
     }
 
@@ -2882,8 +2901,11 @@
     }
 
     // Media events don't bubble, so listen in the capture phase to follow whichever <audio> is current
-    document.addEventListener('play', () => { document.getElementById('mini-play').innerText = '⏸'; }, true);
-    document.addEventListener('pause', () => { document.getElementById('mini-play').innerText = '▶'; }, true);
+    // SVG icons instead of ⏮⏸⏭ characters: iOS renders those as colour emoji
+    const MINI_ICON_PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+    const MINI_ICON_PAUSE = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="6" width="3" height="12"/><rect x="14" y="6" width="3" height="12"/></svg>';
+    document.addEventListener('play', () => { document.getElementById('mini-play').innerHTML = MINI_ICON_PAUSE; }, true);
+    document.addEventListener('pause', () => { document.getElementById('mini-play').innerHTML = MINI_ICON_PLAY; }, true);
     document.addEventListener('timeupdate', (e) => {
         const a = e.target;
         if (a.id !== 'right-sidebar-audio-element' || !a.duration) return;
